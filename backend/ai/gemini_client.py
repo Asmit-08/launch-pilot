@@ -13,12 +13,10 @@ def generate_response(prompt: str):
         )
 
         return response.text
-    
+
     except Exception as e:
         print(f"Gemini Failure: {e}")
 
-        return """
-    TEMPORARY_AI_FAILURE
-"""
+        return None
 
 

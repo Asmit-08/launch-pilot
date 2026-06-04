@@ -1,33 +1,46 @@
 import json
 from backend.ai.prompts import build_audit_prompt
 from backend.ai.gemini_client import generate_response
+from backend.ai.agents import (
+    product_agent,
+    validation_agent,
+    launch_readiness_agent,
+    risk_agent
+)
+
+from backend.services.aggregator import aggregate_results
 
 class AuditService:
 
     @staticmethod
     def generate_audit(data):
 
-                prompt = build_audit_prompt(data)
+        try:
 
-                response = generate_response(prompt)
+            product_result = product_agent(data)
 
-                response = response.replace("```json", "")
-                response = response.replace("```", "")
-                response = response.strip()
+            validation_result = validation_agent(data)
 
-                try:
-                        audit_data = json.loads(response)
+            launch_result = launch_readiness_agent(data)
 
-                        return audit_data
-                except Exception as e:
-                        print("JSON Parse Error:", e)
-                        print("Gemini Response:", response)
+            risk_result = risk_agent(data)
 
-                return{
-                        "readiness_score": 0,
-                        "summary": "Failed to parse AI response.",
-                        "missing_assets": [],
-                        "risks": [],
-                        "recommendations": []
-                }
-        
+            return aggregate_results(
+                product_result,
+                validation_result,
+                launch_result,
+                risk_result
+            )
+
+        except Exception as e:
+
+            print("Audit Error:", e)
+
+            return {
+                "overall_score": 0,
+                "product": {},
+                "validation": {},
+                "launch_readiness": {},
+                "risk": {},
+                "error": str(e)
+            }
