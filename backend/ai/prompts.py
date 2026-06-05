@@ -187,17 +187,38 @@ Analyze ONLY:
 - Product differentiation
 - Product readiness
 
-Scoring Guidelines
+SCORING RUBRIC
 
-0-2 = Critical Failure
+0-2 = Critical failure
+The startup has severe unresolved issues and is unlikely to succeed without major changes.
 
 3-4 = Weak
+Some progress exists, but significant deficiencies remain.
 
 5-6 = Average
+Reasonable progress with both strengths and weaknesses.
 
 7-8 = Strong
+Well-prepared with only a few important gaps.
 
 9-10 = Exceptional
+Highly prepared with strong evidence and minimal weaknesses.
+
+IMPORTANT:
+
+A startup with:
+- MVP completed
+- active beta users
+- collected feedback
+
+should generally not receive a score below 5 in validation.
+
+A startup with:
+- a functioning product
+- some traction
+- identifiable risks
+
+should generally not receive a risk score below 3 unless survival is immediately threatened.
 """
 
 
@@ -247,17 +268,38 @@ Rules:
 - score must be from 0 to 10
 - return only JSON
 
-Scoring Guidelines
+SCORING RUBRIC
 
-0-2 = Critical Failure
+0-2 = Critical failure
+The startup has severe unresolved issues and is unlikely to succeed without major changes.
 
 3-4 = Weak
+Some progress exists, but significant deficiencies remain.
 
 5-6 = Average
+Reasonable progress with both strengths and weaknesses.
 
 7-8 = Strong
+Well-prepared with only a few important gaps.
 
 9-10 = Exceptional
+Highly prepared with strong evidence and minimal weaknesses.
+
+IMPORTANT:
+
+A startup with:
+- MVP completed
+- active beta users
+- collected feedback
+
+should generally not receive a score below 5 in validation.
+
+A startup with:
+- a functioning product
+- some traction
+- identifiable risks
+
+should generally not receive a risk score below 3 unless survival is immediately threatened.
 """
 
 
@@ -314,17 +356,38 @@ Rules:
 - score must be from 0 to 10
 - return only JSON
 
-Scoring Guidelines
+SCORING RUBRIC
 
-0-2 = Critical Failure
+0-2 = Critical failure
+The startup has severe unresolved issues and is unlikely to succeed without major changes.
 
 3-4 = Weak
+Some progress exists, but significant deficiencies remain.
 
 5-6 = Average
+Reasonable progress with both strengths and weaknesses.
 
 7-8 = Strong
+Well-prepared with only a few important gaps.
 
 9-10 = Exceptional
+Highly prepared with strong evidence and minimal weaknesses.
+
+IMPORTANT:
+
+A startup with:
+- MVP completed
+- active beta users
+- collected feedback
+
+should generally not receive a score below 5 in validation.
+
+A startup with:
+- a functioning product
+- some traction
+- identifiable risks
+
+should generally not receive a risk score below 3 unless survival is immediately threatened.
 """
 
 
@@ -374,20 +437,46 @@ Return ONLY valid JSON.
     "mitigation": []
 }}
 
-Rules:
-- score must be from 0 to 10
-- Higher score = lower overall risk
-- Return only JSON
+IMPORTANT RISK ANALYSIS RULES
 
-Scoring Guidelines
+1. Evaluate the severity of current business risks, NOT the probability that the startup succeeds or fails.
 
-0-2 = Critical Failure
+2. Do not assume a startup will fail simply because:
+   - the budget is small
+   - competitors exist
+   - the startup is early-stage
+   - user numbers are currently low
 
-3-4 = Weak
+3. Early-stage startups are expected to have:
+   - limited budgets
+   - small beta user groups
+   - incomplete marketing assets
+   These factors alone should not automatically result in a critical score.
 
-5-6 = Average
+4. Focus on:
+   - financial risks
+   - competitive risks
+   - monetization risks
+   - business execution risks
 
-7-8 = Strong
+5. Competitors should only be considered a major risk if they solve the same primary problem for the same target audience.
 
-9-10 = Exceptional
+6. Every critical risk must have a realistic mitigation strategy.
+
+SCORING RUBRIC
+
+0-2 = Critical risks threatening immediate viability
+3-4 = High risks requiring urgent attention
+5-6 = Manageable risks with clear mitigation paths
+7-8 = Low risks
+9-10 = Minimal risks
+
+IMPORTANT:
+
+A startup that has:
+- a completed MVP
+- some user validation
+- a defined target audience
+
+should generally not receive a score below 3 unless there is an immediate existential threat.
 """
