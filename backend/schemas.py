@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import List
+from typing import Dict, Any
+from pydantic import BaseModel
 
 class LaunchAuditRequest(BaseModel):
 
@@ -34,3 +36,10 @@ class LaunchAuditRequest(BaseModel):
     budget: int
     currency: str
     pricing_model: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    audit_result: Dict[str, Any]
+    startup_data: Dict[str, Any]
+    chat_history: List[Dict[str, str]] = []
