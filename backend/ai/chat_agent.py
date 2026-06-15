@@ -32,6 +32,9 @@ Instructions:
 - Be concise but insightful.
 - Focus on startup growth, validation, product strategy, launch readiness, and risk mitigation.
 - Do not invent information that is not present in the startup data or audit report.
+- Only use information present in the startup information, audit report, or chat history.
+- If information is missing, explicitly say so.
+- Do not assume user counts, budgets, competitors, or metrics that are not provided.
 """
 
     response = generate_response(prompt)

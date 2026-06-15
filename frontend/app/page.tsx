@@ -1,70 +1,184 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import AnimatedSection from "@/components/AnimatedSection";
+import Typewriter from "@/components/Typewriter";
+import HeroContent from "@/components/HeroContent";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black text-white">
-      <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur">
+    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+      <div
+  style={{
+    position: "absolute",
+    top: "-250px",
+    left: "-250px",
+    width: "800px",
+    height: "800px",
+    borderRadius: "9999px",
+    background:
+      "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(59,130,246,0) 70%)",
+    pointerEvents: "none",
+  }}
+/>
+
+
+<div
+  style={{
+    position: "absolute",
+    top: "-200px",
+    right: "-250px",
+    width: "800px",
+    height: "800px",
+    borderRadius: "9999px",
+    background:
+      "radial-gradient(circle, rgba(168,85,247,0.25) 0%, rgba(168,85,247,0) 70%)",
+    pointerEvents: "none",
+  }}
+/>
+
+<div
+  style={{
+    position: "absolute",
+    top: "100px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "1000px",
+    height: "700px",
+    borderRadius: "9999px",
+    background:
+      "radial-gradient(circle, rgba(120,119,255,0.12) 0%, rgba(120,119,255,0) 70%)",
+    pointerEvents: "none",
+  }}
+/>
+
+<div
+  style={{
+    position: "absolute",
+    top: "800px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "1400px",
+    height: "1400px",
+    borderRadius: "9999px",
+    background:
+      "radial-gradient(circle, rgba(59,130,246,0.06) 0%, rgba(59,130,246,0) 70%)",
+    pointerEvents: "none",
+  }}
+/>
+
+<div
+  style={{
+    position: "absolute",
+    top: "1700px",
+    right: "-300px",
+    width: "1200px",
+    height: "1200px",
+    borderRadius: "9999px",
+    background:
+      "radial-gradient(circle, rgba(168,85,247,0.05) 0%, rgba(168,85,247,0) 70%)",
+    pointerEvents: "none",
+  }}
+/>
+
+<div
+ className = "aurora"
+  style={{
+    position: "absolute",
+    top: "0",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "1400px",
+    height: "700px",
+    background:
+      "linear-gradient(90deg, rgba(59,130,246,0.08), rgba(168,85,247,0.08), rgba(59,130,246,0.08))",
+    filter: "blur(120px)",
+    pointerEvents: "none",
+  }}
+/>
+
+      <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-black/50 backdrop-blur-xl">
   <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    
 
     <h1 className="text-xl font-bold">
-      Launch <span className="text-blue-500">Pilot</span>
+      Launch 
+      <span className="text-blue-500">Pilot</span>
     </h1>
 
     <div className="flex items-center gap-2">
 
       <div className="hidden md:flex gap-3">
-        <Button variant="ghost">
-          Features
+        <Button asChild variant="ghost">
+          <a href="#features">
+            Features
+          </a>
         </Button>
 
-        <Button variant="ghost">
-          How It Works
+        <Button asChild variant="ghost">
+          <a href="#how-it-works">
+            How It Works
+          </a>
         </Button>
       </div>
 
-      <Button size="sm">
-        Run Audit
+      <Button asChild size="lg">
+        <Link href="/audit">
+          Run Launch Audit
+        </Link>
       </Button>
 
     </div>
 
   </div>
 </nav>
-      <section className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-
+<AnimatedSection>
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        
         <div className="mb-6 rounded-full border border-white/20 px-4 py-2 text-sm text-zinc-400">
           🚀 AI-Powered SaaS Launch Analysis
         </div>
 
         <h1 className="text-7xl font-bold tracking-tight">
           Launch
-          <span className="text-blue-500"> Pilot</span>
+          <Typewriter />
         </h1>
 
-        <p className="mt-8 text-2xl text-zinc-400">
-          Your AI Co-Founder for SaaS Launches
-        </p>
+        <HeroContent delay={1}>
+          <p className="mt-8 text-2xl text-zinc-400">
+            Your AI Co-Founder for SaaS Launches
+          </p>
+        </HeroContent>
 
+        <HeroContent delay={1.3}>
         <p className="mt-6 max-w-3xl text-lg text-zinc-500">
-          Identify launch risks, weak validation, missing assets,
-          and hidden business problems before going public.
+          Identify launch risks, weak validation,
+          missing assets, and hidden business
+          problems before going public.
         </p>
-
+      </HeroContent>
+    <HeroContent delay ={1.3}>
         <div className="mt-10 flex gap-4">
-          <Button size="lg">
-            Run Launch Audit
+          <Button asChild size="lg">
+            <Link href="/audit">
+              Run Launch Audit
+            </Link>
           </Button>
 
-          <Button variant="outline" size="lg">
+         <Button asChild variant="outline" size="lg">
+          <a href="#demo">
             View Demo
-          </Button>
+          </a>
+        </Button>
         </div>
+      </HeroContent>
 
       </section>
-
-      <section className="px-6 pb-32">
+      </AnimatedSection>
+<AnimatedSection>
+      <section className="px-6 pb-32"
+      id = "features">
   <div className="mx-auto max-w-6xl">
+    
 
     <h2 className="mb-12 text-center text-4xl font-bold">
       Your AI Launch Team
@@ -72,9 +186,16 @@ export default function Home() {
 
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-      <div className="rounded-2xl border border-white/10 p-6">
+      <div
+  className="rounded-2xl p-6 transition-all duration-300 hover:-scale-110"
+  style={{
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+  }}
+>
         <h3 className="mb-3 text-xl font-semibold">
-          Product Analysis
+          📦 Product Analysis
         </h3>
         <p className="text-zinc-400">
           Evaluate your product quality, differentiation,
@@ -82,9 +203,16 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 p-6">
+      <div
+  className="rounded-2xl p-6 transition-all duration-300 hover:-scale-110"
+  style={{
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+  }}
+>
         <h3 className="mb-3 text-xl font-semibold">
-          Validation Analysis
+          📈 Validation Analysis
         </h3>
         <p className="text-zinc-400">
           Measure market validation, traction,
@@ -92,9 +220,16 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 p-6">
+     <div
+  className="rounded-2xl p-6 transition-all duration-300 hover:-scale-110"
+  style={{
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+  }}
+>
         <h3 className="mb-3 text-xl font-semibold">
-          Launch Readiness
+          🚀 Launch Readiness
         </h3>
         <p className="text-zinc-400">
           Identify missing launch assets and
@@ -102,9 +237,16 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 p-6">
+      <div
+  className="rounded-2xl p-6 transition-all duration-300 hover:-scale-110"
+  style={{
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backdropFilter: "blur(12px)",
+  }}
+>
         <h3 className="mb-3 text-xl font-semibold">
-          Risk Detection
+          ⚠️ Risk Detection
         </h3>
         <p className="text-zinc-400">
           Discover financial, competitive,
@@ -116,8 +258,13 @@ export default function Home() {
 
   </div>
 </section>
+</AnimatedSection>
 
-<section className="px-6 py-32">
+<AnimatedSection>
+<section
+  id="how-it-works"
+  className="px-6 py-32"
+>
   <div className="mx-auto max-w-5xl">
 
     <h2 className="mb-16 text-center text-4xl font-bold">
@@ -189,8 +336,11 @@ export default function Home() {
     </div>
   </div>
 </section>
+</AnimatedSection>
 
-<section className="px-6 py-32">
+
+<AnimatedSection>
+<section className="px-6 py-32" id = "demo">
   <div className="mx-auto max-w-5xl">
 
     <h2 className="mb-4 text-center text-4xl font-bold">
@@ -260,7 +410,9 @@ export default function Home() {
 
   </div>
 </section>
+</AnimatedSection>
 
+<AnimatedSection>
 <section className="px-6 py-32 text-center">
   <div className="mx-auto max-w-4xl">
 
@@ -281,6 +433,7 @@ export default function Home() {
 
   </div>
 </section>
+</AnimatedSection>
 
 <footer className="border-t border-white/10 py-8 text-center text-zinc-500">
   <p>© 2026 Launch Pilot. Built for founders.</p>

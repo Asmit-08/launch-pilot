@@ -129,3 +129,26 @@
     @apply font-sans;
   }
 }
+
+html {
+  @apply font-sans;
+  scroll-behavior: smooth;
+}
+
+@keyframes aurora {
+  0% {
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  50% {
+    transform: translateX(-40%) translateY(40px);
+  }
+
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+}
+
+.aurora {
+  animation: aurora 10s ease-in-out infinite;
+}

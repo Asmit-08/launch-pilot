@@ -74,19 +74,19 @@ const [loadingMessage, setLoadingMessage] = useState(
 
     setTimeout(() => {
       setLoadingMessage("Checking Validation...");
-    }, 1000);
+    }, 1500);
 
     setTimeout(() => {
       setLoadingMessage("Assessing Launch Readiness...");
-    }, 2000);
-
-    setTimeout(() => {
-      setLoadingMessage("Identifying Risks...");
     }, 3000);
 
     setTimeout(() => {
+      setLoadingMessage("Identifying Risks...");
+    }, 4500);
+
+    setTimeout(() => {
       setLoadingMessage("Generating Report...");
-  }, 4000);
+  }, 6000);
     const payload = {
       ...formData,
 
@@ -135,12 +135,15 @@ router.push("/dashboard");
           </h1>
 
           <p className="mt-6 text-xl text-zinc-400">
-            {loadingMessage}
+            {loadingMessage}         
+          </p>
+          <p className="mt-3 text-zinc-500">
+            AI agents are preparing your startup audit...
           </p>
 
           <div className="mt-10 w-80">
 
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+            <div className="h-3 overflow-hidden rounded-full bg-zinc-800">
 
               <div className="h-full w-2/3 animate-pulse rounded-full bg-blue-500" />
 
@@ -149,6 +152,36 @@ router.push("/dashboard");
           </div>
 
         </div>
+        <div className="mt-8 space-y-2 text-left">
+
+  <p className="text-zinc-400">
+    {loadingMessage !== "Analyzing Product..."
+      ? "✅ Product Analysis Complete"
+      : "⏳ Product Analysis"}
+  </p>
+
+  <p className="text-zinc-400">
+    {loadingMessage === "Assessing Launch Readiness..." ||
+     loadingMessage === "Identifying Risks..." ||
+     loadingMessage === "Generating Report..."
+      ? "✅ Validation Analysis Complete"
+      : "⏳ Validation Analysis"}
+  </p>
+
+  <p className="text-zinc-400">
+    {loadingMessage === "Identifying Risks..." ||
+     loadingMessage === "Generating Report..."
+      ? "✅ Launch Readiness Complete"
+      : "⏳ Launch Readiness"}
+  </p>
+
+  <p className="text-zinc-400">
+    {loadingMessage === "Generating Report..."
+      ? "✅ Risk Analysis Complete"
+      : "⏳ Risk Analysis"}
+  </p>
+
+</div>
       </main>
     );
   }
@@ -165,15 +198,29 @@ router.push("/dashboard");
         <p className="mt-3 text-zinc-400">
           Tell Launch Pilot about your startup.
         </p>
+
+        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <p className="font-medium">
+            Estimated completion time: 2-3 minutes
+          </p>
+
+          <p className="mt-2 text-sm text-zinc-500">
+            Our AI agents will evaluate your product, validation,
+            launch readiness, and business risks.
+          </p>
+        </div>
               <form
         className="space-y-8"
         onSubmit={handleSubmit}
       >
 
         {/* Product Card */}
-        <Card className="mt-10">
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Product</CardTitle>
+            <CardTitle>🚀 Product</CardTitle>
+            <p className="text-sm text-zinc-500">
+    Tell us what you're building.
+  </p>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -208,9 +255,12 @@ router.push("/dashboard");
           </CardContent>
         </Card>
 
-        <Card className="mt-10">
+        <Card className="mt-6">
   <CardHeader>
-    <CardTitle>Market</CardTitle>
+    <CardTitle>🎯 Market</CardTitle>
+    <p className="text-sm text-zinc-500">
+    Describe your audience and competitors.
+  </p>
   </CardHeader>
 
   <CardContent className="space-y-4">
@@ -248,9 +298,12 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-10">
+<Card className="mt-6">
   <CardHeader>
-    <CardTitle>Validation</CardTitle>
+    <CardTitle>📈 Validation</CardTitle>
+    <p className="text-sm text-zinc-500">
+    Show evidence that user wants it.
+  </p>
   </CardHeader>
 
   <CardContent className="space-y-6">
@@ -285,9 +338,9 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-10">
+<Card className="mt-6">
   <CardHeader>
-    <CardTitle>Product Status</CardTitle>
+    <CardTitle>🛠 Product Status</CardTitle>
   </CardHeader>
 
   <CardContent className="space-y-6">
@@ -325,9 +378,9 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-10">
+<Card className="mt-6">
   <CardHeader>
-    <CardTitle>Marketing</CardTitle>
+    <CardTitle>📢 Marketing</CardTitle>
   </CardHeader>
 
   <CardContent className="space-y-6">
@@ -374,9 +427,9 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-10">
+<Card className="mt-6">
   <CardHeader>
-    <CardTitle>Distribution</CardTitle>
+    <CardTitle>🌍 Distribution</CardTitle>
   </CardHeader>
 
   <CardContent className="space-y-6">
@@ -408,9 +461,12 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-10">
+<Card className="mt-6">
   <CardHeader>
-    <CardTitle>Business</CardTitle>
+    <CardTitle>💰 Business</CardTitle>
+    <p className="text-sm text-zinc-500">
+    Revenue, pricing, and financial planning.
+  </p>
   </CardHeader>
 
   <CardContent className="space-y-4">
@@ -454,10 +510,9 @@ router.push("/dashboard");
 
 <Button
   size="lg"
-  className="w-full mt-10"
-  type="submit"
+  className="w-full mt-8"
 >
-  Run Launch Audit
+  🚀 Run Launch Audit
 </Button>
 </form>
 
