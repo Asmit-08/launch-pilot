@@ -12,11 +12,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Launch Pilot",
   description: "Your AI Co-Founder for SaaS Launches",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{

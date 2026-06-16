@@ -152,34 +152,46 @@ router.push("/dashboard");
           </div>
 
         </div>
-        <div className="mt-8 space-y-2 text-left">
+        <div className="mt-10 space-y-4 text-left">
 
-  <p className="text-zinc-400">
-    {loadingMessage !== "Analyzing Product..."
-      ? "✅ Product Analysis Complete"
-      : "⏳ Product Analysis"}
-  </p>
+  <div className="flex items-center gap-3">
+    <span className="text-xl">🧠</span>
+    <p>
+      {loadingMessage !== "Analyzing Product..."
+        ? "Product Agent • Complete"
+        : "Product Agent • Working"}
+    </p>
+  </div>
 
-  <p className="text-zinc-400">
-    {loadingMessage === "Assessing Launch Readiness..." ||
-     loadingMessage === "Identifying Risks..." ||
-     loadingMessage === "Generating Report..."
-      ? "✅ Validation Analysis Complete"
-      : "⏳ Validation Analysis"}
-  </p>
+  <div className="flex items-center gap-3">
+    <span className="text-xl">📈</span>
+    <p>
+      {loadingMessage === "Assessing Launch Readiness..." ||
+       loadingMessage === "Identifying Risks..." ||
+       loadingMessage === "Generating Report..."
+        ? "Validation Agent • Complete"
+        : "Validation Agent • Waiting"}
+    </p>
+  </div>
 
-  <p className="text-zinc-400">
-    {loadingMessage === "Identifying Risks..." ||
-     loadingMessage === "Generating Report..."
-      ? "✅ Launch Readiness Complete"
-      : "⏳ Launch Readiness"}
-  </p>
+  <div className="flex items-center gap-3">
+    <span className="text-xl">🚀</span>
+    <p>
+      {loadingMessage === "Identifying Risks..." ||
+       loadingMessage === "Generating Report..."
+        ? "Launch Agent • Complete"
+        : "Launch Agent • Waiting"}
+    </p>
+  </div>
 
-  <p className="text-zinc-400">
-    {loadingMessage === "Generating Report..."
-      ? "✅ Risk Analysis Complete"
-      : "⏳ Risk Analysis"}
-  </p>
+  <div className="flex items-center gap-3">
+    <span className="text-xl">⚠️</span>
+    <p>
+      {loadingMessage === "Generating Report..."
+        ? "Risk Agent • Complete"
+        : "Risk Agent • Waiting"}
+    </p>
+  </div>
 
 </div>
       </main>
@@ -215,7 +227,13 @@ router.push("/dashboard");
       >
 
         {/* Product Card */}
-        <Card className="mt-6">
+        <Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
           <CardHeader>
             <CardTitle>🚀 Product</CardTitle>
             <p className="text-sm text-zinc-500">
@@ -255,7 +273,13 @@ router.push("/dashboard");
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
+        <Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>🎯 Market</CardTitle>
     <p className="text-sm text-zinc-500">
@@ -298,7 +322,13 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-6">
+<Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>📈 Validation</CardTitle>
     <p className="text-sm text-zinc-500">
@@ -338,7 +368,13 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-6">
+<Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>🛠 Product Status</CardTitle>
   </CardHeader>
@@ -378,7 +414,13 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-6">
+<Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>📢 Marketing</CardTitle>
   </CardHeader>
@@ -427,7 +469,13 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-6">
+<Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>🌍 Distribution</CardTitle>
   </CardHeader>
@@ -461,7 +509,13 @@ router.push("/dashboard");
   </CardContent>
 </Card>
 
-<Card className="mt-6">
+<Card
+  style={{
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  backdropFilter: "blur(12px)"
+}}
+>
   <CardHeader>
     <CardTitle>💰 Business</CardTitle>
     <p className="text-sm text-zinc-500">

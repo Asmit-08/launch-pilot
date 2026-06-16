@@ -3,6 +3,7 @@ import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
 import Typewriter from "@/components/Typewriter";
 import HeroContent from "@/components/HeroContent";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -100,10 +101,17 @@ export default function Home() {
   <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
     
 
-    <h1 className="text-xl font-bold">
-      Launch 
-      <span className="text-blue-500">Pilot</span>
-    </h1>
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4 -ml-4">
+  <Image 
+    src="/LaunchPilot-Icon.png"
+    alt="Launch Pilot"
+    width={50}
+    height={50}
+    priority
+  />
+  </div>
+</div>
 
     <div className="flex items-center gap-2">
 
@@ -426,8 +434,10 @@ export default function Home() {
     </p>
 
     <div className="mt-10">
-      <Button size="lg">
-        Run Launch Audit
+      <Button asChild size="lg">
+        <Link href="/audit">
+          Run Launch Audit
+        </Link>
       </Button>
     </div>
 

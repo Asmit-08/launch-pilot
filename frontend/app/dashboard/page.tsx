@@ -11,17 +11,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ReactMarkdown from "react-markdown";
 
+import { useRouter } from "next/navigation";
+
+
+
 export default function DashboardPage() {
+
+const router = useRouter();
   
 
 const [auditResult, setAuditResult] = useState<any>(null);
 useEffect(() => {
   const storedAudit = localStorage.getItem("auditResult");
 
-  if (storedAudit) {
-    setAuditResult(JSON.parse(storedAudit));
+  if (!storedAudit) {
+    router.replace("/audit");
+    return;
   }
-}, []);
+
+  setAuditResult(JSON.parse(storedAudit));
+}, [router]);
 
 const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +125,7 @@ else if (auditResult.overall_score >= 40) {
 else {
   launchStatus = "High Risk";
 }
+
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -359,9 +369,9 @@ else {
 
         <ul className="space-y-2 text-zinc-400">
           {auditResult.risk.critical_risks?.map(
-            (risk: string, index: number) => (
+            (risk: any, index: number) => (
               <li key={index}>
-                • {risk}
+                • {risk.risk}
               </li>
             )
           )}
@@ -375,9 +385,9 @@ else {
 
         <ul className="space-y-2 text-zinc-400">
           {auditResult.risk.mitigation?.map(
-            (item: string, index: number) => (
+            (item: any, index: number) => (
               <li key={index}>
-                • {item}
+                • {item.strategy}
               </li>
             )
           )}
@@ -477,7 +487,7 @@ else {
 
       {auditResult.risk.critical_risks
         ?.slice(0, 1)
-        .map((item: string, index: number) => (
+        .map((item: any, index: number) => (
           <div
             key={index}
             className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 transition-all duration-300 hover:border-blue-500/30"
@@ -495,7 +505,7 @@ else {
 </div>
 
             <p className="mt-2 text-zinc-400">
-              {item}
+              {item.risk}
             </p>
           </div>
         ))}
