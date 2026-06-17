@@ -1,4 +1,4 @@
-from backend.ai.gemini_client import generate_response
+from ai.gemini_client import generate_response
 
 
 def chat_agent(

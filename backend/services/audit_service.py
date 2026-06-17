@@ -1,14 +1,14 @@
 import json
-from backend.ai.prompts import build_audit_prompt
-from backend.ai.gemini_client import generate_response
-from backend.ai.agents import (
+from ai.prompts import build_audit_prompt
+from ai.gemini_client import generate_response
+from ai.agents import (
     product_agent,
     validation_agent,
     launch_readiness_agent,
     risk_agent
 )
 
-from backend.services.aggregator import aggregate_results
+from services.aggregator import aggregate_results
 
 class AuditService:
 

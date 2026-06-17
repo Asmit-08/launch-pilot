@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from backend.schemas import ChatRequest
-from backend.ai.chat_agent import chat_agent
+from schemas import ChatRequest
+from ai.chat_agent import chat_agent
 
 router = APIRouter()
 

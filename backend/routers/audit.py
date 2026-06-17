@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from backend.schemas import LaunchAuditRequest
-from backend.services.audit_service import AuditService
-from backend.ai.agents import product_agent, validation_agent, launch_readiness_agent, risk_agent
+from schemas import LaunchAuditRequest
+from services.audit_service import AuditService
+from ai.agents import product_agent, validation_agent, launch_readiness_agent, risk_agent
 
 router = APIRouter()
 

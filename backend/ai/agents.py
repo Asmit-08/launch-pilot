@@ -1,7 +1,7 @@
 import json
 
-from backend.ai.prompts import build_product_prompt, build_validation_prompt, build_launch_readiness_prompt, build_risk_prompt
-from backend.ai.gemini_client import generate_response
+from ai.prompts import build_product_prompt, build_validation_prompt, build_launch_readiness_prompt, build_risk_prompt
+from ai.gemini_client import generate_response
 
 
 def product_agent(data):
