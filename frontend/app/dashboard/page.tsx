@@ -73,6 +73,17 @@ const handleSendMessage = async () => {
 
   setIsTyping(true);
 
+  if (typeof window !== "undefined" && (window as any).pendo) {
+    const score = auditResult?.overall_score;
+    const status = score >= 80 ? "Ready To Launch" : score >= 60 ? "Promising" : score >= 40 ? "Needs Improvement" : "High Risk";
+    (window as any).pendo.track("chat_message_sent", {
+      message_length: currentMessage.length,
+      chat_history_length: updatedMessages.length,
+      overall_score: score,
+      launch_status: status,
+    });
+  }
+
   const response = await fetch(
     "https://launch-pilot-backend.onrender.com/chat",
     {
@@ -90,6 +101,17 @@ const handleSendMessage = async () => {
   );
 
   const data = await response.json();
+
+  if (typeof window !== "undefined" && (window as any).pendo) {
+    const score = auditResult?.overall_score;
+    const status = score >= 80 ? "Ready To Launch" : score >= 60 ? "Promising" : score >= 40 ? "Needs Improvement" : "High Risk";
+    (window as any).pendo.track("chat_response_received", {
+      response_length: data.response?.length ?? 0,
+      chat_history_length: updatedMessages.length + 1,
+      overall_score: score,
+      launch_status: status,
+    });
+  }
 
   setIsTyping(false);
 

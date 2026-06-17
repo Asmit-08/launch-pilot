@@ -102,6 +102,28 @@ const [loadingMessage, setLoadingMessage] = useState(
         .filter(Boolean),
         
     };
+
+    if (typeof window !== "undefined" && (window as any).pendo) {
+      (window as any).pendo.track("audit_form_submitted", {
+        product_name: formData.product_name,
+        pricing_model: formData.pricing_model,
+        beta_users: formData.beta_users,
+        mvp_completed: formData.mvp_completed,
+        feedback_collected: formData.feedback_collected,
+        critical_bugs: formData.critical_bugs,
+        landing_page: formData.landing_page,
+        demo_video: formData.demo_video,
+        social_media_presence: formData.social_media_presence,
+        waitlist: formData.waitlist,
+        launch_channels_count: payload.launch_channels.length,
+        competitors_count: payload.competitors.length,
+        budget: formData.budget,
+        currency: formData.currency,
+        has_description: Boolean(formData.description),
+        has_unique_value_proposition: Boolean(formData.unique_value_proposition),
+      });
+    }
+
     const response = await fetch(
   "https://launch-pilot-backend.onrender.com/audit",
   {
@@ -119,6 +141,23 @@ localStorage.setItem(
   "auditResult",
   JSON.stringify(result)
 );
+
+if (typeof window !== "undefined" && (window as any).pendo) {
+  const score = result.overall_score;
+  const status = score >= 80 ? "Ready To Launch" : score >= 60 ? "Promising" : score >= 40 ? "Needs Improvement" : "High Risk";
+  (window as any).pendo.track("audit_report_generated", {
+    overall_score: score,
+    product_score: result.product?.score,
+    validation_score: result.validation?.score,
+    launch_readiness_score: result.launch_readiness?.score,
+    risk_score: result.risk?.score,
+    launch_status: status,
+    product_name: formData.product_name,
+    product_strengths_count: result.product?.strengths?.length ?? 0,
+    product_weaknesses_count: result.product?.weaknesses?.length ?? 0,
+    critical_risks_count: result.risk?.critical_risks?.length ?? 0,
+  });
+}
 
 router.push("/dashboard");
 
