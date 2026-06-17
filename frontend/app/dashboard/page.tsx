@@ -74,7 +74,7 @@ const handleSendMessage = async () => {
   setIsTyping(true);
 
   const response = await fetch(
-    "https://launch-pilot-backend.onrender.com/chat",
+    "http://127.0.0.1:8000/chat",
     {
       method: "POST",
       headers: {
@@ -125,6 +125,8 @@ else if (auditResult.overall_score >= 40) {
 else {
   launchStatus = "High Risk";
 }
+
+console.log(auditResult.risk);
 
 
   return (
