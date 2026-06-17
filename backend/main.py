@@ -28,3 +28,9 @@ def home():
     return{
         "message" : "Welcome to Launch Pilot API"
     }
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "service": "launch-pilot-api"
+    }
