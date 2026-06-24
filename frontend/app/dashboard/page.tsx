@@ -13,7 +13,11 @@ import ReactMarkdown from "react-markdown";
 
 import { useRouter } from "next/navigation";
 
-
+declare global {
+  interface Window {
+    pendo?: { trackAgent: (eventType: string, metadata: object) => void };
+  }
+}
 
 export default function DashboardPage() {
 
@@ -33,6 +37,11 @@ useEffect(() => {
 }, [router]);
 
 const messagesEndRef = useRef<HTMLDivElement>(null);
+const conversationIdRef = useRef<string>("");
+
+useEffect(() => {
+  conversationIdRef.current = crypto.randomUUID();
+}, []);
 
 const [message, setMessage] = useState("");
 
@@ -73,6 +82,16 @@ const handleSendMessage = async () => {
 
   setIsTyping(true);
 
+  const promptMessageId = crypto.randomUUID();
+  if (typeof window !== "undefined" && window.pendo) {
+    window.pendo.trackAgent("prompt", {
+      agentId: "SUvaP0PzuzV_IZKEZ3XEs-IELa4",
+      conversationId: conversationIdRef.current,
+      messageId: promptMessageId,
+      content: currentMessage,
+    });
+  }
+
   const response = await fetch(
     "https://launch-pilot-backend.onrender.com/chat",
     {
@@ -90,6 +109,15 @@ const handleSendMessage = async () => {
   );
 
   const data = await response.json();
+
+  if (typeof window !== "undefined" && window.pendo) {
+    window.pendo.trackAgent("agent_response", {
+      agentId: "SUvaP0PzuzV_IZKEZ3XEs-IELa4",
+      conversationId: conversationIdRef.current,
+      messageId: crypto.randomUUID(),
+      content: data.response,
+    });
+  }
 
   setIsTyping(false);
 
