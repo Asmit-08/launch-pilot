@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from routers.audit import router as audit_router
 from routers.chat import router as chat_router
@@ -29,9 +29,12 @@ def home():
     return{
         "message" : "Welcome to Launch Pilot API"
     }
-@app.get("/health")
+@app.get("/healt")
 def health_check():
     return {
         "status": "ok",
         "service": "launch-pilot-api"
     }
+@app.head("/health")
+def health_head():
+    return Response(status_code=200)
