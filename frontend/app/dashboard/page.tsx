@@ -74,7 +74,7 @@ const handleSendMessage = async () => {
   setIsTyping(true);
 
   const response = await fetch(
-    "http://launch-pilot-backend.onrender.com/chat",
+    "https://launch-pilot-backend.onrender.com/chat",
     {
       method: "POST",
       headers: {
