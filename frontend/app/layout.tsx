@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PendoInitializer from "@/components/PendoInitializer";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,22 @@ export default function RootLayout({
 `,
           }}
         />
+        <Script
+    async
+    src="https://plausible.io/js/pa-Z354mXFgyLfvrrilQKmbx.js"
+    strategy="afterInteractive"
+  />
+  <Script id="plausible-init" strategy="afterInteractive">
+    {`
+      window.plausible = window.plausible || function() {
+        (plausible.q = plausible.q || []).push(arguments);
+      };
+      plausible.init = plausible.init || function(i) {
+        plausible.o = i || {};
+      };
+      plausible.init();
+    `}
+  </Script>
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <PendoInitializer />
