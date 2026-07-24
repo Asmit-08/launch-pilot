@@ -81,3 +81,34 @@ def risk_agent(data):
     response = response.strip()
 
     return json.loads(response)
+
+
+from ai.prompts import build_persona_prompt  # add to the existing prompts import line
+
+
+def persona_agent(data):
+    prompt = build_persona_prompt(data)
+    response = generate_response(prompt)
+
+    if response is None:
+        return {
+            "executive_summary": "",
+            "ideal_customer_profile": "",
+            "persona": {},
+            "pain_points": [],
+            "goals": [],
+            "motivations": [],
+            "buying_triggers": [],
+            "buying_behaviour": "",
+            "common_objections": [],
+            "marketing_channels": [],
+            "messaging_recommendations": [],
+            "content_ideas": [],
+            "confidence_score": 0
+        }
+
+    response = response.replace("```json", "")
+    response = response.replace("```", "")
+    response = response.strip()
+
+    return json.loads(response)

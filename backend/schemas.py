@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from typing import Dict, Any
 from pydantic import BaseModel
 
@@ -43,3 +43,8 @@ class ChatRequest(BaseModel):
     audit_result: Dict[str, Any]
     startup_data: Dict[str, Any]
     chat_history: List[Dict[str, str]] = []
+
+class PersonaRequest(BaseModel):
+    what_are_you_building: str
+    product_description: str
+    additional_details: Optional[str] = None

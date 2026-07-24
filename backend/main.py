@@ -2,6 +2,7 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from routers.audit import router as audit_router
 from routers.chat import router as chat_router
+from routers.persona import router as persona_router
 
 
 app = FastAPI(
@@ -23,6 +24,7 @@ app.add_middleware(
 
 app.include_router(audit_router)
 app.include_router(chat_router)
+app.include_router(persona_router)
 
 @app.get("/")
 def home():

@@ -480,3 +480,40 @@ A startup that has:
 
 should generally not receive a score below 3 unless there is an immediate existential threat.
 """
+
+
+def build_persona_prompt(data):
+    additional_details = data.additional_details or "None provided."
+
+    return f"""You are a senior startup marketing strategist.
+
+A founder is building: {data.what_are_you_building}
+
+Product description:
+{data.product_description}
+
+Additional details (optional, may be empty):
+{additional_details}
+
+Based on this, infer and generate a detailed customer persona. Respond with ONLY valid JSON, no markdown fences, no preamble, matching exactly this shape:
+
+{{
+  "executive_summary": "string",
+  "ideal_customer_profile": "string",
+  "persona": {{
+    "name": "string",
+    "age_range": "string",
+    "occupation": "string",
+    "description": "string"
+  }},
+  "pain_points": ["string"],
+  "goals": ["string"],
+  "motivations": ["string"],
+  "buying_triggers": ["string"],
+  "buying_behaviour": "string",
+  "common_objections": ["string"],
+  "marketing_channels": ["string"],
+  "messaging_recommendations": ["string"],
+  "content_ideas": ["string"],
+  "confidence_score": "number between 0 and 100"
+}}"""
