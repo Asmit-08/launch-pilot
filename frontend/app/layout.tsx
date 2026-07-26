@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Launch Pilot",
   description: "Your AI Co-Founder for SaaS Launches",
+
+  verification: {
+    google: "9otnB3v3-9coblTOK4kMpw14UH0F-HStwGpTLy2z4ko",
+  },
+
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",
