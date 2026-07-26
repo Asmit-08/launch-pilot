@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import JsonLd from "./components/JsonLd";
+
+
 
 interface PersonaResult {
   executive_summary: string;
@@ -174,6 +177,7 @@ export default function PersonaPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-black text-white">
+        <JsonLd />
         <div className="text-center">
           <Eyebrow>Generating your report</Eyebrow>
           <p className="mt-4 text-2xl font-semibold text-zinc-100">
@@ -343,9 +347,10 @@ export default function PersonaPage() {
           Generate Detailed <span className="text-blue-500">AI User Personas</span> in Seconds
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
-          Describe your product and let AI identify your ideal customers,
-          pain points, motivations, buying behavior and marketing
-          opportunities.
+        Generate detailed AI user personas for your startup,
+        SaaS, or business. Discover your ideal customers,
+        their goals, pain points, motivations, buying behavior,
+        and marketing opportunities in seconds.
         </p>
         <Button
           asChild
@@ -431,6 +436,949 @@ export default function PersonaPage() {
           </Button>
         </form>
       </div>
+
+      {/* ===========================================================
+SEO CONTENT — PART 1
+=========================================================== */}
+
+<section className="mx-auto max-w-5xl px-6 py-24">
+
+  <div className="space-y-16">
+
+    {/* WHAT IS A USER PERSONA */}
+
+    <section>
+
+      <h2 className="text-4xl font-bold text-white">
+        What is a User Persona?
+      </h2>
+
+      <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+        <p>
+          A user persona is a fictional representation of your ideal customer
+          created using customer research, market insights, and informed
+          assumptions. Instead of thinking about your audience as a broad group,
+          a persona gives your ideal customer a face, a profession, goals,
+          frustrations, buying habits, and motivations.
+        </p>
+
+        <p>
+          Imagine building a product without knowing exactly who will use it.
+          Every feature becomes a guess. Every marketing campaign becomes an
+          experiment. Every landing page speaks to everyone, which usually means
+          it speaks to no one.
+        </p>
+
+        <p>
+          That's why startups, SaaS companies, marketers, product managers, and
+          growth teams invest time creating user personas before launching new
+          products. A detailed persona allows teams to make better decisions
+          throughout product development, marketing, pricing, onboarding, and
+          customer acquisition.
+        </p>
+
+        <p>
+          A high-quality user persona usually includes demographic information,
+          occupation, goals, motivations, daily challenges, pain points, buying
+          behaviour, communication preferences, preferred platforms, objections,
+          and the factors that influence purchasing decisions.
+        </p>
+
+        <p>
+          Rather than relying on assumptions, businesses use personas to
+          understand exactly who they are serving and how they can create
+          products that solve real problems.
+        </p>
+
+      </div>
+
+    </section>
+
+    {/* WHY PERSONAS */}
+
+    <section>
+
+      <h2 className="text-4xl font-bold text-white">
+        Why User Personas Matter
+      </h2>
+
+      <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+        <p>
+          According to multiple startup studies, one of the biggest reasons new
+          businesses fail is a lack of market need. Teams spend months building
+          products before understanding who actually needs them.
+        </p>
+
+        <p>
+          A well-defined user persona reduces that risk by helping founders stay
+          focused on solving problems for a specific audience instead of trying
+          to build something for everyone.
+        </p>
+
+      </div>
+
+      <div className="mt-10 grid gap-6 md:grid-cols-2">
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+          <h3 className="text-xl font-semibold text-white">
+            Better Product Decisions
+          </h3>
+
+          <p className="mt-4 text-zinc-400">
+            Build features your target users actually need instead of adding
+            functionality based on assumptions.
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+          <h3 className="text-xl font-semibold text-white">
+            Stronger Marketing
+          </h3>
+
+          <p className="mt-4 text-zinc-400">
+            Write copy that directly addresses customer pain points,
+            motivations, and desired outcomes.
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+          <h3 className="text-xl font-semibold text-white">
+            Higher Conversion Rates
+          </h3>
+
+          <p className="mt-4 text-zinc-400">
+            Landing pages perform better when they communicate with a clearly
+            defined audience.
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+          <h3 className="text-xl font-semibold text-white">
+            Faster Customer Validation
+          </h3>
+
+          <p className="mt-4 text-zinc-400">
+            Know exactly who to interview, where to find them, and which
+            questions to ask during customer discovery.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div className="mt-10 space-y-6 text-lg leading-8 text-zinc-400">
+
+        <p>
+          User personas also help align entire teams. Designers create better
+          user experiences, developers prioritize meaningful features,
+          marketers build more relevant campaigns, and founders make more
+          confident strategic decisions.
+        </p>
+
+        <p>
+          Whether you're building your first MVP or scaling an established SaaS
+          company, understanding your users is one of the highest-leverage
+          activities you can invest in.
+        </p>
+
+      </div>
+
+    </section>
+
+    {/* AI VS MANUAL */}
+
+    <section>
+
+      <h2 className="text-4xl font-bold text-white">
+        AI User Persona Generator vs Manual Persona Creation
+      </h2>
+
+      <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+        <p>
+          Traditionally, creating customer personas required interviewing users,
+          collecting survey responses, organizing spreadsheets, analyzing
+          behavioural data, and manually writing customer profiles. While this
+          approach can produce excellent results, it is often time-consuming and
+          difficult for early-stage founders who need quick direction.
+        </p>
+
+        <p>
+          AI dramatically accelerates this process by transforming your product
+          description into a structured customer profile within seconds. Instead
+          of starting from a blank page, founders receive an actionable first
+          draft that can later be refined using real customer interviews and
+          market validation.
+        </p>
+
+      </div>
+
+      <div className="mt-10 overflow-hidden rounded-2xl border border-zinc-800">
+
+        <table className="w-full text-left">
+
+          <thead className="bg-zinc-900">
+
+            <tr>
+
+              <th className="p-5 text-white">
+                Manual Research
+              </th>
+
+              <th className="p-5 text-white">
+                AI Persona Generator
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody className="text-zinc-400">
+
+            <tr className="border-t border-zinc-800">
+              <td className="p-5">Several hours or days</td>
+              <td className="p-5">Usually under a minute</td>
+            </tr>
+
+            <tr className="border-t border-zinc-800">
+              <td className="p-5">Starts from scratch</td>
+              <td className="p-5">Provides a structured first draft</td>
+            </tr>
+
+            <tr className="border-t border-zinc-800">
+              <td className="p-5">Requires extensive research</td>
+              <td className="p-5">Works from your product description</td>
+            </tr>
+
+            <tr className="border-t border-zinc-800">
+              <td className="p-5">Manual documentation</td>
+              <td className="p-5">Instant organized report</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <p className="mt-8 text-lg leading-8 text-zinc-400">
+        The most effective approach combines both methods: use AI to generate a
+        detailed starting point, then validate and improve the persona through
+        conversations with real customers. This saves time while keeping your
+        understanding grounded in real-world feedback.
+      </p>
+
+    </section>
+
+  </div>
+
+</section>
+
+{/* ================= END OF PART 1 ================= */}
+
+{/* ===========================================================
+SEO CONTENT — PART 2
+=========================================================== */}
+
+<section>
+
+  <h2 className="text-4xl font-bold text-white">
+    How Our AI User Persona Generator Works
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      Creating a high-quality customer persona traditionally required interviews,
+      surveys, spreadsheets, competitor analysis, and weeks of customer
+      research. While those methods are still valuable, they are often
+      unrealistic for early-stage founders who need direction quickly.
+    </p>
+
+    <p>
+      Launch Pilot's AI User Persona Generator simplifies this process by using
+      artificial intelligence to transform a few inputs about your product into
+      a structured persona. Instead of starting with a blank document, you
+      receive a comprehensive profile that can immediately guide product,
+      marketing, and validation decisions.
+    </p>
+
+    <p>
+      The generated persona is designed to serve as a strategic starting point.
+      As you interview real users and collect customer feedback, you can refine
+      and improve the persona over time.
+    </p>
+
+  </div>
+
+  <div className="mt-12 grid gap-6 md:grid-cols-4">
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+      <div className="text-4xl font-bold text-blue-400">
+        1
+      </div>
+
+      <h3 className="mt-4 text-xl font-semibold text-white">
+        Describe Your Product
+      </h3>
+
+      <p className="mt-3 text-zinc-400">
+        Tell the AI what you're building, the problem you're solving, and who
+        you believe your customers are.
+      </p>
+
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+      <div className="text-4xl font-bold text-blue-400">
+        2
+      </div>
+
+      <h3 className="mt-4 text-xl font-semibold text-white">
+        AI Analysis
+      </h3>
+
+      <p className="mt-3 text-zinc-400">
+        The AI analyzes your description, identifies customer patterns, and
+        predicts motivations, behaviours, and pain points.
+      </p>
+
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+      <div className="text-4xl font-bold text-blue-400">
+        3
+      </div>
+
+      <h3 className="mt-4 text-xl font-semibold text-white">
+        Detailed Persona
+      </h3>
+
+      <p className="mt-3 text-zinc-400">
+        Receive a structured user persona with goals, frustrations, buying
+        behaviour, preferred channels, messaging, and recommendations.
+      </p>
+
+    </div>
+
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+
+      <div className="text-4xl font-bold text-blue-400">
+        4
+      </div>
+
+      <h3 className="mt-4 text-xl font-semibold text-white">
+        Validate & Improve
+      </h3>
+
+      <p className="mt-3 text-zinc-400">
+        Compare the generated persona with real customer interviews and update
+        it as your business grows.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Who Should Use This AI User Persona Generator?
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      Understanding your audience is valuable regardless of your industry. This
+      AI User Persona Generator is designed for individuals and teams who want
+      to make smarter product and marketing decisions without spending weeks on
+      manual research.
+    </p>
+
+  </div>
+
+  <div className="mt-10 grid gap-6 md:grid-cols-2">
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="text-xl font-semibold text-white">
+        Startup Founders
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Validate ideas, understand early adopters, and prioritize the right
+        features before building your MVP.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="text-xl font-semibold text-white">
+        SaaS Companies
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Improve onboarding, feature prioritization, customer retention, and
+        pricing by understanding your users.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="text-xl font-semibold text-white">
+        Marketing Teams
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Create campaigns that resonate with your audience instead of relying on
+        generic messaging.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="text-xl font-semibold text-white">
+        Agencies & Freelancers
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Understand client audiences faster and produce more effective marketing
+        strategies.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Benefits of AI-Generated User Personas
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      AI cannot replace conversations with customers, but it can dramatically
+      reduce the time needed to create a thoughtful first draft. Instead of
+      spending hours brainstorming customer profiles, founders can begin with a
+      structured persona and spend more time validating assumptions.
+    </p>
+
+  </div>
+
+  <div className="mt-10 grid gap-5 md:grid-cols-2">
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Save hours of manual research
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Identify customer pain points quickly
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Improve product positioning
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Write better landing pages
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Build stronger marketing campaigns
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Validate startup ideas faster
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Understand customer motivations
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-5">
+      ✓ Make better business decisions
+    </div>
+
+  </div>
+
+</section>
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Common Mistakes When Creating User Personas
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      A persona is only useful if it reflects reality. Many founders accidentally
+      create personas based on assumptions instead of evidence, which can lead
+      to poor product and marketing decisions.
+    </p>
+
+  </div>
+
+  <div className="mt-10 space-y-6">
+
+    <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-6">
+      <h3 className="font-semibold text-white">
+        ❌ Building for Everyone
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Trying to target every possible customer usually results in a product
+        that resonates with no specific audience.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-6">
+      <h3 className="font-semibold text-white">
+        ❌ Ignoring Customer Interviews
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        AI provides a starting point, but speaking with real users is essential
+        for validation.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-6">
+      <h3 className="font-semibold text-white">
+        ❌ Never Updating Personas
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Customer needs change over time. Revisit your personas regularly as your
+        business evolves.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+{/* ===========================================================
+SEO CONTENT — PART 3
+=========================================================== */}
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Example AI-Generated User Persona
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      To better understand what a complete customer persona looks like, here's
+      an example generated for a fictional SaaS startup that helps marketing
+      teams automate content creation. While every business is different, this
+      illustrates the level of detail a strong persona should include.
+    </p>
+
+  </div>
+
+  <div className="mt-12 rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8">
+
+    <div className="grid gap-8 md:grid-cols-2">
+
+      <div>
+
+        <h3 className="text-2xl font-semibold text-white">
+          Sarah Thompson
+        </h3>
+
+        <p className="mt-3 text-zinc-400">
+          Marketing Manager at a B2B SaaS startup
+        </p>
+
+        <div className="mt-8 space-y-4">
+
+          <div>
+            <h4 className="font-semibold text-white">Age</h4>
+            <p className="text-zinc-400">31 years old</p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-white">Location</h4>
+            <p className="text-zinc-400">Austin, Texas</p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-white">Company Size</h4>
+            <p className="text-zinc-400">20–50 employees</p>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-white">Technical Skills</h4>
+            <p className="text-zinc-400">
+              Intermediate
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div>
+
+        <h3 className="text-2xl font-semibold text-white">
+          Primary Goals
+        </h3>
+
+        <ul className="mt-5 space-y-3 text-zinc-400">
+
+          <li>• Generate more qualified leads</li>
+          <li>• Improve marketing ROI</li>
+          <li>• Reduce manual work</li>
+          <li>• Scale content production</li>
+          <li>• Increase demo bookings</li>
+
+        </ul>
+
+        <h3 className="mt-10 text-2xl font-semibold text-white">
+          Biggest Pain Points
+        </h3>
+
+        <ul className="mt-5 space-y-3 text-zinc-400">
+
+          <li>• Small marketing budget</li>
+          <li>• Limited internal resources</li>
+          <li>• Pressure to hit growth targets</li>
+          <li>• Difficulty proving ROI</li>
+          <li>• Too many disconnected tools</li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+    <div className="mt-12 grid gap-8 md:grid-cols-2">
+
+      <div>
+
+        <h3 className="text-xl font-semibold text-white">
+          Buying Behaviour
+        </h3>
+
+        <p className="mt-4 text-zinc-400">
+          Sarah researches extensively before purchasing software. She compares
+          competitors, reads customer reviews, watches YouTube demonstrations,
+          and usually signs up for a free trial before making a purchasing
+          decision.
+        </p>
+
+      </div>
+
+      <div>
+
+        <h3 className="text-xl font-semibold text-white">
+          Preferred Channels
+        </h3>
+
+        <p className="mt-4 text-zinc-400">
+          LinkedIn, Reddit, Product Hunt, YouTube, newsletters, founder
+          communities, and Google Search.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div className="mt-10 rounded-2xl bg-zinc-950 p-6">
+
+      <h3 className="text-xl font-semibold text-white">
+        Messaging That Resonates
+      </h3>
+
+      <p className="mt-4 text-zinc-400 italic">
+        "Save time without sacrificing quality. Launch campaigns faster while
+        giving your team more time to focus on growth."
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    How to Validate Your AI-Generated Persona
+  </h2>
+
+  <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+
+    <p>
+      AI is excellent at generating structured customer profiles, but the most
+      successful startups treat those profiles as hypotheses rather than facts.
+      Validation is what transforms a useful draft into a reliable business
+      asset.
+    </p>
+
+    <p>
+      Start by interviewing people who closely resemble your target audience.
+      Ask open-ended questions about their workflow, frustrations, goals, and
+      decision-making process. Avoid leading questions that push customers
+      toward the answers you expect.
+    </p>
+
+    <p>
+      Compare those conversations with the AI-generated persona. Which
+      assumptions were correct? Which behaviours were inaccurate? Which pain
+      points appear repeatedly across multiple interviews? Update your persona
+      as new evidence emerges.
+    </p>
+
+    <p>
+      Validation should be an ongoing process rather than a one-time exercise.
+      Markets change, competitors evolve, and customer priorities shift over
+      time. Revisiting your personas regularly helps ensure your product and
+      messaging stay relevant.
+    </p>
+
+  </div>
+
+</section>
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Best Practices for Creating User Personas
+  </h2>
+
+  <div className="mt-10 grid gap-6 md:grid-cols-2">
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="font-semibold text-white">
+        Base Personas on Evidence
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Use interviews, analytics, surveys, and customer conversations whenever
+        possible.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="font-semibold text-white">
+        Focus on Behaviours
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Goals, motivations, and frustrations usually matter more than age or
+        demographics alone.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="font-semibold text-white">
+        Keep Personas Updated
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Review your personas regularly as your audience and product evolve.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-zinc-800 p-6">
+      <h3 className="font-semibold text-white">
+        Share Across Your Team
+      </h3>
+      <p className="mt-3 text-zinc-400">
+        Product, design, engineering, marketing, and sales should all work from
+        the same customer understanding.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+<section className="mt-24 rounded-3xl border border-blue-900/40 bg-gradient-to-r from-blue-950/30 to-indigo-950/30 p-10">
+
+  <h2 className="text-3xl font-bold text-white">
+    Build Better Products with Launch Pilot
+  </h2>
+
+  <div className="mt-6 space-y-6 text-lg leading-8 text-zinc-300">
+
+    <p>
+      A great user persona is only the beginning. Successful startups validate
+      ideas, understand customer problems, and continuously improve their
+      products before launch.
+    </p>
+
+    <p>
+      Launch Pilot helps founders move beyond assumptions by providing AI-powered
+      tools for customer understanding, product validation, and launch
+      preparation. Whether you're building your first MVP or refining an
+      existing product, combining AI insights with real customer feedback can
+      help you make more confident decisions.
+    </p>
+
+  </div>
+
+</section>
+
+{/* ===========================================================
+SEO CONTENT — PART 4 (FAQ)
+=========================================================== */}
+
+<section className="mt-24">
+
+  <h2 className="text-4xl font-bold text-white">
+    Frequently Asked Questions
+  </h2>
+
+  <div className="mt-10 space-y-10">
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        What is a user persona?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        A user persona is a fictional representation of your ideal customer based
+        on research, assumptions, and customer insights. It helps businesses
+        understand who they are building for, what problems customers face, and
+        how products or services can better meet their needs.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        What is the difference between a user persona and a buyer persona?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        A user persona focuses on the person who actually uses a product,
+        while a buyer persona focuses on the individual responsible for making
+        the purchasing decision. In many startups these may be the same person,
+        but in larger organizations they are often different.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        How accurate are AI-generated user personas?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        AI-generated personas provide an excellent starting point by identifying
+        common patterns and likely customer characteristics. However, they should
+        always be validated with real customer interviews, analytics, surveys,
+        and user feedback before making major business decisions.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Who should use an AI User Persona Generator?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Startup founders, SaaS companies, product managers, marketers,
+        agencies, consultants, freelancers, entrepreneurs, and students can all
+        benefit from creating structured customer personas before building
+        products or launching marketing campaigns.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Can I use this persona for my startup?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Yes. The generated persona is intended to help you understand your
+        target audience more quickly. You should refine it as you gather
+        customer feedback and validate assumptions during product development.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Is Launch Pilot's AI User Persona Generator free?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Yes. You can generate detailed user personas without manually creating
+        lengthy customer profiles from scratch.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Why are user personas important for startups?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        User personas help founders prioritize features, improve messaging,
+        identify customer pain points, validate ideas, and reduce the risk of
+        building products that don't solve real problems.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Can I edit my generated persona later?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Absolutely. Your persona should evolve as you conduct customer
+        interviews, analyze user behavior, and learn more about your target
+        audience.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        What information should a good user persona include?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        A strong persona typically includes demographics, goals, motivations,
+        frustrations, daily challenges, buying behavior, preferred communication
+        channels, objections, and decision-making factors.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        How often should I update my user personas?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Review your personas whenever your market changes, your product evolves,
+        or you gather significant customer feedback. Many startups revisit them
+        every few months to ensure they still reflect real users.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        Does this tool replace customer interviews?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        No. AI accelerates the persona creation process, but direct
+        conversations with customers remain one of the best ways to validate
+        assumptions and understand real-world behavior.
+      </p>
+    </div>
+
+    <div>
+      <h3 className="text-2xl font-semibold text-white">
+        How can user personas improve marketing?
+      </h3>
+      <p className="mt-3 text-lg leading-8 text-zinc-400">
+        Personas help marketers create more relevant messaging, choose the right
+        acquisition channels, write stronger landing pages, and produce content
+        that speaks directly to customer needs.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+{/* ===================== END SEO CONTENT ===================== */}
     </main>
   );
 }
