@@ -9,3 +9,4 @@ __pycache__/
 
 *.sqlite3
 *.db
+node_modules/
