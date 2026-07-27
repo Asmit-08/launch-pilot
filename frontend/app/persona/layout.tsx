@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title:
-    "AI User Persona Generator (Free) | Create Detailed Customer Personas in Seconds",
+  title: "Free AI User Persona Generator | Launch Pilot",
 
   description:
     "Generate detailed AI-powered user personas for your startup, SaaS, or business. Create customer personas with goals, pain points, motivations, buying behavior, and marketing insights in seconds.",

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Launch Pilot",
+  title: "Launch Pilot | AI Startup Validation & Launch Audit",
   description: "Your AI Co-Founder for SaaS Launches",
 
   verification: {
