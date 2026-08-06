@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from core.auth import get_current_user
 from schemas import LaunchAuditRequest
 from services.audit_service import AuditService
 from ai.agents import product_agent, validation_agent, launch_readiness_agent, risk_agent
@@ -6,11 +7,11 @@ from ai.agents import product_agent, validation_agent, launch_readiness_agent, r
 router = APIRouter()
 
 @router.post("/audit")
-def audit(data: LaunchAuditRequest):
-    
-    result = AuditService.generate_audit(data)
-
-    return result
+def audit(
+    data: LaunchAuditRequest,
+    current_user = Depends(get_current_user),
+):
+    return AuditService.generate_audit(data, current_user)
 
 @router.post("/product-agent")
 def test_product_agent(data: LaunchAuditRequest):

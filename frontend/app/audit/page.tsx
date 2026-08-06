@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,12 +103,23 @@ const [loadingMessage, setLoadingMessage] = useState(
         .filter(Boolean),
         
     };
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      router.push("/auth");
+      return;
+    }
+
     const response = await fetch(
-  "https://launch-pilot-backend.onrender.com/audit",
+  "http://127.0.0.1:8000/audit",
   {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
     },
     body: JSON.stringify(payload),
   }
@@ -120,7 +132,7 @@ localStorage.setItem(
   JSON.stringify(result)
 );
 
-router.push("/dashboard");
+router.push("/report");
 
   
   };

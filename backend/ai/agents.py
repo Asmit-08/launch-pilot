@@ -83,7 +83,7 @@ def risk_agent(data):
     return json.loads(response)
 
 
-from ai.prompts import build_persona_prompt  # add to the existing prompts import line
+from ai.prompts import build_persona_prompt 
 
 
 def persona_agent(data):

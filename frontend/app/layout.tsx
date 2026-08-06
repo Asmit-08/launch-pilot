@@ -40,7 +40,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <head>
-        <script
+        <Script
           dangerouslySetInnerHTML={{
             __html: `
 (function(apiKey){
@@ -53,8 +53,7 @@ export default function RootLayout({
 `,
           }}
         />
-        <Script
-    async
+  <Script
     src="https://plausible.io/js/pa-Z354mXFgyLfvrrilQKmbx.js"
     strategy="afterInteractive"
   />

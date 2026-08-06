@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.audit import router as audit_router
 from routers.chat import router as chat_router
 from routers.persona import router as persona_router
+from routers.auth import router as auth_router
 
 
 app = FastAPI(
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(audit_router)
 app.include_router(chat_router)
 app.include_router(persona_router)
