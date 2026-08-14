@@ -11,7 +11,7 @@ export async function getCurrentUser() {
     return null;
   }
 
-  const response = await fetch(`http://127.0.0.1:8000/auth/me`, {
+  const response = await fetch(`https://launch-pilot-backend.onrender.com/auth/me`, {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },

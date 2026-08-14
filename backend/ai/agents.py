@@ -1,6 +1,6 @@
 import json
 
-from ai.prompts import build_product_prompt, build_validation_prompt, build_launch_readiness_prompt, build_risk_prompt
+from ai.prompts import build_product_prompt, build_validation_prompt, build_launch_readiness_prompt, build_risk_prompt, build_landing_page_prompt
 from ai.gemini_client import generate_response
 
 
@@ -105,6 +105,55 @@ def persona_agent(data):
             "messaging_recommendations": [],
             "content_ideas": [],
             "confidence_score": 0
+        }
+
+    response = response.replace("```json", "")
+    response = response.replace("```", "")
+    response = response.strip()
+
+    return json.loads(response)
+
+def landing_page_agent(
+    page_data: dict,
+    icp_context: dict | None = None,
+):
+    prompt = build_landing_page_prompt(
+        page_data,
+        icp_context,
+    )
+
+    response = generate_response(prompt)
+
+    if response is None:
+        return {
+            "overall_score": 0,
+            "executive_summary": "",
+            "value_proposition": {
+                "score": 0,
+                "summary": "",
+            },
+            "messaging": {
+                "score": 0,
+                "summary": "",
+            },
+            "cta": {
+                "score": 0,
+                "summary": "",
+            },
+            "trust": {
+                "score": 0,
+                "summary": "",
+            },
+            "conversion_clarity": {
+                "score": 0,
+                "summary": "",
+            },
+            "icp_alignment": {
+                "score": 0,
+                "summary": "",
+            },
+            "conversion_problems": [],
+            "recommendations": [],
         }
 
     response = response.replace("```json", "")

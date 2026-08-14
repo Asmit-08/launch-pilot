@@ -3,32 +3,137 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/services/session";
-import { signInWithGoogle, signInWithGithub } from "@/services/auth";
+import {
+  signInWithGoogle,
+  signInWithGithub,
+} from "@/services/auth";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { ArrowRight } from "lucide-react";
 
 export default function AuthPage() {
   const router = useRouter();
 
+  /*
+   * ---------------------------------------------------------
+   * Get and validate redirect information
+   * ---------------------------------------------------------
+   */
+
+  function getAuthRedirect() {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    const requestedRedirect =
+      params.get("redirect");
+
+    const requestedUrl =
+      params.get("url");
+
+    const redirect =
+      requestedRedirect &&
+      requestedRedirect.startsWith("/") &&
+      !requestedRedirect.startsWith("//")
+        ? requestedRedirect
+        : "/dashboard";
+
+    return {
+      redirect,
+      url: requestedUrl,
+    };
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * Redirect already-authenticated users
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
     async function checkSession() {
       const session = await getSession();
 
-      if (session) {
-        router.replace("/dashboard");
+      if (!session) {
+        return;
       }
+
+      const { redirect, url } =
+        getAuthRedirect();
+
+      let destination = redirect;
+
+      /*
+       * Preserve the landing-page URL when returning
+       * to the analyzer.
+       */
+
+      if (
+        redirect === "/landing_page_analyzer" &&
+        url
+      ) {
+        destination =
+          `${redirect}?url=${encodeURIComponent(url)}`;
+      }
+
+      console.log(
+        "Authenticated user redirect:",
+        destination
+      );
+
+      router.replace(destination);
     }
 
     checkSession();
   }, [router]);
+
+  /*
+   * ---------------------------------------------------------
+   * Google
+   * ---------------------------------------------------------
+   */
+
+  function handleGoogleSignIn() {
+    const { redirect, url } =
+      getAuthRedirect();
+
+    signInWithGoogle(
+      redirect,
+      url
+        ? { url }
+        : undefined
+    );
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * GitHub
+   * ---------------------------------------------------------
+   */
+
+  function handleGithubSignIn() {
+    const { redirect, url } =
+      getAuthRedirect();
+
+    signInWithGithub(
+      redirect,
+      url
+        ? { url }
+        : undefined
+    );
+  }
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020617] px-6">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6">
 
       {/* Background */}
       <div className="absolute inset-0">
+
         <div className="absolute left-1/2 top-[-180px] h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-blue-600/20 blur-[160px]" />
+
         <div className="absolute bottom-[-120px] right-[-80px] h-[420px] w-[420px] rounded-full bg-violet-600/20 blur-[140px]" />
-        <div className="absolute left-[-100px] bottom-10 h-[300px] w-[300px] rounded-full bg-cyan-500/10 blur-[120px]" />
+
+        <div className="absolute bottom-10 left-[-100px] h-[300px] w-[300px] rounded-full bg-cyan-500/10 blur-[120px]" />
+
       </div>
 
       {/* Grid */}
@@ -70,9 +175,11 @@ export default function AuthPage() {
 
         {/* Google */}
         <button
-          onClick={signInWithGoogle}
+          type="button"
+          onClick={handleGoogleSignIn}
           className="group mb-4 flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white px-5 py-4 font-medium text-black transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         >
+
           <div className="flex items-center gap-3">
             <FaGoogle className="text-lg" />
             Continue with Google
@@ -82,11 +189,14 @@ export default function AuthPage() {
             size={18}
             className="transition-transform group-hover:translate-x-1"
           />
+
         </button>
 
         {/* GitHub */}
-        {/* <button
-          onClick={signInWithGithub}
+        {/*
+        <button
+          type="button"
+          onClick={handleGithubSignIn}
           className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[#111827] px-5 py-4 font-medium text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#1c2535]"
         >
           <div className="flex items-center gap-3">
@@ -98,7 +208,8 @@ export default function AuthPage() {
             size={18}
             className="transition-transform group-hover:translate-x-1"
           />
-        </button> */}
+        </button>
+        */}
 
         {/* Divider */}
         <div className="my-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -108,6 +219,7 @@ export default function AuthPage() {
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-3">
             <p className="text-lg">🚀</p>
+
             <p className="mt-2 text-xs text-gray-300">
               AI Audits
             </p>
@@ -115,6 +227,7 @@ export default function AuthPage() {
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-3">
             <p className="text-lg">💬</p>
+
             <p className="mt-2 text-xs text-gray-300">
               Chat History
             </p>
@@ -122,6 +235,7 @@ export default function AuthPage() {
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-3">
             <p className="text-lg">📈</p>
+
             <p className="mt-2 text-xs text-gray-300">
               Dashboard
             </p>

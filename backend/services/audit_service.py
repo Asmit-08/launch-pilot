@@ -76,7 +76,7 @@ class AuditService:
             # Save Audit Result
             # -----------------------------------
 
-            audit_repository.create_audit_result(
+            saved_result = audit_repository.create_audit_result(
                 audit_session_id=session["id"],
                 overall_score=result["overall_score"],
                 product_json=result["product"],
@@ -85,7 +85,12 @@ class AuditService:
                 risk_json=result["risk"],
             )
 
-            return result
+
+            return {
+                **result,
+                "project_id": project["id"],
+                "audit_id": session["id"],
+            }
 
         except Exception as e:
 

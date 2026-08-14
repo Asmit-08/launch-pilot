@@ -21,7 +21,7 @@ const actions = [
     title: "Landing Page Review",
     description:
       "Analyze your landing page and improve messaging, trust and conversions.",
-    href: "/landing-review",
+    href: "/landing_page_analyzer",
     icon: <Globe size={24} />,
   },
   {

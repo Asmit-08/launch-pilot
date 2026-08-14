@@ -48,3 +48,7 @@ class PersonaRequest(BaseModel):
     what_are_you_building: str
     product_description: str
     additional_details: Optional[str] = None
+
+
+class LandingPageRequest(BaseModel):
+    url: str

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getSession } from "@/services/session";
 import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -144,8 +145,7 @@ export default function PersonaPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const generatePersona = async (data: typeof formData) => {
     setLoading(true);
     setResult(null);
     setStageIndex(0);
@@ -154,24 +154,115 @@ export default function PersonaPage() {
       setTimeout(() => setStageIndex(i), i * 1400);
     });
 
-    const payload = {
-      ...formData,
-      additional_details: formData.additional_details || null,
-    };
+    try {
+      const payload = {
+        ...data,
+        additional_details: data.additional_details || null,
+      };
 
-    const response = await fetch(
-      "https://launch-pilot-backend.onrender.com/persona",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const session = await getSession();
+
+      if (!session) {
+        throw new Error("Not authenticated");
       }
-    );
 
-    const data = await response.json();
+      const response = await fetch(
+        "https://launch-pilot-backend.onrender.com/persona",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-    setResult(data);
-    setLoading(false);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          responseData?.detail || "Failed to generate persona."
+        );
+      }
+
+      setResult(responseData);
+    } catch (error) {
+      console.error("Persona generation failed:", error);
+
+      setResult({
+        error: "Something went wrong while generating your persona.",
+        executive_summary: "",
+        ideal_customer_profile: "",
+        persona: {},
+        pain_points: [],
+        goals: [],
+        motivations: [],
+        buying_triggers: [],
+        buying_behaviour: "",
+        common_objections: [],
+        marketing_channels: [],
+        messaging_recommendations: [],
+        content_ideas: [],
+        confidence_score: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    async function resumePendingGeneration() {
+      const pending = sessionStorage.getItem(
+        "pending_persona_generation"
+      );
+
+      if (!pending) {
+        return;
+      }
+
+      const session = await getSession();
+
+      if (!session) {
+        return;
+      }
+
+      try {
+        const savedFormData = JSON.parse(pending);
+
+        setFormData(savedFormData);
+        sessionStorage.removeItem("pending_persona_generation");
+
+        await generatePersona(savedFormData);
+      } catch (error) {
+        console.error(
+          "Failed to resume persona generation:",
+          error
+        );
+
+        sessionStorage.removeItem("pending_persona_generation");
+      }
+    }
+
+    resumePendingGeneration();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const session = await getSession();
+
+    if (!session) {
+      sessionStorage.setItem(
+        "pending_persona_generation",
+        JSON.stringify(formData)
+      );
+
+      window.location.href = "/auth?redirect=/persona";
+      return;
+    }
+
+    await generatePersona(formData);
   };
 
   if (loading) {
@@ -251,54 +342,151 @@ export default function PersonaPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <InsightCard
-                eyebrow="What holds them back"
-                title="Pain points"
-                items={result.pain_points}
-              />
-              <InsightCard eyebrow="What they want" title="Goals" items={result.goals} />
-              <InsightCard
-                eyebrow="What drives them"
-                title="Motivations"
-                items={result.motivations}
-              />
-              <InsightCard
-                eyebrow="What makes them act"
-                title="Buying triggers"
-                items={result.buying_triggers}
-              />
-            </div>
+            {/* Premium analysis gate */}
+            {(
+              !result.pain_points?.length &&
+              !result.goals?.length &&
+              !result.motivations?.length &&
+              !result.buying_triggers?.length &&
+              !result.buying_behaviour &&
+              !result.common_objections?.length &&
+              !result.marketing_channels?.length &&
+              !result.messaging_recommendations?.length &&
+              !result.content_ideas?.length
+            ) ? (
+              <section
+                className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-b from-blue-500/[0.08] via-white/[0.03] to-white/[0.02] p-6 sm:p-8"
+              >
+                <div className="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
+                <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
 
-            <div>
-              <Eyebrow>Buying behaviour</Eyebrow>
-              <p className="mt-3 text-zinc-300">{result.buying_behaviour}</p>
-            </div>
+                <div className="relative">
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-lg">
+                          🔒
+                        </div>
+                        <div>
+                          <Eyebrow>Premium analysis</Eyebrow>
+                          <h2 className="mt-1 text-2xl font-bold text-zinc-100">
+                            Go deeper than the basic ICP
+                          </h2>
+                        </div>
+                      </div>
 
-            <InsightCard
-              eyebrow="What to prepare for"
-              title="Common objections"
-              items={result.common_objections}
-            />
+                      <p className="mt-4 max-w-2xl text-zinc-400 leading-relaxed">
+                        Your free ICP gives you the core customer picture. Premium
+                        unlocks the deeper analysis you can use to shape your product,
+                        positioning, messaging, and acquisition strategy.
+                      </p>
+                    </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <InsightCard
-                eyebrow="Where to find them"
-                title="Marketing channels"
-                items={result.marketing_channels}
-              />
-              <InsightCard
-                eyebrow="How to talk to them"
-                title="Messaging recommendations"
-                items={result.messaging_recommendations}
-              />
-            </div>
+                    <span className="w-fit shrink-0 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-300">
+                      Premium
+                    </span>
+                  </div>
 
-            <InsightCard
-              eyebrow="What to publish"
-              title="Content ideas"
-              items={result.content_ideas}
-            />
+                  <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      ["Pain Points", "Understand what actually blocks your ideal customer."],
+                      ["Goals & Motivations", "See what your customer is trying to achieve and why."],
+                      ["Buying Triggers", "Identify the moments that can turn intent into action."],
+                      ["Objections", "Prepare for the reasons prospects may hesitate."],
+                      ["Marketing Channels", "Know where your ideal customers are most likely to be reached."],
+                      ["Messaging & Content", "Turn customer insights into sharper messaging and content ideas."],
+                    ].map(([title, description]) => (
+                      <div
+                        key={title}
+                        className="rounded-2xl border border-white/10 bg-black/20 p-5 transition-colors hover:border-blue-500/20"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="mt-0.5 text-sm text-blue-400">🔒</span>
+                          <div>
+                            <h3 className="font-semibold text-zinc-200">{title}</h3>
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                              {description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-blue-500/15 bg-blue-500/[0.06] p-5 sm:flex-row sm:p-6">
+                    <div>
+                      <p className="font-semibold text-zinc-100">
+                        Ready for the full customer analysis?
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-500">
+                        Unlock the strategic insights behind this persona.
+                      </p>
+                    </div>
+
+                    <Button
+                      asChild
+                      size="lg"
+                      className="h-11 w-full shrink-0 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500 sm:w-auto"
+                    >
+                      <Link href="/dashboard">
+                        Unlock Premium Analysis →
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <InsightCard
+                    eyebrow="What holds them back"
+                    title="Pain points"
+                    items={result.pain_points}
+                  />
+                  <InsightCard eyebrow="What they want" title="Goals" items={result.goals} />
+                  <InsightCard
+                    eyebrow="What drives them"
+                    title="Motivations"
+                    items={result.motivations}
+                  />
+                  <InsightCard
+                    eyebrow="What makes them act"
+                    title="Buying triggers"
+                    items={result.buying_triggers}
+                  />
+                </div>
+
+                <div>
+                  <Eyebrow>Buying behaviour</Eyebrow>
+                  <p className="mt-3 text-zinc-300">{result.buying_behaviour}</p>
+                </div>
+
+                <InsightCard
+                  eyebrow="What to prepare for"
+                  title="Common objections"
+                  items={result.common_objections}
+                />
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <InsightCard
+                    eyebrow="Where to find them"
+                    title="Marketing channels"
+                    items={result.marketing_channels}
+                  />
+                  <InsightCard
+                    eyebrow="How to talk to them"
+                    title="Messaging recommendations"
+                    items={result.messaging_recommendations}
+                  />
+                </div>
+
+                <InsightCard
+                  eyebrow="What to publish"
+                  title="Content ideas"
+                  items={result.content_ideas}
+                />
+              </>
+            )}
           </div>
 
           {/* Soft, natural next-step — not a redirect, not an ad */}
@@ -324,7 +512,7 @@ export default function PersonaPage() {
               size="lg"
               className="mt-6 h-11 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500"
             >
-              <Link href="/">Continue with Launch Pilot →</Link>
+              <Link href="/dashboard">Continue with Launch Pilot →</Link>
             </Button>
           </div>
         </div>
@@ -342,7 +530,7 @@ export default function PersonaPage() {
             "radial-gradient(circle at 50% -10%, rgba(59,130,246,0.18), transparent 60%)",
         }}
       >
-        <Eyebrow>Free · No signup required</Eyebrow>
+        <Eyebrow>Free to try · Sign up to generate</Eyebrow>
         <h1 className="mx-auto mt-4 max-w-2xl text-5xl font-bold leading-tight text-zinc-100">
           Generate Detailed <span className="text-blue-500">AI User Personas</span> in Seconds
         </h1>
@@ -357,7 +545,7 @@ export default function PersonaPage() {
           size="lg"
           className="mt-8 h-12 rounded-full bg-blue-600 px-8 text-white hover:bg-blue-500"
         >
-          <a href="#persona-form">Generate Persona</a>
+          <a href="#persona-form">Generate ICP</a>
         </Button>
       </div>
 
@@ -432,7 +620,7 @@ export default function PersonaPage() {
             size="lg"
             className="h-12 w-full rounded-full bg-blue-600 text-white hover:bg-blue-500"
           >
-            Generate Persona
+            Generate ICP
           </Button>
         </form>
       </div>

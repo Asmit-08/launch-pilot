@@ -1,9 +1,51 @@
+import time
+
+import httpx
 from supabase import Client
 
 
 class AuditRepository:
+
     def __init__(self, client: Client):
         self.client = client
+
+    # ---------------- Internal Helpers ---------------- #
+
+    def _execute_with_retry(
+        self,
+        query,
+        retries: int = 2,
+        delay: float = 0.3,
+    ):
+        """
+        Execute a Supabase read query with limited retry handling.
+
+        This is intended for transient network/read failures.
+        We retry reads because repeating them is safe.
+
+        We intentionally do NOT use this for inserts.
+        """
+
+        for attempt in range(retries + 1):
+
+            try:
+                return query.execute()
+
+            except (
+                httpx.ReadError,
+                httpx.ConnectError,
+                httpx.RemoteProtocolError,
+            ) as e:
+
+                if attempt >= retries:
+                    raise
+
+                print(
+                    f"Supabase read failed "
+                    f"(attempt {attempt + 1}/{retries + 1}): {e}"
+                )
+
+                time.sleep(delay * (attempt + 1))
 
     # ---------------- Projects ---------------- #
 
@@ -38,7 +80,7 @@ class AuditRepository:
         user_id: str,
         name: str,
     ):
-        response = (
+        query = (
             self.client
             .table("projects")
             .select("*")
@@ -46,22 +88,62 @@ class AuditRepository:
             .eq("name", name)
             .eq("is_archived", False)
             .limit(1)
-            .execute()
         )
+
+        response = self._execute_with_retry(query)
 
         if not response.data:
             return None
 
         return response.data[0]
 
+    def get_project_by_id(
+        self,
+        project_id: str,
+        user_id: str,
+    ):
+        query = (
+            self.client
+            .table("projects")
+            .select("*")
+            .eq("id", project_id)
+            .eq("user_id", user_id)
+            .eq("is_archived", False)
+            .limit(1)
+        )
+
+        response = self._execute_with_retry(query)
+
+        if not response.data:
+            return None
+
+        return response.data[0]
+
+    def get_projects(
+        self,
+        user_id: str,
+    ):
+        query = (
+            self.client
+            .table("projects")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("is_archived", False)
+            .order("updated_at", desc=True)
+        )
+
+        response = self._execute_with_retry(query)
+
+        return response.data
+
     # ---------------- Audit Sessions ---------------- #
 
     def create_audit_session(
-    self,
-    project_id: str,
-    audit_type: str = "launch_audit",
-    status: str = "completed",
-):
+        self,
+        project_id: str,
+        audit_type: str = "launch_audit",
+        status: str = "completed",
+    ):
         response = (
             self.client
             .table("audit_sessions")
@@ -73,21 +155,21 @@ class AuditRepository:
             .execute()
         )
 
-
         return response.data[0]
 
     def get_audit_sessions(
         self,
         project_id: str,
     ):
-        response = (
+        query = (
             self.client
             .table("audit_sessions")
             .select("*")
             .eq("project_id", project_id)
             .order("created_at", desc=True)
-            .execute()
         )
+
+        response = self._execute_with_retry(query)
 
         return response.data
 
@@ -122,16 +204,18 @@ class AuditRepository:
         self,
         audit_session_id: str,
     ):
-        response = (
+        query = (
             self.client
             .table("audit_results")
             .select("*")
             .eq("audit_session_id", audit_session_id)
             .limit(1)
-            .execute()
         )
+
+        response = self._execute_with_retry(query)
 
         if not response.data:
             return None
 
         return response.data[0]
+
