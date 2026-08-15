@@ -22,6 +22,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://launch-pilot-flax.vercel.app",
+        "https://plavtora.com",
+        "https://www.plavtora.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
