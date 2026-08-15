@@ -8,7 +8,7 @@ PREMIUM_TIERS = {
 
 
 def has_premium_access(user: dict) -> bool:
-    return user.get("subscription_plan") in PREMIUM_TIERS
+    return user.get("subscription") in PREMIUM_TIERS
 
 
 def require_premium(user: dict):
@@ -20,4 +20,4 @@ def require_premium(user: dict):
 
 
 def is_super_premium(user: dict) -> bool:
-    return user.get("subscription_plan") == "super_premium"
+    return user.get("subscription") == "super_premium"
