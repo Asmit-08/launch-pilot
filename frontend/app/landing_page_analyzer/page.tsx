@@ -925,7 +925,7 @@ function LandingPageAnalyzerContent() {
                       </p>
 
                       <button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/billing")}
                         className="mt-5 text-sm font-medium text-violet-300 transition hover:text-violet-200"
                       >
                         Unlock ICP analysis →
@@ -969,7 +969,7 @@ function LandingPageAnalyzerContent() {
                       </p>
 
                       <button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/billing")}
                         className="mt-5 text-sm font-medium text-blue-300 transition hover:text-blue-200"
                       >
                         Unlock conversion analysis →
@@ -1030,7 +1030,7 @@ function LandingPageAnalyzerContent() {
                       </div>
 
                       <button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/billing")}
                         className="mt-7 rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
                       >
                         Unlock Premium Analysis

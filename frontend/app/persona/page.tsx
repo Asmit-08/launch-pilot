@@ -553,7 +553,7 @@ export default function PersonaPage() {
                       size="lg"
                       className="h-11 w-full shrink-0 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500 sm:w-auto"
                     >
-                      <Link href="/dashboard">
+                      <Link href="/billing">
                         Unlock Premium Analysis →
                       </Link>
                     </Button>
