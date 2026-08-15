@@ -11,7 +11,7 @@ from repositories.repository_manager import user_repository
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
-DODO_PRODUCT_ID = "pdt_0NlLnWNb4mDIOmqJtVWfN"
+DODO_PRODUCT_ID = "pdt_0NlR2L2liCX4CO7i3KdxV"
 ACTIVE = {"active"}
 INACTIVE = {"on_hold", "paused", "failed", "expired"}
 
