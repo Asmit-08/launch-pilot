@@ -20,19 +20,16 @@ export const metadata: Metadata = {
   ],
 
   alternates: {
-    canonical:
-      "https://launch-pilot-flax.vercel.app/persona",
+    canonical: "https://plavtora.com/persona",
   },
 
   openGraph: {
-    title:
-      "Free AI User Persona Generator | Plavtora",
+    title: "Free AI User Persona Generator | Plavtora",
 
     description:
       "Generate detailed customer personas in seconds using AI. Perfect for startup founders, marketers, and SaaS teams.",
 
-    url:
-      "https://launch-pilot-flax.vercel.app/persona",
+    url: "https://plavtora.com/persona",
 
     siteName: "Plavtora",
 
@@ -53,15 +50,12 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title:
-      "Free AI User Persona Generator",
+    title: "Free AI User Persona Generator",
 
     description:
       "Generate detailed customer personas with AI in seconds.",
 
-    images: [
-      "/og-user-persona-generator.png",
-    ],
+    images: ["/og-user-persona-generator.png"],
   },
 
   robots: {
