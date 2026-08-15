@@ -116,13 +116,19 @@ def get_project_audits(
 
     return audits
 
+
+# ---------------- Get Single Project Audit ---------------- #
+
 @router.get("/{project_id}/audits/{audit_id}")
 def get_project_audit(
     project_id: str,
     audit_id: str,
     current_user=Depends(get_current_user),
 ):
-    # Verify project belongs to current user
+    # -----------------------------------
+    # Verify project ownership
+    # -----------------------------------
+
     project = audit_repository.get_project_by_id(
         project_id=project_id,
         user_id=current_user["id"],
@@ -134,7 +140,10 @@ def get_project_audit(
             detail="Project not found",
         )
 
+    # -----------------------------------
     # Get audit result
+    # -----------------------------------
+
     result = audit_repository.get_audit_result(
         audit_session_id=audit_id
     )
@@ -145,7 +154,10 @@ def get_project_audit(
             detail="Audit not found",
         )
 
-    # Make sure the audit actually belongs to this project
+    # -----------------------------------
+    # Make sure audit belongs to project
+    # -----------------------------------
+
     sessions = audit_repository.get_audit_sessions(
         project_id=project_id
     )
@@ -164,6 +176,50 @@ def get_project_audit(
             status_code=404,
             detail="Audit not found for this project",
         )
+
+    # -----------------------------------
+    # Premium access
+    # -----------------------------------
+
+    subscription = current_user.get("subscription")
+
+    has_premium_access = subscription in {
+        "premium",
+        "super_premium",
+    }
+
+    # -----------------------------------
+    # Restrict premium detail fields
+    # -----------------------------------
+
+    if not has_premium_access:
+        result = {
+            **result,
+
+            "product_json": {
+                **(result.get("product_json") or {}),
+                "strengths": [],
+                "weaknesses": [],
+            },
+
+            "validation_json": {
+                **(result.get("validation_json") or {}),
+                "strengths": [],
+                "weaknesses": [],
+            },
+
+            "launch_json": {
+                **(result.get("launch_json") or {}),
+                "strengths": [],
+                "weaknesses": [],
+            },
+
+            "risk_json": {
+                **(result.get("risk_json") or {}),
+                "critical_risks": [],
+                "mitigation": [],
+            },
+        }
 
     return {
         "project": project,

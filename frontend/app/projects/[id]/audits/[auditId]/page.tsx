@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { getProjectAudit } from "@/services/projects";
+import { getCurrentUser } from "@/services/user";
 
 /* =========================================================
    Types
@@ -256,18 +257,29 @@ export default function AuditPage() {
   const [navigatingTo, setNavigatingTo] =
     useState<string | null>(null);
 
+  const [isPremium, setIsPremium] =
+    useState(false);
+
   useEffect(() => {
     async function loadAudit() {
       try {
         setLoading(true);
         setError(null);
 
-        const data = await getProjectAudit(
-          projectId,
-          auditId
-        );
+        const [auditData, currentUser] =
+          await Promise.all([
+            getProjectAudit(projectId, auditId),
+            getCurrentUser(),
+          ]);
 
-        setAudit(data);
+        setAudit(auditData);
+
+        const subscription = currentUser?.subscription;
+
+        setIsPremium(
+          subscription === "premium" ||
+          subscription === "super_premium"
+        );
       } catch (error) {
         console.error(
           "Failed to load audit:",
@@ -525,18 +537,25 @@ export default function AuditPage() {
           title="Product Analysis"
           icon={<Package size={21} />}
         >
+          {isPremium ? (
+            <>
+              <InsightColumn
+                title="Strengths"
+                items={result.product_json.strengths}
+                positive
+              />
 
-          <InsightColumn
-            title="Strengths"
-            items={result.product_json.strengths}
-            positive
-          />
-
-          <InsightColumn
-            title="Weaknesses"
-            items={result.product_json.weaknesses}
-          />
-
+              <InsightColumn
+                title="Weaknesses"
+                items={result.product_json.weaknesses}
+              />
+            </>
+          ) : (
+            <PremiumLockedGrid
+              title="Unlock the full product analysis"
+              description="Your score is available on the free plan. Premium unlocks the specific strengths and weaknesses behind that score."
+            />
+          )}
         </InsightSection>
 
         {/* Validation */}
@@ -545,18 +564,25 @@ export default function AuditPage() {
           title="Validation Analysis"
           icon={<Target size={21} />}
         >
+          {isPremium ? (
+            <>
+              <InsightColumn
+                title="Strengths"
+                items={result.validation_json.strengths}
+                positive
+              />
 
-          <InsightColumn
-            title="Strengths"
-            items={result.validation_json.strengths}
-            positive
-          />
-
-          <InsightColumn
-            title="Weaknesses"
-            items={result.validation_json.weaknesses}
-          />
-
+              <InsightColumn
+                title="Weaknesses"
+                items={result.validation_json.weaknesses}
+              />
+            </>
+          ) : (
+            <PremiumLockedGrid
+              title="Unlock the deeper validation analysis"
+              description="See exactly what is working, what is weak, and where your validation evidence needs attention."
+            />
+          )}
         </InsightSection>
 
         {/* Launch Readiness */}
@@ -565,164 +591,117 @@ export default function AuditPage() {
           title="Launch Readiness"
           icon={<Rocket size={21} />}
         >
+          {isPremium ? (
+            <>
+              <InsightColumn
+                title="Strengths"
+                items={result.launch_json.strengths}
+                positive
+              />
 
-          <InsightColumn
-            title="Strengths"
-            items={result.launch_json.strengths}
-            positive
-          />
-
-          <InsightColumn
-            title="Weaknesses"
-            items={result.launch_json.weaknesses}
-          />
-
+              <InsightColumn
+                title="Weaknesses"
+                items={result.launch_json.weaknesses}
+              />
+            </>
+          ) : (
+            <PremiumLockedGrid
+              title="Unlock launch-readiness detail"
+              description="Your launch score stays free. Premium shows the exact strengths and weaknesses driving the score."
+            />
+          )}
         </InsightSection>
 
         {/* Risk */}
 
         <section className="mt-8 rounded-3xl border border-red-500/20 bg-white/5 p-7">
-
           <div className="flex items-center gap-3">
-
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
-
               <ShieldAlert size={21} />
-
             </div>
 
             <div>
-
               <h2 className="text-xl font-semibold">
                 Risk Analysis
               </h2>
 
               <p className="text-sm text-gray-500">
-                Identified risks and recommended mitigation
+                Your risk score is free. Detailed risks and mitigation are Premium.
               </p>
-
             </div>
-
           </div>
 
-          <div className="mt-7 grid gap-6 lg:grid-cols-2">
+          <div className="mt-7">
+            {isPremium ? (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <AlertTriangle size={18} className="text-red-400" />
+                    <h3 className="font-semibold">Critical Risks</h3>
+                    <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-red-300">
+                      {result.risk_json.critical_risks.length}
+                    </span>
+                  </div>
 
-            {/* Critical Risks */}
+                  <div className="space-y-3">
+                    {result.risk_json.critical_risks.map((risk, index) => {
+                      const title = getRiskTitle(risk);
+                      const description = getRiskDescription(risk);
+                      const impact = getRiskImpact(risk);
 
-            <div>
-
-              <div className="mb-4 flex items-center gap-2">
-
-                <AlertTriangle
-                  size={18}
-                  className="text-red-400"
-                />
-
-                <h3 className="font-semibold">
-                  Critical Risks
-                </h3>
-
-                <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-red-300">
-                  {result.risk_json.critical_risks.length}
-                </span>
-
-              </div>
-
-              <div className="space-y-3">
-
-                {result.risk_json.critical_risks.map(
-                  (risk, index) => {
-
-                    const title =
-                      getRiskTitle(risk);
-
-                    const description =
-                      getRiskDescription(risk);
-
-                    const impact =
-                      getRiskImpact(risk);
-
-                    return (
-                      <div
-                        key={index}
-                        className="rounded-2xl border border-red-500/10 bg-red-500/[0.04] p-4"
-                      >
-
-                        <p className="text-sm font-medium text-red-300">
-                          {title}
-                        </p>
-
-                        {description && (
-                          <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                            {description}
+                      return (
+                        <div
+                          key={index}
+                          className="rounded-2xl border border-red-500/10 bg-red-500/[0.04] p-4"
+                        >
+                          <p className="text-sm font-medium text-red-300">
+                            {title}
                           </p>
-                        )}
 
-                        {impact && (
-                          <p className="mt-2 text-xs text-gray-500">
-                            Impact: {impact}
-                          </p>
-                        )}
+                          {description && (
+                            <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                              {description}
+                            </p>
+                          )}
 
-                      </div>
-                    );
-                  }
-                )}
+                          {impact && (
+                            <p className="mt-2 text-xs text-gray-500">
+                              Impact: {impact}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              </div>
+                <div>
+                  <div className="mb-4 flex items-center gap-2">
+                    <Lightbulb size={18} className="text-yellow-400" />
+                    <h3 className="font-semibold">Mitigation</h3>
+                    <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-300">
+                      {result.risk_json.mitigation.length}
+                    </span>
+                  </div>
 
-            </div>
-
-            {/* Mitigation */}
-
-            <div>
-
-              <div className="mb-4 flex items-center gap-2">
-
-                <Lightbulb
-                  size={18}
-                  className="text-yellow-400"
-                />
-
-                <h3 className="font-semibold">
-                  Mitigation
-                </h3>
-
-                <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-300">
-                  {result.risk_json.mitigation.length}
-                </span>
-
-              </div>
-
-              <div className="space-y-3">
-
-                {result.risk_json.mitigation.map(
-                  (item, index) => {
-
-                    const text =
-                      toDisplayText(item);
-
-                    return (
+                  <div className="space-y-3">
+                    {result.risk_json.mitigation.map((item, index) => (
                       <div
                         key={index}
                         className="rounded-2xl border border-yellow-500/10 bg-yellow-500/[0.04] p-4"
                       >
-
                         <p className="text-sm leading-relaxed text-gray-300">
-                          {text}
+                          {toDisplayText(item)}
                         </p>
-
                       </div>
-                    );
-                  }
-                )}
-
+                    ))}
+                  </div>
+                </div>
               </div>
-
-            </div>
-
+            ) : (
+              <PremiumLockedRisk />
+            )}
           </div>
-
         </section>
 
         {/* Footer */}
@@ -760,6 +739,125 @@ export default function AuditPage() {
       </section>
 
     </main>
+  );
+}
+
+function PremiumLockedGrid({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="lg:col-span-2">
+      <div className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-br from-blue-500/[0.08] via-violet-500/[0.04] to-transparent p-6 sm:p-7">
+        <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10">
+                🔒
+              </span>
+
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
+                  Premium analysis
+                </p>
+
+                <h3 className="mt-1 text-xl font-semibold text-zinc-100">
+                  {title}
+                </h3>
+              </div>
+            </div>
+
+            <p className="mt-4 text-sm leading-6 text-gray-400">
+              {description}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="shrink-0 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5 hover:bg-zinc-100"
+            onClick={() => {
+              window.location.href = "/billing";
+            }}
+          >
+            Unlock Premium
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PremiumLockedRisk() {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.07] via-violet-500/[0.04] to-transparent p-6 sm:p-7">
+      <div className="absolute -bottom-20 -right-20 h-48 w-48 rounded-full bg-red-500/10 blur-3xl" />
+
+      <div className="relative grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-red-500/10 bg-black/20 p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10">
+              🔒
+            </span>
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-red-300">
+                Premium
+              </p>
+              <h3 className="mt-1 font-semibold text-zinc-100">
+                Critical Risks
+              </h3>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-gray-500">
+            See the specific risks Plavtora identified, their impact, and why they matter.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-yellow-500/10 bg-black/20 p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-yellow-500/10">
+              🔒
+            </span>
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-yellow-300">
+                Premium
+              </p>
+              <h3 className="mt-1 font-semibold text-zinc-100">
+                Mitigation
+              </h3>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-gray-500">
+            Get actionable steps for reducing the risks that affect your launch.
+          </p>
+        </div>
+      </div>
+
+      <div className="relative mt-6 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-zinc-100">
+            Want the full risk analysis?
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Unlock Critical Risks and Mitigation with Premium.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="shrink-0 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5 hover:bg-zinc-100"
+          onClick={() => {
+            window.location.href = "/billing";
+          }}
+        >
+          Unlock Premium
+        </button>
+      </div>
+    </div>
   );
 }
 
