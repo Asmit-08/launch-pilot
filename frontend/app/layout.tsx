@@ -15,9 +15,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Plavtora | AI Startup Validation & Launch Audit",
-  description: "Your AI Co-Founder for SaaS Launches",
+export const metadata: Metadata = {
+  metadataBase: new URL("https://plavtora.com"),
+
+  title: {
+    default: "Plavtora | AI Startup Validation & Launch Analysis",
+    template: "%s | Plavtora",
+  },
+
+  description:
+    "Plavtora is an AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions before the market does.",
+
+  alternates: {
+    canonical: "/",
+  },
 
   verification: {
     google: "9otnB3v3-9coblTOK4kMpw14UH0F-HStwGpTLy2z4ko",
@@ -28,7 +39,30 @@ export const metadata = {
     shortcut: "/icon.ico",
     apple: "/icon.ico",
   },
+
+  openGraph: {
+    title: "Plavtora | AI Startup Validation & Launch Analysis",
+    description:
+      "An AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions.",
+    url: "https://plavtora.com",
+    siteName: "Plavtora",
+    locale: "en_US",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Plavtora | AI Startup Validation & Launch Analysis",
+    description:
+      "An AI second opinion for founders. Pressure-test your startup before the market does.",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,6 +74,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <head>
+        {/* Pendo */}
         <Script
           dangerouslySetInnerHTML={{
             __html: `
@@ -53,30 +88,37 @@ export default function RootLayout({
 `,
           }}
         />
-  <Script
-    src="https://plausible.io/js/pa-Z354mXFgyLfvrrilQKmbx.js"
-    strategy="afterInteractive"
-  />
-  <Script id="plausible-init" strategy="afterInteractive">
-    {`
-      window.plausible = window.plausible || function() {
-        (plausible.q = plausible.q || []).push(arguments);
-      };
-      plausible.init = plausible.init || function(i) {
-        plausible.o = i || {};
-      };
-      plausible.init();
-    `}
-  </Script>
-      </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-  <PendoInitializer />
-  {children}
 
-  <GoogleAnalytics
-    gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
-  />
-</body>
+        {/* Plausible */}
+        <Script
+          src="https://plausible.io/js/pa-Z354mXFgyLfvrrilQKmbx.js"
+          strategy="afterInteractive"
+        />
+
+        <Script id="plausible-init" strategy="afterInteractive">
+          {`
+            window.plausible = window.plausible || function() {
+              (plausible.q = plausible.q || []).push(arguments);
+            };
+
+            plausible.init = plausible.init || function(i) {
+              plausible.o = i || {};
+            };
+
+            plausible.init();
+          `}
+        </Script>
+      </head>
+
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <PendoInitializer />
+
+        {children}
+
+        <GoogleAnalytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!}
+        />
+      </body>
     </html>
   );
 }
