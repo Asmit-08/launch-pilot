@@ -202,13 +202,13 @@ export default function Home() {
             </a>
 
             <Button asChild className="ml-2">
-              <Link href="/auth?redirect=/audit">Try Plavtora</Link>
+              <Link href="/auth?redirect=/dashboard">Try Plavtora</Link>
             </Button>
           </div>
 
           <div className="md:hidden">
             <Button asChild size="sm">
-              <Link href="/auth?redirect=/audit">Try it</Link>
+              <Link href="/auth?redirect=/dashboard">Try it</Link>
             </Button>
           </div>
         </div>
@@ -244,11 +244,11 @@ export default function Home() {
                     size="lg"
                     disabled={!!navigatingTo}
                     onClick={() =>
-                      navigateWithLoading("/auth?redirect=/audit")
+                      navigateWithLoading("/auth?redirect=/dashboard")
                     }
                     className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)] disabled:cursor-wait disabled:opacity-90"
                   >
-                    {navigatingTo === "/auth?redirect=/audit" ? (
+                    {navigatingTo === "/auth?redirect=/dashboard" ? (
                       <span className="flex items-center gap-2">
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                         Starting Plavtora...
@@ -1247,11 +1247,11 @@ export default function Home() {
                 size="lg"
                 disabled={!!navigatingTo}
                 onClick={() =>
-                  navigateWithLoading("/auth?redirect=/audit")
+                  navigateWithLoading("/auth?redirect=/dashboard")
                 }
                 className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)] disabled:cursor-wait disabled:opacity-90"
               >
-                {navigatingTo === "/auth?redirect=/audit" ? (
+                {navigatingTo === "/auth?redirect=/dashboard" ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                     Starting Plavtora...
