@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -69,7 +69,7 @@ const loadingStages = [
   },
 ];
 
-export default function LandingPageAnalyzer() {
+function LandingPageAnalyzerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -198,11 +198,18 @@ export default function LandingPageAnalyzer() {
      * -------------------------------------------------------
      */
 
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!apiUrl) {
+      setError("The application backend is not configured.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch(
-        "https://launch-pilot-backend.onrender.com/landing-page/analyze",
+        `${apiUrl}/landing-page/analyze`,
         {
           method: "POST",
 
@@ -730,5 +737,29 @@ export default function LandingPageAnalyzer() {
 
       </div>
     </main>
+  );
+}
+
+export default function LandingPageAnalyzer() {
+  return (
+    <Suspense
+      fallback={
+        <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050816] px-6 text-white">
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-violet-500 to-cyan-500 shadow-xl shadow-blue-500/20">
+              <div className="h-7 w-7 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+            </div>
+            <p className="mt-6 text-[10px] font-medium uppercase tracking-[0.22em] text-blue-300/80">
+              Plavtora
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Preparing the analyzer...
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <LandingPageAnalyzerContent />
+    </Suspense>
   );
 }
