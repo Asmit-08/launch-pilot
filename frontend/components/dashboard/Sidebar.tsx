@@ -87,7 +87,7 @@ export default function Sidebar({
       <div
         onClick={onClose}
         className={`
-          fixed inset-0 z-40 bg-black/50 backdrop-blur-sm
+          fixed inset-0 z-90 bg-black/50 backdrop-blur-sm
           transition-opacity duration-300
           ${
             isOpen
@@ -100,7 +100,7 @@ export default function Sidebar({
       {/* Sidebar */}
       <aside
         className={`
-          fixed left-0 top-0 z-50
+          fixed left-0 top-0 z-100
           flex h-screen w-80 flex-col
           border-r border-white/10
           bg-[#020617]
@@ -287,7 +287,7 @@ export default function Sidebar({
                 onClick={() =>
                   handleNavigation(
                     "landing-pages",
-                    "/landing-pages"
+                    "/landing_page_analyzer"
                   )
                 }
               />

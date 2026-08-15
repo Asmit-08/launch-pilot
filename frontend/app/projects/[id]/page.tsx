@@ -561,33 +561,31 @@ export default function ProjectPage() {
           <ProjectTab
             label="ICP Analysis"
             badge="New"
-            active={
-              activeTab ===
-              "ICP Analysis"
-            }
+            active={false}
             onClick={() =>
-              setActiveTab("ICP Analysis")
+              handleNavigation(
+                "icp-tab",
+                "/persona"
+              )
             }
           />
 
           <ProjectTab
             label="Landing Page"
             badge="New"
-            active={
-              activeTab ===
-              "Landing Page"
-            }
+            active={false}
             onClick={() =>
-              setActiveTab("Landing Page")
+              handleNavigation(
+                "landing-tab",
+                "/landing_page_analyzer"
+              )
             }
           />
 
           <ProjectTab
             label="Roadmap"
-            badge="New"
-            active={
-              activeTab === "Roadmap"
-            }
+            badge="Soon"
+            active={activeTab === "Roadmap"}
             onClick={() =>
               setActiveTab("Roadmap")
             }
@@ -1197,16 +1195,29 @@ export default function ProjectPage() {
                   <ActionCard
                     title="Analyze ICP"
                     description="Understand and refine your ideal customer profile."
+                    onNavigate={() =>
+                      handleNavigation(
+                        "action-icp",
+                        "/persona"
+                      )
+                    }
                   />
 
                   <ActionCard
                     title="Analyze Landing Page"
                     description="Review your landing page before sending traffic."
+                    onNavigate={() =>
+                      handleNavigation(
+                        "action-landing",
+                        "/landing_page_analyzer"
+                      )
+                    }
                   />
 
                   <ActionCard
                     title="Generate Roadmap"
                     description="Turn your audit findings into an execution plan."
+                    comingSoon
                   />
 
                 </div>
@@ -1486,15 +1497,33 @@ function StatusRow({
 interface ActionCardProps {
   title: string;
   description: string;
+  onNavigate?: () => void;
+  comingSoon?: boolean;
 }
 
 function ActionCard({
   title,
   description,
+  onNavigate,
+  comingSoon = false,
 }: ActionCardProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    if (comingSoon || loading || !onNavigate) {
+      return;
+    }
+
+    setLoading(true);
+    onNavigate();
+  };
+
   return (
     <button
-      className="
+      type="button"
+      onClick={handleClick}
+      disabled={comingSoon || loading}
+      className={`
         rounded-2xl
         border
         border-white/10
@@ -1502,30 +1531,49 @@ function ActionCard({
         p-5
         text-left
         transition-all
-        hover:border-blue-500/30
-        hover:bg-white/[0.06]
-      "
+        ${
+          comingSoon
+            ? "cursor-not-allowed opacity-60"
+            : loading
+              ? "cursor-wait border-blue-500/30 bg-white/[0.06]"
+              : "hover:border-blue-500/30 hover:bg-white/[0.06]"
+        }
+      `}
     >
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-medium text-white">
+          {title}
+        </h3>
 
-      <h3 className="font-medium text-white">
-        {title}
-      </h3>
+        {comingSoon && (
+          <span className="shrink-0 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+            Coming Soon
+          </span>
+        )}
+      </div>
 
       <p className="mt-2 text-sm leading-relaxed text-gray-400">
         {description}
       </p>
 
-      <span className="mt-4 inline-block text-sm text-blue-400">
-        Coming next →
+      <span className="mt-4 inline-flex items-center gap-2 text-sm text-blue-400">
+        {loading ? (
+          <>
+            <Loader2
+              size={14}
+              className="animate-spin"
+            />
+            Opening...
+          </>
+        ) : comingSoon ? (
+          "Planned feature"
+        ) : (
+          "Open →"
+        )}
       </span>
-
     </button>
   );
 }
-
-/* =========================================================
-   Helpers
-========================================================= */
 
 function getScore(
   data: Record<string, any> | undefined
