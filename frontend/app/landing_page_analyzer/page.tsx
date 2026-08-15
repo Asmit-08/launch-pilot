@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/services/user";
 
 type AnalysisResult = {
   overall_score: number;
@@ -79,6 +80,7 @@ function LandingPageAnalyzerContent() {
   const [result, setResult] =
     useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
+  const [isPremium, setIsPremium] = useState(false);
 
   /*
    * ---------------------------------------------------------
@@ -90,7 +92,7 @@ function LandingPageAnalyzerContent() {
    * /landing_page_analyzer?url=https://example.com
    *
    * We restore the URL into the input but DO NOT automatically
-   * run the analysis. The user must click Analyze Page.
+   * run the analysis.
    */
 
   useEffect(() => {
@@ -100,6 +102,36 @@ function LandingPageAnalyzerContent() {
       setUrl(returnedUrl);
     }
   }, [searchParams]);
+
+  /*
+   * ---------------------------------------------------------
+   * Load Premium status
+   * ---------------------------------------------------------
+   */
+
+  useEffect(() => {
+    async function loadPremiumStatus() {
+      try {
+        const currentUser = await getCurrentUser();
+
+        const subscription = currentUser?.subscription;
+
+        setIsPremium(
+          subscription === "premium" ||
+          subscription === "super_premium"
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load subscription status:",
+          error
+        );
+
+        setIsPremium(false);
+      }
+    }
+
+    loadPremiumStatus();
+  }, []);
 
   /*
    * ---------------------------------------------------------
@@ -173,13 +205,6 @@ function LandingPageAnalyzerContent() {
      * -------------------------------------------------------
      * Login gate
      * -------------------------------------------------------
-     *
-     * IMPORTANT:
-     * The actual Next.js route is:
-     *
-     * /landing_page_analyzer
-     *
-     * Preserve the user's URL through authentication.
      */
 
     if (!session) {
@@ -190,6 +215,33 @@ function LandingPageAnalyzerContent() {
       );
 
       return;
+    }
+
+    /*
+     * -------------------------------------------------------
+     * Refresh Premium status
+     *
+     * This is important if the user purchased Premium while
+     * already being on this page.
+     * -------------------------------------------------------
+     */
+
+    try {
+      const currentUser = await getCurrentUser();
+
+      const subscription = currentUser?.subscription;
+
+      setIsPremium(
+        subscription === "premium" ||
+        subscription === "super_premium"
+      );
+    } catch (error) {
+      console.error(
+        "Failed to refresh subscription status:",
+        error
+      );
+
+      setIsPremium(false);
     }
 
     /*
@@ -540,113 +592,21 @@ function LandingPageAnalyzerContent() {
 
               </div>
 
-              {/* Premium Locked Analysis */}
-              <div className="space-y-4">
+              {/* =====================================================
+                  PREMIUM ANALYSIS
+                  ===================================================== */}
 
-                {/* ICP Alignment */}
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+              {isPremium ? (
 
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent" />
+                <div className="space-y-4">
 
-                  <div className="relative">
-
-                    <div className="flex items-start justify-between gap-4">
-
-                      <div>
-
-                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
-                          ICP Alignment
-                        </p>
-
-                        <h3 className="mt-2 text-xl font-semibold">
-                          Is your page speaking to the right customer?
-                        </h3>
-
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-lg">
-                        🔒
-                      </div>
-
-                    </div>
-
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
-                      See whether your positioning actually
-                      matches the customers you're trying to reach.
-                      Plavtora compares your page against your
-                      saved ICP to identify messaging gaps,
-                      positioning mismatches, and missed customer
-                      signals.
-                    </p>
-
-                    <button
-                      onClick={() =>
-                        router.push("/dashboard")
-                      }
-                      className="mt-5 text-sm font-medium text-violet-300 transition hover:text-violet-200"
-                    >
-                      Unlock ICP analysis →
-                    </button>
-
-                  </div>
-
-                </div>
-
-                {/* Conversion Analysis */}
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] to-transparent" />
-
-                  <div className="relative">
-
-                    <div className="flex items-start justify-between gap-4">
-
-                      <div>
-
-                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
-                          Conversion Analysis
-                        </p>
-
-                        <h3 className="mt-2 text-xl font-semibold">
-                          Find the friction stopping visitors from acting.
-                        </h3>
-
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-lg">
-                        🔒
-                      </div>
-
-                    </div>
-
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
-                      Unlock detailed analysis of your CTA,
-                      conversion clarity, trust signals, and the
-                      biggest problems affecting your page.
-                    </p>
-
-                    <button
-                      onClick={() =>
-                        router.push("/dashboard")
-                      }
-                      className="mt-5 text-sm font-medium text-blue-300 transition hover:text-blue-200"
-                    >
-                      Unlock conversion analysis →
-                    </button>
-
-                  </div>
-
-                </div>
-
-                {/* Recommendations */}
-                <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
-
-                  <div className="relative">
+                  {/* Premium Header */}
+                  <div className="rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
 
                     <div className="flex items-center gap-2">
 
                       <span className="text-lg">
-                        🚀
+                        ✨
                       </span>
 
                       <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
@@ -655,56 +615,437 @@ function LandingPageAnalyzerContent() {
 
                     </div>
 
-                    <h3 className="mt-4 text-2xl font-semibold">
-                      Don't just find the problems.
-                      <br />
-                      Know what to fix next.
+                    <h3 className="mt-3 text-2xl font-semibold">
+                      Your complete landing page analysis
                     </h3>
 
-                    <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400">
-                      Get the complete breakdown of your landing
-                      page, including ICP alignment, conversion
-                      problems, trust and CTA analysis, and
-                      prioritized recommendations.
+                    <p className="mt-3 text-sm leading-7 text-gray-400">
+                      Detailed insights across positioning,
+                      ICP alignment, conversion, trust, CTA,
+                      problems, and recommendations.
                     </p>
 
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  </div>
 
-                      <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
-                        ✓ ICP alignment
-                      </div>
+                  {/* ICP Alignment */}
+                  {result.icp_alignment && (
+                    <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-white/[0.03] p-6">
 
-                      <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
-                        ✓ CTA & conversion analysis
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.06] to-transparent" />
 
-                      <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
-                        ✓ Trust & credibility analysis
-                      </div>
+                      <div className="relative">
 
-                      <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
-                        ✓ Prioritized recommendations
+                        <div className="flex items-start justify-between gap-4">
+
+                          <div>
+
+                            <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
+                              ICP Alignment
+                            </p>
+
+                            <h3 className="mt-2 text-xl font-semibold">
+                              Is your page speaking to the right customer?
+                            </h3>
+
+                          </div>
+
+                          <div className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-300">
+                            Premium
+                          </div>
+
+                        </div>
+
+                        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center">
+
+                          <div className="text-4xl font-bold text-violet-300">
+                            {result.icp_alignment.score}/10
+                          </div>
+
+                          <p className="text-sm leading-6 text-gray-400">
+                            {result.icp_alignment.summary}
+                          </p>
+
+                        </div>
+
                       </div>
 
                     </div>
+                  )}
 
-                    <button
-                      onClick={() =>
-                        router.push("/dashboard")
-                      }
-                      className="mt-7 rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
-                    >
-                      Unlock Premium Analysis
-                    </button>
+                  {/* Value Proposition */}
+                  {result.value_proposition && (
+                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
+                            Value Proposition
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            Is your core promise clear?
+                          </h3>
+
+                        </div>
+
+                        <div className="text-2xl font-bold text-blue-300">
+                          {result.value_proposition.score}/10
+                        </div>
+
+                      </div>
+
+                      <p className="mt-4 text-sm leading-7 text-gray-400">
+                        {result.value_proposition.summary}
+                      </p>
+
+                    </div>
+                  )}
+
+                  {/* CTA */}
+                  {result.cta && (
+                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-300">
+                            CTA Analysis
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            Are visitors being pushed toward action?
+                          </h3>
+
+                        </div>
+
+                        <div className="text-2xl font-bold text-cyan-300">
+                          {result.cta.score}/10
+                        </div>
+
+                      </div>
+
+                      <p className="mt-4 text-sm leading-7 text-gray-400">
+                        {result.cta.summary}
+                      </p>
+
+                    </div>
+                  )}
+
+                  {/* Trust */}
+                  {result.trust && (
+                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
+                            Trust & Credibility
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            Does the page create enough trust?
+                          </h3>
+
+                        </div>
+
+                        <div className="text-2xl font-bold text-emerald-300">
+                          {result.trust.score}/10
+                        </div>
+
+                      </div>
+
+                      <p className="mt-4 text-sm leading-7 text-gray-400">
+                        {result.trust.summary}
+                      </p>
+
+                    </div>
+                  )}
+
+                  {/* Conversion Clarity */}
+                  {result.conversion_clarity && (
+                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
+                            Conversion Clarity
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            How easy is it to understand and act?
+                          </h3>
+
+                        </div>
+
+                        <div className="text-2xl font-bold text-blue-300">
+                          {result.conversion_clarity.score}/10
+                        </div>
+
+                      </div>
+
+                      <p className="mt-4 text-sm leading-7 text-gray-400">
+                        {result.conversion_clarity.summary}
+                      </p>
+
+                    </div>
+                  )}
+
+                  {/* Conversion Problems */}
+                  {result.conversion_problems &&
+                    result.conversion_problems.length > 0 && (
+                      <div className="rounded-3xl border border-red-400/20 bg-red-500/[0.04] p-7">
+
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-red-300">
+                          Conversion Problems
+                        </p>
+
+                        <h3 className="mt-2 text-xl font-semibold">
+                          What is hurting conversion?
+                        </h3>
+
+                        <div className="mt-5 space-y-3">
+
+                          {result.conversion_problems.map(
+                            (problem, index) => (
+                              <div
+                                key={index}
+                                className="rounded-2xl border border-white/5 bg-black/20 p-4 text-sm leading-6 text-gray-400"
+                              >
+                                <span className="mr-2 text-red-400">
+                                  {index + 1}.
+                                </span>
+
+                                {problem}
+                              </div>
+                            )
+                          )}
+
+                        </div>
+
+                      </div>
+                    )}
+
+                  {/* Recommendations */}
+                  {result.recommendations &&
+                    result.recommendations.length > 0 && (
+                      <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
+
+                        <div className="relative">
+
+                          <div className="flex items-center gap-2">
+
+                            <span className="text-lg">
+                              🚀
+                            </span>
+
+                            <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
+                              Premium Recommendations
+                            </p>
+
+                          </div>
+
+                          <h3 className="mt-4 text-2xl font-semibold">
+                            What should you fix next?
+                          </h3>
+
+                          <div className="mt-6 space-y-3">
+
+                            {result.recommendations.map(
+                              (recommendation, index) => (
+                                <div
+                                  key={index}
+                                  className="rounded-2xl border border-white/5 bg-black/10 p-4 text-sm leading-6 text-gray-300"
+                                >
+                                  <span className="mr-2 font-semibold text-violet-300">
+                                    {index + 1}.
+                                  </span>
+
+                                  {recommendation}
+                                </div>
+                              )
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                </div>
+
+              ) : (
+
+                /* =====================================================
+                   FREE USER — LOCKED PREMIUM UI
+                   ===================================================== */
+
+                <div className="space-y-4">
+
+                  {/* ICP Alignment */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent" />
+
+                    <div className="relative">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
+                            ICP Alignment
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            Is your page speaking to the right customer?
+                          </h3>
+
+                        </div>
+
+                        <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-lg">
+                          🔒
+                        </div>
+
+                      </div>
+
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
+                        See whether your positioning actually
+                        matches the customers you're trying to reach.
+                        Plavtora compares your page against your
+                        saved ICP to identify messaging gaps,
+                        positioning mismatches, and missed customer
+                        signals.
+                      </p>
+
+                      <button
+                        onClick={() => router.push("/dashboard")}
+                        className="mt-5 text-sm font-medium text-violet-300 transition hover:text-violet-200"
+                      >
+                        Unlock ICP analysis →
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  {/* Conversion Analysis */}
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] to-transparent" />
+
+                    <div className="relative">
+
+                      <div className="flex items-start justify-between gap-4">
+
+                        <div>
+
+                          <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-300">
+                            Conversion Analysis
+                          </p>
+
+                          <h3 className="mt-2 text-xl font-semibold">
+                            Find the friction stopping visitors from acting.
+                          </h3>
+
+                        </div>
+
+                        <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-lg">
+                          🔒
+                        </div>
+
+                      </div>
+
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
+                        Unlock detailed analysis of your CTA,
+                        conversion clarity, trust signals, and the
+                        biggest problems affecting your page.
+                      </p>
+
+                      <button
+                        onClick={() => router.push("/dashboard")}
+                        className="mt-5 text-sm font-medium text-blue-300 transition hover:text-blue-200"
+                      >
+                        Unlock conversion analysis →
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  {/* Premium Analysis CTA */}
+                  <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
+
+                    <div className="relative">
+
+                      <div className="flex items-center gap-2">
+
+                        <span className="text-lg">
+                          🚀
+                        </span>
+
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
+                          Premium Analysis
+                        </p>
+
+                      </div>
+
+                      <h3 className="mt-4 text-2xl font-semibold">
+                        Don't just find the problems.
+                        <br />
+                        Know what to fix next.
+                      </h3>
+
+                      <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-400">
+                        Get the complete breakdown of your landing
+                        page, including ICP alignment, conversion
+                        problems, trust and CTA analysis, and
+                        prioritized recommendations.
+                      </p>
+
+                      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+
+                        <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                          ✓ ICP alignment
+                        </div>
+
+                        <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                          ✓ CTA & conversion analysis
+                        </div>
+
+                        <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                          ✓ Trust & credibility analysis
+                        </div>
+
+                        <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                          ✓ Prioritized recommendations
+                        </div>
+
+                      </div>
+
+                      <button
+                        onClick={() => router.push("/dashboard")}
+                        className="mt-7 rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                      >
+                        Unlock Premium Analysis
+                      </button>
+
+                    </div>
 
                   </div>
 
                 </div>
-
-              </div>
+              )}
 
               {/* Bottom Actions */}
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+
                 <button
                   onClick={() => {
                     setResult(null);
@@ -721,6 +1062,7 @@ function LandingPageAnalyzerContent() {
                 >
                   Go to Dashboard
                 </button>
+
               </div>
 
             </div>
@@ -736,6 +1078,7 @@ function LandingPageAnalyzerContent() {
         )}
 
       </div>
+
     </main>
   );
 }
@@ -745,17 +1088,25 @@ export default function LandingPageAnalyzer() {
     <Suspense
       fallback={
         <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050816] px-6 text-white">
+
           <div className="text-center">
+
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-violet-500 to-cyan-500 shadow-xl shadow-blue-500/20">
+
               <div className="h-7 w-7 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+
             </div>
+
             <p className="mt-6 text-[10px] font-medium uppercase tracking-[0.22em] text-blue-300/80">
               Plavtora
             </p>
+
             <p className="mt-2 text-sm text-gray-500">
               Preparing the analyzer...
             </p>
+
           </div>
+
         </main>
       }
     >
