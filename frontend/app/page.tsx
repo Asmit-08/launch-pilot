@@ -202,13 +202,13 @@ export default function Home() {
             </a>
 
             <Button asChild className="ml-2">
-              <Link href="/auth?redirect=/dashboard">Try Plavtora</Link>
+              <Link href="/auth?redirect=/auth/callback">Try Plavtora</Link>
             </Button>
           </div>
 
           <div className="md:hidden">
             <Button asChild size="sm">
-              <Link href="/auth?redirect=/dashboard">Try it</Link>
+              <Link href="/auth?redirect=/auth/callback">Try it</Link>
             </Button>
           </div>
         </div>
@@ -244,11 +244,11 @@ export default function Home() {
                     size="lg"
                     disabled={!!navigatingTo}
                     onClick={() =>
-                      navigateWithLoading("/auth?redirect=/dashboard")
+                      navigateWithLoading("/auth?redirect=/auth/callback")
                     }
                     className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)] disabled:cursor-wait disabled:opacity-90"
                   >
-                    {navigatingTo === "/auth?redirect=/dashboard" ? (
+                    {navigatingTo === "/auth?redirect=/auth/callback" ? (
                       <span className="flex items-center gap-2">
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                         Starting Plavtora...
@@ -292,7 +292,7 @@ export default function Home() {
                     </div>
 
                     <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] text-zinc-500">
-                      plavtora.com/dashboard
+                      plavtora.com/auth/callback
                     </div>
 
                     <div className="w-10" />
@@ -912,11 +912,11 @@ export default function Home() {
                   size="lg"
                   disabled={!!navigatingTo}
                   onClick={() =>
-                    navigateWithLoading("/auth?redirect=/dashboard")
+                    navigateWithLoading("/auth?redirect=/auth/callback")
                   }
                   className="mt-9 h-12 w-full rounded-xl border-white/10 bg-white/[0.02] text-sm font-semibold hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
                 >
-                  {navigatingTo === "/auth?redirect=/dashboard" ? (
+                  {navigatingTo === "/auth?redirect=/auth/callback" ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
                       Opening Plavtora...
@@ -1247,11 +1247,11 @@ export default function Home() {
                 size="lg"
                 disabled={!!navigatingTo}
                 onClick={() =>
-                  navigateWithLoading("/auth?redirect=/dashboard")
+                  navigateWithLoading("/auth?redirect=/auth/callback")
                 }
                 className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)] disabled:cursor-wait disabled:opacity-90"
               >
-                {navigatingTo === "/auth?redirect=/dashboard" ? (
+                {navigatingTo === "/auth?redirect=/auth/callback" ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                     Starting Plavtora...
