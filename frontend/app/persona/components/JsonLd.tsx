@@ -3,10 +3,10 @@ export default function JsonLd() {
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      name: "Launch Pilot AI User Persona Generator",
+      name: "Plavtora AI User Persona Generator",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      url: "https://launch-pilot-flax.vercel.app/persona",
+      url: "https://www.plavtora.com/persona",
       description:
         "Generate AI-powered user personas with goals, pain points, motivations, buying behavior, and customer insights in seconds.",
       offers: {
@@ -24,13 +24,13 @@ export default function JsonLd() {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://launch-pilot-flax.vercel.app",
+          item: "https://www.plavtora.com",
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "AI User Persona Generator",
-          item: "https://launch-pilot-flax.vercel.app/persona",
+          item: "https://www.plavtora.com/persona",
         },
       ],
     },
@@ -49,10 +49,10 @@ export default function JsonLd() {
         },
         {
           "@type": "Question",
-          name: "Is Launch Pilot's AI User Persona Generator free?",
+          name: "Is Plavtora's AI User Persona Generator free?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. Launch Pilot's AI User Persona Generator is free to use.",
+            text: "Yes. Plavtora's AI User Persona Generator is free to use.",
           },
         },
         {
