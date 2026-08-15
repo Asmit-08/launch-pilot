@@ -8,7 +8,9 @@ import {
   Settings,
   CreditCard,
   LogOut,
+  Loader2,
 } from "lucide-react";
+
 import { signOut } from "@/services/auth";
 
 interface UserMenuProps {
@@ -17,6 +19,13 @@ interface UserMenuProps {
   avatarUrl?: string;
 }
 
+type LoadingAction =
+  | "dashboard"
+  | "settings"
+  | "billing"
+  | "logout"
+  | null;
+
 export default function UserMenu({
   name = "",
   email = "",
@@ -24,6 +33,8 @@ export default function UserMenu({
 }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [loadingAction, setLoadingAction] =
+    useState<LoadingAction>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -38,7 +49,10 @@ export default function UserMenu({
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
       document.removeEventListener(
@@ -48,15 +62,31 @@ export default function UserMenu({
     };
   }, []);
 
+  function handleNavigation(
+    action: Exclude<LoadingAction, "logout" | null>,
+    href: string
+  ) {
+    if (loadingAction) return;
+
+    setOpen(false);
+    setLoadingAction(action);
+
+    router.push(href);
+  }
+
   async function handleLogout() {
+    if (loadingAction) return;
+
     try {
       setOpen(false);
+      setLoadingAction("logout");
 
       await signOut();
 
       router.replace("/auth");
     } catch (error) {
       console.error("Logout failed:", error);
+      setLoadingAction(null);
     }
   }
 
@@ -64,19 +94,28 @@ export default function UserMenu({
     <div className="relative" ref={menuRef}>
       {/* Trigger */}
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 transition-all duration-300 hover:border-blue-500/40 hover:bg-white/10"
+        type="button"
+        onClick={() => {
+          if (!loadingAction) {
+            setOpen((prev) => !prev);
+          }
+        }}
+        disabled={!!loadingAction}
+        aria-label="Open account menu"
+        className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 transition-all duration-300 hover:border-blue-500/40 hover:bg-white/10 disabled:cursor-wait disabled:opacity-80"
       >
         {avatarUrl && !imageError ? (
           <img
             src={avatarUrl}
-            alt={name}
+            alt={name || "User"}
             className="h-9 w-9 rounded-full object-cover"
             onError={() => setImageError(true)}
           />
         ) : (
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-semibold text-white">
-            {name ? name.charAt(0).toUpperCase() : "?"}
+            {name
+              ? name.charAt(0).toUpperCase()
+              : "?"}
           </div>
         )}
 
@@ -90,12 +129,19 @@ export default function UserMenu({
           </p>
         </div>
 
-        <ChevronDown
-          size={18}
-          className={`text-gray-400 transition-all duration-300 ${
-            open ? "rotate-180" : ""
-          }`}
-        />
+        {loadingAction ? (
+          <Loader2
+            size={18}
+            className="animate-spin text-blue-300"
+          />
+        ) : (
+          <ChevronDown
+            size={18}
+            className={`text-gray-400 transition-all duration-300 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        )}
       </button>
 
       {/* Dropdown */}
@@ -107,7 +153,6 @@ export default function UserMenu({
           backdrop-blur-xl
           shadow-[0_20px_60px_rgba(0,0,0,0.45)]
           transition-all duration-300 origin-top-right
-
           ${
             open
               ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
@@ -121,22 +166,24 @@ export default function UserMenu({
             {avatarUrl && !imageError ? (
               <img
                 src={avatarUrl}
-                alt={name}
+                alt={name || "User"}
                 className="h-12 w-12 rounded-full object-cover"
                 onError={() => setImageError(true)}
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white font-semibold">
-                {name ? name.charAt(0).toUpperCase() : "?"}
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 font-semibold text-white">
+                {name
+                  ? name.charAt(0).toUpperCase()
+                  : "?"}
               </div>
             )}
 
-            <div>
-              <p className="font-semibold text-white">
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-white">
                 {name || "User"}
               </p>
 
-              <p className="text-sm text-gray-400">
+              <p className="truncate text-sm text-gray-400">
                 {email || "Loading..."}
               </p>
             </div>
@@ -146,40 +193,105 @@ export default function UserMenu({
         {/* Navigation */}
         <div className="p-2">
           <MenuItem
-            icon={<LayoutDashboard size={18} />}
-            label="Dashboard"
-            onClick={() => {
-              setOpen(false);
-              router.push("/dashboard");
-            }}
+            icon={
+              loadingAction === "dashboard" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <LayoutDashboard size={18} />
+              )
+            }
+            label={
+              loadingAction === "dashboard"
+                ? "Opening..."
+                : "Dashboard"
+            }
+            loading={loadingAction === "dashboard"}
+            disabled={!!loadingAction}
+            onClick={() =>
+              handleNavigation(
+                "dashboard",
+                "/dashboard"
+              )
+            }
           />
 
           <MenuItem
-            icon={<Settings size={18} />}
-            label="Settings"
-            onClick={() => {
-              setOpen(false);
-              router.push("/settings");
-            }}
+            icon={
+              loadingAction === "settings" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <Settings size={18} />
+              )
+            }
+            label={
+              loadingAction === "settings"
+                ? "Opening..."
+                : "Settings"
+            }
+            loading={loadingAction === "settings"}
+            disabled={!!loadingAction}
+            onClick={() =>
+              handleNavigation(
+                "settings",
+                "/settings"
+              )
+            }
           />
 
           <MenuItem
-            icon={<CreditCard size={18} />}
-            label="Billing"
-            badge="Soon"
-            onClick={() => {
-              setOpen(false);
-              router.push("/billing");
-            }}
+            icon={
+              loadingAction === "billing" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <CreditCard size={18} />
+              )
+            }
+            label={
+              loadingAction === "billing"
+                ? "Opening..."
+                : "Billing"
+            }
+            loading={loadingAction === "billing"}
+            disabled={!!loadingAction}
+            onClick={() =>
+              handleNavigation(
+                "billing",
+                "/billing"
+              )
+            }
           />
         </div>
 
         {/* Logout */}
         <div className="border-t border-white/10 p-2">
           <MenuItem
-            icon={<LogOut size={18} />}
-            label="Log Out"
+            icon={
+              loadingAction === "logout" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <LogOut size={18} />
+              )
+            }
+            label={
+              loadingAction === "logout"
+                ? "Signing out..."
+                : "Log Out"
+            }
             danger
+            loading={loadingAction === "logout"}
+            disabled={!!loadingAction}
             onClick={handleLogout}
           />
         </div>
@@ -193,6 +305,8 @@ interface MenuItemProps {
   label: string;
   badge?: string;
   danger?: boolean;
+  loading?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
@@ -201,11 +315,15 @@ function MenuItem({
   label,
   badge,
   danger = false,
+  loading = false,
+  disabled = false,
   onClick,
 }: MenuItemProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      disabled={disabled}
       className={`
         group
         flex
@@ -215,22 +333,29 @@ function MenuItem({
         rounded-2xl
         px-4
         py-3
+        text-left
         transition-all
         duration-200
-
         ${
-          danger
-            ? "hover:bg-red-500/10"
-            : "hover:bg-white/5"
+          loading
+            ? "cursor-wait bg-white/[0.05]"
+            : danger
+              ? "hover:bg-red-500/10"
+              : "hover:bg-white/5"
         }
+        disabled:cursor-wait
       `}
     >
       <div className="flex items-center gap-3">
         <span
           className={
             danger
-              ? "text-red-400"
-              : "text-gray-400 transition-colors group-hover:text-blue-400"
+              ? loading
+                ? "text-red-300"
+                : "text-red-400"
+              : loading
+                ? "text-blue-300"
+                : "text-gray-400 transition-colors group-hover:text-blue-400"
           }
         >
           {icon}
@@ -239,15 +364,19 @@ function MenuItem({
         <span
           className={
             danger
-              ? "text-red-400"
-              : "text-white"
+              ? loading
+                ? "text-red-300"
+                : "text-red-400"
+              : loading
+                ? "text-blue-100"
+                : "text-white"
           }
         >
           {label}
         </span>
       </div>
 
-      {badge && (
+      {badge && !loading && (
         <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-xs text-blue-300">
           {badge}
         </span>

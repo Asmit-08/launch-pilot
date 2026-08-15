@@ -131,6 +131,7 @@ export default function PersonaPage() {
   const [loading, setLoading] = useState(false);
   const [stageIndex, setStageIndex] = useState(0);
   const [result, setResult] = useState<PersonaResult | null>(null);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     what_are_you_building: "",
@@ -146,13 +147,19 @@ export default function PersonaPage() {
   };
 
   const generatePersona = async (data: typeof formData) => {
+    if (loading) return;
+
     setLoading(true);
     setResult(null);
+    setGenerationError(null);
     setStageIndex(0);
 
-    LOADING_STAGES.forEach((_, i) => {
-      setTimeout(() => setStageIndex(i), i * 1400);
-    });
+    const stageTimers = LOADING_STAGES.map((_, i) =>
+      window.setTimeout(
+        () => setStageIndex(i),
+        i * 1400
+      )
+    );
 
     try {
       const payload = {
@@ -166,8 +173,16 @@ export default function PersonaPage() {
         throw new Error("Not authenticated");
       }
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiUrl) {
+        throw new Error(
+          "The application backend is not configured."
+        );
+      }
+
       const response = await fetch(
-        "https://launch-pilot-backend.onrender.com/persona",
+        `${apiUrl}/persona`,
         {
           method: "POST",
           headers: {
@@ -190,8 +205,15 @@ export default function PersonaPage() {
     } catch (error) {
       console.error("Persona generation failed:", error);
 
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while generating your persona.";
+
+      setGenerationError(message);
+
       setResult({
-        error: "Something went wrong while generating your persona.",
+        error: message,
         executive_summary: "",
         ideal_customer_profile: "",
         persona: {},
@@ -207,6 +229,9 @@ export default function PersonaPage() {
         confidence_score: 0,
       });
     } finally {
+      stageTimers.forEach((timer) =>
+        window.clearTimeout(timer)
+      );
       setLoading(false);
     }
   };
@@ -267,24 +292,124 @@ export default function PersonaPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black text-white">
+      <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
         <JsonLd />
-        <div className="text-center">
+
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-1/2 top-[-180px] h-[620px] w-[620px] -translate-x-1/2 rounded-full bg-blue-600/[0.09] blur-[160px]" />
+          <div className="absolute bottom-[-180px] right-[-120px] h-[520px] w-[520px] rounded-full bg-violet-600/[0.07] blur-[150px]" />
+          <div className="absolute left-[-140px] top-1/2 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.05] blur-[140px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
+          <div className="relative flex h-28 w-28 items-center justify-center">
+            <div className="absolute inset-0 rounded-full border border-blue-400/10" />
+            <div className="absolute inset-2 rounded-full border border-white/[0.05]" />
+            <div className="absolute inset-0 animate-[personaOrbit_2.8s_linear_infinite] rounded-full border border-transparent border-t-blue-400/90 border-r-violet-400/30" />
+
+            <div className="absolute h-12 w-12 animate-pulse rounded-full bg-blue-500/[0.08] blur-xl" />
+
+            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_0_40px_rgba(59,130,246,0.12)]">
+              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-300" />
+            </div>
+          </div>
+
           <Eyebrow>Generating your report</Eyebrow>
-          <p className="mt-4 text-2xl font-semibold text-zinc-100">
-            {LOADING_STAGES[stageIndex]}
+
+          <h1 className="mt-4 text-center text-3xl font-semibold tracking-[-0.03em] text-zinc-100 sm:text-4xl">
+            Building your customer picture
+          </h1>
+
+          <p className="mt-4 max-w-xl text-center text-sm leading-6 text-zinc-500">
+            Plavtora is turning your product context into a structured ICP
+            and persona. This can take a few moments.
           </p>
 
-          <div className="mx-auto mt-8 h-1 w-72 overflow-hidden rounded-full bg-zinc-800">
-            <div
-              className="h-full rounded-full bg-blue-500"
-              style={{
-                width: `${((stageIndex + 1) / LOADING_STAGES.length) * 100}%`,
-                transition: "width 0.6s ease",
-              }}
-            />
+          <div className="mt-10 w-full max-w-xl">
+            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-600">
+              <span>Analysis progress</span>
+              <span>
+                {Math.round(
+                  ((stageIndex + 1) / LOADING_STAGES.length) * 100
+                )}
+                %
+              </span>
+            </div>
+
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-400"
+                style={{
+                  width: `${((stageIndex + 1) / LOADING_STAGES.length) * 100}%`,
+                  transition: "width 0.7s ease",
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-8 w-full max-w-xl space-y-2">
+            {LOADING_STAGES.map((stage, index) => {
+              const completed = index < stageIndex;
+              const active = index === stageIndex;
+
+              return (
+                <div
+                  key={stage}
+                  className={`flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition-all duration-500 ${
+                    active
+                      ? "border-blue-400/20 bg-blue-400/[0.07]"
+                      : completed
+                        ? "border-white/[0.06] bg-white/[0.025]"
+                        : "border-white/[0.04] bg-transparent opacity-40"
+                  }`}
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs ${
+                      completed
+                        ? "bg-emerald-400/10 text-emerald-300"
+                        : active
+                          ? "bg-blue-400/10 text-blue-300"
+                          : "bg-white/[0.04] text-zinc-600"
+                    }`}
+                  >
+                    {completed ? (
+                      "✓"
+                    ) : active ? (
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-blue-300" />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p
+                      className={`text-sm font-medium ${
+                        active
+                          ? "text-zinc-100"
+                          : "text-zinc-400"
+                      }`}
+                    >
+                      {stage}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+
+        <style jsx>{`
+          @keyframes personaOrbit {
+            from {
+              transform: rotate(0deg);
+            }
+
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </main>
     );
   }
@@ -504,7 +629,7 @@ export default function PersonaPage() {
             </p>
             <p className="mt-2 max-w-xl text-zinc-400">
               The next step is validating whether they&apos;ll actually buy.
-              Launch Pilot helps founders validate ideas, identify launch
+              Plavtora helps founders validate ideas, identify launch
               risks, and prepare products before launch.
             </p>
             <Button
@@ -512,7 +637,7 @@ export default function PersonaPage() {
               size="lg"
               className="mt-6 h-11 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500"
             >
-              <Link href="/dashboard">Continue with Launch Pilot →</Link>
+              <Link href="/dashboard">Continue with Plavtora →</Link>
             </Button>
           </div>
         </div>
@@ -618,9 +743,17 @@ export default function PersonaPage() {
           <Button
             type="submit"
             size="lg"
-            className="h-12 w-full rounded-full bg-blue-600 text-white hover:bg-blue-500"
+            disabled={loading}
+            className="h-12 w-full rounded-full bg-blue-600 text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-80"
           >
-            Generate ICP
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                Generating ICP...
+              </span>
+            ) : (
+              "Generate ICP"
+            )}
           </Button>
         </form>
       </div>
@@ -893,7 +1026,7 @@ SEO CONTENT — PART 2
     </p>
 
     <p>
-      Launch Pilot's AI User Persona Generator simplifies this process by using
+      Plavtora's AI User Persona Generator simplifies this process by using
       artificial intelligence to transform a few inputs about your product into
       a structured persona. Instead of starting with a blank document, you
       receive a comprehensive profile that can immediately guide product,
@@ -1392,7 +1525,7 @@ SEO CONTENT — PART 3
 <section className="mt-24 rounded-3xl border border-blue-900/40 bg-gradient-to-r from-blue-950/30 to-indigo-950/30 p-10">
 
   <h2 className="text-3xl font-bold text-white">
-    Build Better Products with Launch Pilot
+    Build Better Products with Plavtora
   </h2>
 
   <div className="mt-6 space-y-6 text-lg leading-8 text-zinc-300">
@@ -1404,7 +1537,7 @@ SEO CONTENT — PART 3
     </p>
 
     <p>
-      Launch Pilot helps founders move beyond assumptions by providing AI-powered
+      Plavtora helps founders move beyond assumptions by providing AI-powered
       tools for customer understanding, product validation, and launch
       preparation. Whether you're building your first MVP or refining an
       existing product, combining AI insights with real customer feedback can
@@ -1488,7 +1621,7 @@ SEO CONTENT — PART 4 (FAQ)
 
     <div>
       <h3 className="text-2xl font-semibold text-white">
-        Is Launch Pilot's AI User Persona Generator free?
+        Is Plavtora's AI User Persona Generator free?
       </h3>
       <p className="mt-3 text-lg leading-8 text-zinc-400">
         Yes. You can generate detailed user personas without manually creating

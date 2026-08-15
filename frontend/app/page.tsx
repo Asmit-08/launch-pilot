@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -110,7 +111,15 @@ const founderInsights = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [activeInsight, setActiveInsight] = useState(0);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+
+  const navigateWithLoading = (href: string) => {
+    if (navigatingTo) return;
+    setNavigatingTo(href);
+    router.push(href);
+  };
 
   const previousInsight = () => {
     setActiveInsight((current) =>
@@ -139,12 +148,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_82%)]" />
       </div>
 
+      {navigatingTo && (
+        <div className="fixed left-0 right-0 top-0 z-[70] h-0.5 overflow-hidden bg-white/[0.04]">
+          <div className="h-full w-1/3 animate-[routeProgress_1.1s_ease-in-out_infinite] bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400" />
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/[0.06] bg-black/55 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/LaunchPilot-Icon.png"
+              src="/icon.png"
               alt="Plavtora"
               width={38}
               height={38}
@@ -225,13 +240,22 @@ export default function Home() {
 
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                   <Button
-                    asChild
+                    type="button"
                     size="lg"
-                    className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)]"
+                    disabled={!!navigatingTo}
+                    onClick={() =>
+                      navigateWithLoading("/auth?redirect=/audit")
+                    }
+                    className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)] disabled:cursor-wait disabled:opacity-90"
                   >
-                    <Link href="/auth?redirect=/audit">
-                      Run your startup through Plavtora
-                    </Link>
+                    {navigatingTo === "/auth?redirect=/audit" ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                        Starting Plavtora...
+                      </span>
+                    ) : (
+                      "Run your startup through Plavtora"
+                    )}
                   </Button>
 
                   <Button
@@ -883,12 +907,23 @@ export default function Home() {
                 </div>
 
                 <Button
-                  asChild
+                  type="button"
                   variant="outline"
                   size="lg"
-                  className="mt-9 h-12 w-full rounded-xl border-white/10 bg-white/[0.02] text-sm font-semibold hover:bg-white/[0.05]"
+                  disabled={!!navigatingTo}
+                  onClick={() =>
+                    navigateWithLoading("/auth?redirect=/dashboard")
+                  }
+                  className="mt-9 h-12 w-full rounded-xl border-white/10 bg-white/[0.02] text-sm font-semibold hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
                 >
-                  <Link href="/auth?redirect=/dashboard">Start Free</Link>
+                  {navigatingTo === "/auth?redirect=/dashboard" ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                      Opening Plavtora...
+                    </span>
+                  ) : (
+                    "Start Free"
+                  )}
                 </Button>
               </div>
 
@@ -969,11 +1004,20 @@ export default function Home() {
                     </div>
 
                     <Button
-                      asChild
+                      type="button"
                       size="lg"
-                      className="mt-9 h-12 w-full rounded-xl bg-white text-sm font-semibold text-black shadow-[0_0_40px_rgba(139,92,246,0.14)] transition hover:-translate-y-0.5 hover:bg-zinc-100"
+                      disabled={!!navigatingTo}
+                      onClick={() => navigateWithLoading("/billing")}
+                      className="mt-9 h-12 w-full rounded-xl bg-white text-sm font-semibold text-black shadow-[0_0_40px_rgba(139,92,246,0.14)] transition hover:-translate-y-0.5 hover:bg-zinc-100 disabled:cursor-wait disabled:opacity-90"
                     >
-                      <Link href="/billing">Upgrade to Premium</Link>
+                      {navigatingTo === "/billing" ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" />
+                          Opening Premium...
+                        </span>
+                      ) : (
+                        "Upgrade to Premium"
+                      )}
                     </Button>
 
                     <p className="mt-3 text-center text-[10px] text-zinc-700">
@@ -1108,13 +1152,22 @@ export default function Home() {
 
                   <div className="mt-8">
                     <Button
-                      asChild
+                      type="button"
                       size="lg"
-                      className="rounded-xl px-6"
+                      disabled={!!navigatingTo}
+                      onClick={() =>
+                        navigateWithLoading("/landing_page_analyzer")
+                      }
+                      className="rounded-xl px-6 disabled:cursor-wait disabled:opacity-90"
                     >
-                      <Link href="/landing_page_analyzer">
-                        Analyze a landing page
-                      </Link>
+                      {navigatingTo === "/landing_page_analyzer" ? (
+                        <span className="flex items-center gap-2">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                          Opening Analyzer...
+                        </span>
+                      ) : (
+                        "Analyze a landing page"
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -1190,22 +1243,42 @@ export default function Home() {
 
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
-                asChild
+                type="button"
                 size="lg"
-                className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)]"
+                disabled={!!navigatingTo}
+                onClick={() =>
+                  navigateWithLoading("/auth?redirect=/audit")
+                }
+                className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)] disabled:cursor-wait disabled:opacity-90"
               >
-                <Link href="/auth?redirect=/audit">Start with Plavtora</Link>
+                {navigatingTo === "/auth?redirect=/audit" ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                    Starting Plavtora...
+                  </span>
+                ) : (
+                  "Start with Plavtora"
+                )}
               </Button>
 
               <Button
-                asChild
+                type="button"
                 variant="outline"
                 size="lg"
-                className="rounded-xl border-white/10 bg-white/[0.02] px-7 hover:bg-white/[0.05]"
+                disabled={!!navigatingTo}
+                onClick={() =>
+                  navigateWithLoading("/landing_page_analyzer")
+                }
+                className="rounded-xl border-white/10 bg-white/[0.02] px-7 hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
               >
-                <Link href="/landing_page_analyzer">
-                  Analyze a landing page
-                </Link>
+                {navigatingTo === "/landing_page_analyzer" ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    Opening Analyzer...
+                  </span>
+                ) : (
+                  "Analyze a landing page"
+                )}
               </Button>
             </div>
           </div>
@@ -1217,7 +1290,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-zinc-600 sm:flex-row">
           <div className="flex items-center gap-2">
             <Image
-              src="/LaunchPilot-Icon.png"
+              src="/icon.png"
               alt="Plavtora"
               width={24}
               height={24}
@@ -1250,6 +1323,16 @@ export default function Home() {
 
           to {
             width: 72%;
+          }
+        }
+
+        @keyframes routeProgress {
+          0% {
+            transform: translateX(-100%);
+          }
+
+          100% {
+            transform: translateX(320%);
           }
         }
       `}</style>

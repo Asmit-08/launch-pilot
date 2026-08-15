@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Launch Pilot | AI Startup Validation & Launch Audit",
+  title: "Plavtora | AI Startup Validation & Launch Audit",
   description: "Your AI Co-Founder for SaaS Launches",
 
   verification: {
@@ -24,9 +24,9 @@ export const metadata = {
   },
 
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
+    icon: "/icon.ico",
+    shortcut: "/icon.ico",
+    apple: "/icon.ico",
   },
 };
 export default function RootLayout({

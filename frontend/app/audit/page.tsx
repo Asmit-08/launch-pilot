@@ -1,7 +1,7 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Card,
@@ -15,6 +15,57 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+function AuditStage({
+  icon,
+  title,
+  active,
+  complete,
+}: {
+  icon: string;
+  title: string;
+  active: boolean;
+  complete: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between rounded-2xl border px-4 py-3 transition-all duration-500 ${
+        active
+          ? "border-violet-400/20 bg-violet-400/[0.06]"
+          : complete
+            ? "border-emerald-400/10 bg-emerald-400/[0.03]"
+            : "border-white/[0.06] bg-white/[0.02]"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-lg">{icon}</span>
+        <span
+          className={`text-sm ${
+            active
+              ? "text-zinc-200"
+              : complete
+                ? "text-zinc-400"
+                : "text-zinc-600"
+          }`}
+        >
+          {title}
+        </span>
+      </div>
+
+      <span
+        className={`text-[10px] uppercase tracking-[0.15em] ${
+          active
+            ? "text-violet-300"
+            : complete
+              ? "text-emerald-300"
+              : "text-zinc-700"
+        }`}
+      >
+        {active ? "Working" : complete ? "Complete" : "Waiting"}
+      </span>
+    </div>
+  );
+}
+
 export default function AuditPage() {
   const router = useRouter();
 
@@ -25,6 +76,17 @@ export default function AuditPage() {
   );
 
   const [error, setError] = useState("");
+
+  const loadingProgress =
+    loadingMessage === "Analyzing Product..."
+      ? 18
+      : loadingMessage === "Checking Validation..."
+        ? 40
+        : loadingMessage === "Assessing Launch Readiness..."
+          ? 62
+          : loadingMessage === "Identifying Risks..."
+            ? 82
+            : 96;
 
   const [formData, setFormData] = useState({
     product_name: "",
@@ -121,8 +183,16 @@ export default function AuditPage() {
         return;
       }
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiUrl) {
+        throw new Error(
+          "The backend URL is not configured."
+        );
+      }
+
       const response = await fetch(
-        "https://launch-pilot-backend.onrender.com/audit",
+        `${apiUrl}/audit`,
         {
           method: "POST",
           headers: {
@@ -211,49 +281,41 @@ export default function AuditPage() {
             </div>
           </div>
 
-          <div className="mt-10 space-y-4 text-left">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🧠</span>
+          <div className="mt-10 grid w-full max-w-md gap-3 text-left">
+            <AuditStage
+              icon="🧠"
+              title="Product Agent"
+              active={loadingProgress <= 18}
+              complete={loadingProgress > 18}
+            />
 
-              <p>
-                {loadingMessage !== "Analyzing Product..."
-                  ? "Product Agent • Complete"
-                  : "Product Agent • Working"}
-              </p>
-            </div>
+            <AuditStage
+              icon="📈"
+              title="Validation Agent"
+              active={loadingProgress > 18 && loadingProgress <= 40}
+              complete={loadingProgress > 40}
+            />
 
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📈</span>
+            <AuditStage
+              icon="🚀"
+              title="Launch Readiness Agent"
+              active={loadingProgress > 40 && loadingProgress <= 62}
+              complete={loadingProgress > 62}
+            />
 
-              <p>
-                {loadingMessage === "Assessing Launch Readiness..." ||
-                loadingMessage === "Identifying Risks..." ||
-                loadingMessage === "Generating Report..."
-                  ? "Validation Agent • Complete"
-                  : "Validation Agent • Waiting"}
-              </p>
-            </div>
+            <AuditStage
+              icon="⚠️"
+              title="Risk Agent"
+              active={loadingProgress > 62 && loadingProgress <= 82}
+              complete={loadingProgress > 82}
+            />
 
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🚀</span>
-
-              <p>
-                {loadingMessage === "Identifying Risks..." ||
-                loadingMessage === "Generating Report..."
-                  ? "Launch Agent • Complete"
-                  : "Launch Agent • Waiting"}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-xl">⚠️</span>
-
-              <p>
-                {loadingMessage === "Generating Report..."
-                  ? "Risk Agent • Complete"
-                  : "Risk Agent • Waiting"}
-              </p>
-            </div>
+            <AuditStage
+              icon="✦"
+              title="Report synthesis"
+              active={loadingProgress > 82}
+              complete={false}
+            />
           </div>
         </div>
       </main>
@@ -264,11 +326,11 @@ export default function AuditPage() {
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="text-5xl font-bold">
-          Launch Audit
+          Plavtora Launch Audit
         </h1>
 
         <p className="mt-3 text-zinc-400">
-          Tell Launch Pilot about your startup.
+          Tell Plavtora about your startup.
         </p>
 
         {error && (
@@ -627,14 +689,13 @@ export default function AuditPage() {
           <Button
             type="submit"
             size="lg"
-            className="w-full mt-8"
+            className="mt-8 w-full"
             disabled={loading}
           >
-            🚀 Run Launch Audit
+            {loading ? "Starting your audit..." : "🚀 Run Launch Audit"}
           </Button>
         </form>
       </div>
     </main>
   );
 }
-

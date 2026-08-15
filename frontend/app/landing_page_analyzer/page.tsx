@@ -63,7 +63,7 @@ const loadingStages = [
       "Examining CTAs, trust signals, and clarity...",
   },
   {
-    title: "Building your Launch Pilot analysis",
+    title: "Building your Plavtora analysis",
     description:
       "Turning the findings into useful insights...",
   },
@@ -279,7 +279,7 @@ export default function LandingPageAnalyzer() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg">
-            Launch Pilot analyzes your landing page's
+            Plavtora analyzes your landing page's
             messaging, positioning, and conversion clarity
             to uncover what's working and what needs attention.
           </p>
@@ -394,7 +394,7 @@ export default function LandingPageAnalyzer() {
                   </h2>
 
                   <p className="mt-2 text-sm text-gray-500">
-                    Launch Pilot is examining your page.
+                    Plavtora is examining your page.
                   </p>
 
                 </div>
@@ -566,7 +566,7 @@ export default function LandingPageAnalyzer() {
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
                       See whether your positioning actually
                       matches the customers you're trying to reach.
-                      Launch Pilot compares your page against your
+                      Plavtora compares your page against your
                       saved ICP to identify messaging gaps,
                       positioning mismatches, and missed customer
                       signals.
@@ -723,7 +723,7 @@ export default function LandingPageAnalyzer() {
 
         {!loading && !result && (
           <p className="mt-6 text-center text-xs text-gray-600">
-            Enter a public landing page URL. Launch Pilot
+            Enter a public landing page URL. Plavtora
             analyzes the page without modifying it.
           </p>
         )}

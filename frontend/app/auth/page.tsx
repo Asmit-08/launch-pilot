@@ -161,7 +161,7 @@ export default function AuthPage() {
           </div>
 
           <h1 className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-4xl font-bold text-transparent">
-            Launch Pilot
+            Plavtora
           </h1>
 
           <p className="mt-4 text-center text-sm leading-7 text-gray-400">

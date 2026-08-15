@@ -253,6 +253,9 @@ export default function AuditPage() {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [navigatingTo, setNavigatingTo] =
+    useState<string | null>(null);
+
   useEffect(() => {
     async function loadAudit() {
       try {
@@ -288,13 +291,63 @@ export default function AuditPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#020617] text-white">
-        <div className="flex items-center gap-3 text-gray-400">
-          <Loader2
-            size={20}
-            className="animate-spin"
-          />
-          Loading audit...
+      <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[-12%] top-[-20%] h-[560px] w-[560px] rounded-full bg-blue-600/[0.07] blur-[150px]" />
+          <div className="absolute right-[-10%] top-[8%] h-[520px] w-[520px] rounded-full bg-violet-600/[0.06] blur-[145px]" />
+          <div className="absolute bottom-[-20%] left-[20%] h-[520px] w-[520px] rounded-full bg-fuchsia-500/[0.04] blur-[150px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-400/15 bg-violet-400/[0.06]">
+              <span className="text-sm font-semibold text-violet-200">P</span>
+            </div>
+            <div className="h-4 w-28 animate-pulse rounded-md bg-white/[0.06]" />
+          </div>
+
+          <div className="mx-auto flex min-h-[calc(100vh-120px)] max-w-5xl flex-col justify-center">
+            <div className="text-center">
+              <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
+                <div className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-blue-400/80 border-r-violet-400/30" />
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+                  <Loader2 size={22} className="animate-spin text-blue-300" />
+                </div>
+              </div>
+
+              <p className="mt-8 text-[10px] font-medium uppercase tracking-[0.25em] text-blue-300/80">
+                Audit report
+              </p>
+
+              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
+                Preparing your audit
+              </h1>
+
+              <p className="mt-4 text-sm leading-6 text-gray-500">
+                Loading the findings, scores, and recommendations from this audit.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {["Product", "Validation", "Launch", "Risk"].map((label) => (
+                <div
+                  key={label}
+                  className="animate-pulse rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6"
+                >
+                  <div className="h-3 w-20 rounded bg-white/[0.06]" />
+                  <div className="mt-5 h-9 w-16 rounded bg-white/[0.06]" />
+                  <div className="mt-4 h-2 w-24 rounded bg-white/[0.04]" />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <div className="h-56 animate-pulse rounded-3xl border border-white/[0.06] bg-white/[0.02]" />
+              <div className="h-56 animate-pulse rounded-3xl border border-white/[0.06] bg-white/[0.02]" />
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -313,14 +366,20 @@ export default function AuditPage() {
           </p>
 
           <button
-            onClick={() =>
-              router.push(
-                `/projects/${projectId}/audits`
-              )
-            }
-            className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500"
+            type="button"
+            disabled={!!navigatingTo}
+            onClick={() => {
+              setNavigatingTo("history");
+              router.push(`/projects/${projectId}/audits`);
+            }}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-80"
           >
-            Back to Audits
+            {navigatingTo === "history" && (
+              <Loader2 size={16} className="animate-spin" />
+            )}
+            {navigatingTo === "history"
+              ? "Opening audit history..."
+              : "Back to Audits"}
           </button>
         </div>
       </main>
@@ -343,19 +402,26 @@ export default function AuditPage() {
         <div className="mx-auto max-w-7xl px-6 py-5">
 
           <button
-            onClick={() =>
-              router.push(
-                `/projects/${projectId}/audits`
-              )
-            }
-            className="group flex items-center gap-2 text-sm text-gray-400 transition hover:text-white"
+            type="button"
+            disabled={!!navigatingTo}
+            onClick={() => {
+              setNavigatingTo("history");
+              router.push(`/projects/${projectId}/audits`);
+            }}
+            className="group flex items-center gap-2 text-sm text-gray-400 transition hover:text-white disabled:cursor-wait disabled:opacity-70"
           >
-            <ArrowLeft
-              size={18}
-              className="transition-transform group-hover:-translate-x-1"
-            />
+            {navigatingTo === "history" ? (
+              <Loader2 size={17} className="animate-spin text-blue-300" />
+            ) : (
+              <ArrowLeft
+                size={18}
+                className="transition-transform group-hover:-translate-x-1"
+              />
+            )}
 
-            Back to Audit History
+            {navigatingTo === "history"
+              ? "Opening audit history..."
+              : "Back to Audit History"}
           </button>
 
         </div>
@@ -673,14 +739,20 @@ export default function AuditPage() {
           </div>
 
           <button
-            onClick={() =>
-              router.push(
-                `/projects/${projectId}/audits`
-              )
-            }
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white"
+            type="button"
+            disabled={!!navigatingTo}
+            onClick={() => {
+              setNavigatingTo("history");
+              router.push(`/projects/${projectId}/audits`);
+            }}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:opacity-70"
           >
-            View Audit History
+            {navigatingTo === "history" && (
+              <Loader2 size={15} className="animate-spin" />
+            )}
+            {navigatingTo === "history"
+              ? "Opening audit history..."
+              : "View Audit History"}
           </button>
 
         </div>
@@ -898,4 +970,3 @@ function formatDate(date: string) {
     }
   );
 }
-

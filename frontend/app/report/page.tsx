@@ -806,7 +806,7 @@ export default function DashboardPage() {
                   </p>
 
                   <p className="mt-4 rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
-                    Powered by Launch Pilot AI
+                    Powered by Plavtora AI
                   </p>
 
                   <div className="mt-8 text-left">

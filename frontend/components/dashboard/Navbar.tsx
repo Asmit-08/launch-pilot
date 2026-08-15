@@ -1,28 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Menu, Bell } from "lucide-react";
+
 import UserMenu from "./Usermenu";
 import { getCurrentUser } from "@/services/user";
+import logo from "@/app/icon.png";
 
 interface NavbarProps {
   onMenuClick: () => void;
 }
 
+interface User {
+  name?: string;
+  email?: string;
+  avatar_url?: string;
+}
+
 export default function Navbar({ onMenuClick }: NavbarProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadUser() {
       try {
         const currentUser = await getCurrentUser();
-        setUser(currentUser);
+
+        if (!cancelled) {
+          setUser(currentUser);
+        }
       } catch (error) {
-        console.error("Failed to load user:", error);
+        if (!cancelled) {
+          console.error("Failed to load user:", error);
+        }
+      } finally {
+        if (!cancelled) {
+          setUserLoading(false);
+        }
       }
     }
 
     loadUser();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -31,24 +56,31 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         {/* Left */}
         <div className="flex items-center gap-4">
           <button
+            type="button"
             onClick={onMenuClick}
+            aria-label="Open dashboard menu"
             className="rounded-xl p-2 transition hover:bg-white/5"
           >
             <Menu className="h-5 w-5 text-gray-300" />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 font-bold text-white shadow-lg">
-              LP
-            </div>
+            <Image
+              src={logo}
+              alt="Plavtora"
+              width={40}
+              height={40}
+              priority
+              className="h-10 w-10 rounded-xl object-cover"
+            />
 
             <div>
               <h1 className="text-lg font-semibold text-white">
-                Launch Pilot
+                Plavtora
               </h1>
 
               <p className="text-xs text-gray-500">
-                AI Co-Founder
+                AI decision support for founders
               </p>
             </div>
           </div>
@@ -56,15 +88,30 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          <button className="rounded-xl p-2 transition hover:bg-white/5">
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="rounded-xl p-2 transition hover:bg-white/5"
+          >
             <Bell className="h-5 w-5 text-gray-300" />
           </button>
 
-          <UserMenu
-            name={user?.name}
-            email={user?.email}
-            avatarUrl={user?.avatar_url}
-          />
+          {userLoading ? (
+            <div className="flex items-center gap-3">
+              <div className="hidden space-y-2 sm:block">
+                <div className="ml-auto h-3 w-20 animate-pulse rounded bg-white/[0.06]" />
+                <div className="ml-auto h-2.5 w-28 animate-pulse rounded bg-white/[0.04]" />
+              </div>
+
+              <div className="h-10 w-10 animate-pulse rounded-full bg-white/[0.06]" />
+            </div>
+          ) : (
+            <UserMenu
+              name={user?.name}
+              email={user?.email}
+              avatarUrl={user?.avatar_url}
+            />
+          )}
         </div>
       </div>
     </header>

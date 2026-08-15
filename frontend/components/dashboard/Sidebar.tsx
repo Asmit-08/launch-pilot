@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   X,
@@ -8,6 +9,7 @@ import {
   Globe,
   Settings,
   LogOut,
+  Loader2,
 } from "lucide-react";
 
 import { signOut } from "@/services/auth";
@@ -24,30 +26,60 @@ interface SidebarProps {
   projects: Project[];
 }
 
+type LoadingAction =
+  | `project:${string}`
+  | "audit"
+  | "landing-pages"
+  | "settings"
+  | "logout"
+  | null;
+
 export default function Sidebar({
   isOpen,
   onClose,
   projects,
 }: SidebarProps) {
   const router = useRouter();
+  const [loadingAction, setLoadingAction] =
+    useState<LoadingAction>(null);
 
   async function handleLogout() {
+    if (loadingAction) return;
+
     try {
-      onClose();
+      setLoadingAction("logout");
 
       await signOut();
 
       router.replace("/auth");
     } catch (error) {
       console.error("Logout failed:", error);
+      setLoadingAction(null);
     }
   }
 
   function handleProjectClick(projectId: string) {
+    if (loadingAction) return;
+
     onClose();
+    setLoadingAction(`project:${projectId}`);
 
     router.push(`/projects/${projectId}`);
   }
+
+  function handleNavigation(
+    action: Exclude<LoadingAction, `project:${string}` | "logout" | null>,
+    href: string
+  ) {
+    if (loadingAction) return;
+
+    onClose();
+    setLoadingAction(action);
+    router.push(href);
+  }
+
+  const isProjectLoading = (projectId: string) =>
+    loadingAction === `project:${projectId}`;
 
   return (
     <>
@@ -84,7 +116,7 @@ export default function Sidebar({
         <div className="flex items-center justify-between border-b border-white/10 p-6">
           <div>
             <h2 className="text-xl font-semibold text-white">
-              Launch Pilot
+              Plavtora
             </h2>
 
             <p className="text-sm text-gray-400">
@@ -93,7 +125,9 @@ export default function Sidebar({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close sidebar"
             className="rounded-xl p-2 transition hover:bg-white/5"
           >
             <X size={20} className="text-white" />
@@ -102,7 +136,6 @@ export default function Sidebar({
 
         {/* Scrollable */}
         <div className="flex-1 overflow-y-auto p-5">
-
           {/* Recent Projects */}
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
@@ -110,54 +143,91 @@ export default function Sidebar({
             </h3>
 
             <div className="space-y-2">
-
               {projects.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-gray-500">
                   No projects yet.
                 </div>
               ) : (
-                projects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() =>
-                      handleProjectClick(project.id)
-                    }
-                    className="
-                      group
-                      flex
-                      w-full
-                      items-center
-                      justify-between
-                      rounded-2xl
-                      border
-                      border-white/5
-                      bg-white/5
-                      p-4
-                      transition-all
-                      duration-300
-                      hover:border-blue-500/30
-                      hover:bg-white/10
-                    "
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 p-2 text-white">
-                        <FolderGit2 size={18} />
+                projects.map((project) => {
+                  const projectLoading =
+                    isProjectLoading(project.id);
+
+                  return (
+                    <button
+                      key={project.id}
+                      type="button"
+                      disabled={!!loadingAction}
+                      onClick={() =>
+                        handleProjectClick(project.id)
+                      }
+                      className={`
+                        group
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        rounded-2xl
+                        border
+                        border-white/5
+                        bg-white/5
+                        p-4
+                        text-left
+                        transition-all
+                        duration-300
+                        ${
+                          projectLoading
+                            ? "cursor-wait border-blue-500/30 bg-white/[0.08] opacity-85"
+                            : "hover:border-blue-500/30 hover:bg-white/10"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`
+                            rounded-xl
+                            bg-gradient-to-br from-blue-500 to-violet-600
+                            p-2
+                            text-white
+                            ${
+                              projectLoading
+                                ? "opacity-80"
+                                : ""
+                            }
+                          `}
+                        >
+                          {projectLoading ? (
+                            <Loader2
+                              size={18}
+                              className="animate-spin"
+                            />
+                          ) : (
+                            <FolderGit2 size={18} />
+                          )}
+                        </div>
+
+                        <div className="text-left">
+                          <p className="font-medium text-white">
+                            {project.name}
+                          </p>
+
+                          <p className="text-xs capitalize text-gray-400">
+                            {projectLoading
+                              ? "Opening project..."
+                              : project.stage}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="text-left">
-                        <p className="font-medium text-white">
-                          {project.name}
-                        </p>
-
-                        <p className="text-xs capitalize text-gray-400">
-                          {project.stage}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                ))
+                      {projectLoading && (
+                        <Loader2
+                          size={16}
+                          className="animate-spin text-blue-300"
+                        />
+                      )}
+                    </button>
+                  );
+                })
               )}
-
             </div>
           </div>
 
@@ -171,48 +241,105 @@ export default function Sidebar({
             </h3>
 
             <div className="space-y-2">
-
               <SidebarItem
-                icon={<Plus size={18} />}
-                title="New Audit"
-                onClick={() => {
-                  onClose();
-                  router.push("/dashboard");
-                }}
+                icon={
+                  loadingAction === "audit" ? (
+                    <Loader2
+                      size={18}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <Plus size={18} />
+                  )
+                }
+                title={
+                  loadingAction === "audit"
+                    ? "Opening..."
+                    : "New Audit"
+                }
+                loading={loadingAction === "audit"}
+                disabled={!!loadingAction}
+                onClick={() =>
+                  handleNavigation("audit", "/dashboard")
+                }
               />
 
               <SidebarItem
-                icon={<Globe size={18} />}
-                title="Landing Pages"
-                onClick={() => {
-                  onClose();
-                  router.push("/landing-pages");
-                }}
+                icon={
+                  loadingAction === "landing-pages" ? (
+                    <Loader2
+                      size={18}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <Globe size={18} />
+                  )
+                }
+                title={
+                  loadingAction === "landing-pages"
+                    ? "Opening..."
+                    : "Landing Pages"
+                }
+                loading={
+                  loadingAction === "landing-pages"
+                }
+                disabled={!!loadingAction}
+                onClick={() =>
+                  handleNavigation(
+                    "landing-pages",
+                    "/landing-pages"
+                  )
+                }
               />
-
             </div>
           </div>
-
         </div>
 
         {/* Footer */}
         <div className="space-y-2 border-t border-white/10 p-5">
-
           <SidebarItem
-            icon={<Settings size={18} />}
-            title="Settings"
-            onClick={() => {
-              onClose();
-              router.push("/settings");
-            }}
+            icon={
+              loadingAction === "settings" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <Settings size={18} />
+              )
+            }
+            title={
+              loadingAction === "settings"
+                ? "Opening..."
+                : "Settings"
+            }
+            loading={loadingAction === "settings"}
+            disabled={!!loadingAction}
+            onClick={() =>
+              handleNavigation("settings", "/settings")
+            }
           />
 
           <SidebarItem
-            icon={<LogOut size={18} />}
-            title="Logout"
+            icon={
+              loadingAction === "logout" ? (
+                <Loader2
+                  size={18}
+                  className="animate-spin"
+                />
+              ) : (
+                <LogOut size={18} />
+              )
+            }
+            title={
+              loadingAction === "logout"
+                ? "Signing out..."
+                : "Logout"
+            }
+            loading={loadingAction === "logout"}
+            disabled={!!loadingAction}
             onClick={handleLogout}
           />
-
         </div>
       </aside>
     </>
@@ -223,17 +350,23 @@ interface SidebarItemProps {
   icon: React.ReactNode;
   title: string;
   onClick?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
 function SidebarItem({
   icon,
   title,
   onClick,
+  loading = false,
+  disabled = false,
 }: SidebarItemProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="
+      disabled={disabled}
+      className={`
         group
         flex
         w-full
@@ -241,16 +374,35 @@ function SidebarItem({
         gap-4
         rounded-2xl
         p-4
+        text-left
         transition-all
         duration-300
-        hover:bg-white/5
-      "
+        ${
+          loading
+            ? "cursor-wait bg-white/[0.05]"
+            : "hover:bg-white/5"
+        }
+        disabled:cursor-wait
+      `}
     >
-      <div className="text-gray-400 transition group-hover:text-blue-400">
+      <div
+        className={`
+          transition
+          ${
+            loading
+              ? "text-blue-300"
+              : "text-gray-400 group-hover:text-blue-400"
+          }
+        `}
+      >
         {icon}
       </div>
 
-      <span className="text-white">
+      <span
+        className={`${
+          loading ? "text-blue-100" : "text-white"
+        }`}
+      >
         {title}
       </span>
     </button>

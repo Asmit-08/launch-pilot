@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free AI User Persona Generator | Launch Pilot",
+  title: "Free AI User Persona Generator | Plavtora",
 
   description:
     "Generate detailed AI-powered user personas for your startup, SaaS, or business. Create customer personas with goals, pain points, motivations, buying behavior, and marketing insights in seconds.",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title:
-      "Free AI User Persona Generator | Launch Pilot",
+      "Free AI User Persona Generator | Plavtora",
 
     description:
       "Generate detailed customer personas in seconds using AI. Perfect for startup founders, marketers, and SaaS teams.",
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     url:
       "https://launch-pilot-flax.vercel.app/persona",
 
-    siteName: "Launch Pilot",
+    siteName: "Plavtora",
 
     images: [
       {
         url: "/og-user-persona-generator.png",
         width: 1200,
         height: 630,
-        alt: "Launch Pilot AI User Persona Generator",
+        alt: "Plavtora AI User Persona Generator",
       },
     ],
 

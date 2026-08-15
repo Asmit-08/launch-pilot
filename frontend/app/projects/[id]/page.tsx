@@ -66,6 +66,9 @@ export default function ProjectPage() {
   const [isTyping, setIsTyping] =
     useState(false);
 
+  const [navigationLoading, setNavigationLoading] =
+    useState<string | null>(null);
+
   const messagesEndRef =
     useRef<HTMLDivElement>(null);
 
@@ -119,6 +122,13 @@ export default function ProjectPage() {
     });
   }, [messages, isTyping]);
 
+  const handleNavigation = (key: string, href: string) => {
+    if (navigationLoading) return;
+
+    setNavigationLoading(key);
+    router.push(href);
+  };
+
   /* =========================================================
      Send Chat Message
   ========================================================= */
@@ -150,7 +160,7 @@ export default function ProjectPage() {
         latestAudit?.result;
 
       const response = await fetch(
-        "https://launch-pilot-backend.onrender.com/chat",
+        `${process.env.NEXT_PUBLIC_API_URL}/chat`,
         {
           method: "POST",
 
@@ -263,19 +273,48 @@ export default function ProjectPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#020617] text-white">
-
-        <div className="flex items-center gap-3 text-gray-400">
-
-          <Loader2
-            size={20}
-            className="animate-spin"
-          />
-
-          Loading project...
-
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020617] px-6 text-white">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-1/2 top-[-180px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/[0.07] blur-[140px]" />
+          <div className="absolute bottom-[-180px] right-[-100px] h-[440px] w-[440px] rounded-full bg-blue-500/[0.05] blur-[130px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
         </div>
 
+        <div className="relative z-10 w-full max-w-md text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-400/15 bg-violet-400/[0.06] shadow-[0_0_60px_rgba(139,92,246,0.10)]">
+            <Loader2
+              size={30}
+              className="animate-spin text-violet-300"
+            />
+          </div>
+
+          <p className="mt-7 text-[10px] font-medium uppercase tracking-[0.25em] text-violet-300/80">
+            Plavtora workspace
+          </p>
+
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
+            Opening your project
+          </h1>
+
+          <p className="mt-4 text-sm leading-6 text-gray-500">
+            Fetching the project, latest audit, and workspace context.
+          </p>
+
+          <div className="mx-auto mt-8 h-1 w-full max-w-xs overflow-hidden rounded-full bg-white/[0.05]">
+            <div className="h-full w-1/3 animate-[projectProgress_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400" />
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes projectProgress {
+            0% {
+              transform: translateX(-120%);
+            }
+            100% {
+              transform: translateX(360%);
+            }
+          }
+        `}</style>
       </main>
     );
   }
@@ -301,11 +340,17 @@ export default function ProjectPage() {
 
           <button
             onClick={() =>
-              router.push("/dashboard")
+              handleNavigation("error-dashboard", "/dashboard")
             }
-            className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-500"
+            disabled={!!navigationLoading}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-70"
           >
-            Back to Dashboard
+            {navigationLoading === "error-dashboard" && (
+              <Loader2 size={16} className="animate-spin" />
+            )}
+            {navigationLoading === "error-dashboard"
+              ? "Opening..."
+              : "Back to Dashboard"}
           </button>
 
         </div>
@@ -434,14 +479,19 @@ export default function ProjectPage() {
             <button
               onClick={() => {
                 if (latestAudit) {
-                  router.push(
+                  handleNavigation(
+                    "latest-audit",
                     `/projects/${projectId}/audits/${latestAudit.session.id}`
                   );
                 } else {
-                  router.push("/audit");
+                  handleNavigation("run-audit", "/audit");
                 }
               }}
+              disabled={!!navigationLoading}
               className="
+                inline-flex
+                items-center
+                gap-2
                 rounded-xl
                 bg-gradient-to-r
                 from-blue-600
@@ -454,11 +504,21 @@ export default function ProjectPage() {
                 transition-all
                 hover:-translate-y-0.5
                 hover:shadow-blue-500/20
+                disabled:cursor-wait
+                disabled:opacity-70
               "
             >
-              {latestAudit
-                ? "Open Audit"
-                : "Run Audit"}
+              {(navigationLoading === "latest-audit" ||
+                navigationLoading === "run-audit") && (
+                <Loader2 size={17} className="animate-spin" />
+              )}
+              {navigationLoading === "latest-audit"
+                ? "Opening Audit..."
+                : navigationLoading === "run-audit"
+                  ? "Opening Audit..."
+                  : latestAudit
+                    ? "Open Audit"
+                    : "Run Audit"}
             </button>
 
           </div>
@@ -491,7 +551,8 @@ export default function ProjectPage() {
               activeTab === "Audits"
             }
             onClick={() =>
-              router.push(
+              handleNavigation(
+                "audits-tab",
                 `/projects/${projectId}/audits`
               )
             }
@@ -1022,12 +1083,17 @@ export default function ProjectPage() {
 
                   <button
                     onClick={() =>
-                      router.push(
+                      handleNavigation(
+                        "view-audits",
                         `/projects/${projectId}/audits`
                       )
                     }
+                    disabled={!!navigationLoading}
                     className="
                       mt-7
+                      inline-flex
+                      items-center
+                      gap-2
                       rounded-xl
                       border
                       border-white/10
@@ -1039,9 +1105,16 @@ export default function ProjectPage() {
                       text-white
                       transition
                       hover:bg-white/10
+                      disabled:cursor-wait
+                      disabled:opacity-70
                     "
                   >
-                    View Full Audit
+                    {navigationLoading === "view-audits" && (
+                      <Loader2 size={15} className="animate-spin" />
+                    )}
+                    {navigationLoading === "view-audits"
+                      ? "Opening..."
+                      : "View Full Audit"}
                   </button>
 
                 </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { ReactNode } from "react";
 
 interface ActionCardProps {
@@ -21,8 +22,32 @@ export default function ActionCard({
   disabled = false,
   badge,
 }: ActionCardProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigate = () => {
+    if (disabled || loading) return;
+
+    setLoading(true);
+    router.push(href);
+  };
+
   const content = (
     <div
+      onClick={disabled ? undefined : handleNavigate}
+      role={disabled ? undefined : "button"}
+      tabIndex={disabled ? undefined : 0}
+      onKeyDown={(event) => {
+        if (
+          !disabled &&
+          !loading &&
+          (event.key === "Enter" || event.key === " ")
+        ) {
+          event.preventDefault();
+          handleNavigate();
+        }
+      }}
+      aria-disabled={disabled || loading}
       className={`
         group relative overflow-hidden rounded-3xl border
         border-white/10 bg-white/5 p-6
@@ -32,18 +57,50 @@ export default function ActionCard({
         ${
           disabled
             ? "cursor-not-allowed opacity-60"
-            : "cursor-pointer hover:-translate-y-1 hover:border-blue-500/40 hover:bg-white/[0.07] hover:shadow-2xl"
+            : loading
+              ? "cursor-wait border-blue-500/30 bg-white/[0.07] opacity-80"
+              : "cursor-pointer hover:-translate-y-1 hover:border-blue-500/40 hover:bg-white/[0.07] hover:shadow-2xl"
         }
       `}
     >
       {/* Glow */}
-      <div className="absolute right-0 top-0 h-32 w-32 translate-x-10 -translate-y-10 rounded-full bg-blue-500/10 blur-3xl transition-all duration-500 group-hover:bg-blue-500/20" />
+      <div
+        className={`
+          absolute right-0 top-0 h-32 w-32
+          translate-x-10 -translate-y-10
+          rounded-full bg-blue-500/10 blur-3xl
+          transition-all duration-500
+          ${
+            !disabled && !loading
+              ? "group-hover:bg-blue-500/20"
+              : ""
+          }
+        `}
+      />
 
       <div className="relative flex h-full flex-col">
-
         {/* Icon */}
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-lg">
-          {icon}
+        <div
+          className={`
+            mb-6 flex h-14 w-14 items-center justify-center
+            rounded-2xl bg-gradient-to-br
+            from-blue-500 to-violet-600 text-white shadow-lg
+            transition-transform duration-300
+            ${
+              loading
+                ? "scale-95"
+                : "group-hover:scale-[1.03]"
+            }
+          `}
+        >
+          {loading ? (
+            <Loader2
+              size={24}
+              className="animate-spin"
+            />
+          ) : (
+            icon
+          )}
         </div>
 
         {/* Badge */}
@@ -65,25 +122,31 @@ export default function ActionCard({
 
         {/* Bottom */}
         <div className="mt-8 flex items-center justify-between">
-
-          <span className="text-sm font-medium text-blue-400">
-            Open
+          <span
+            className={`text-sm font-medium ${
+              loading
+                ? "text-blue-300"
+                : "text-blue-400"
+            }`}
+          >
+            {loading ? "Opening..." : "Open"}
           </span>
 
-          <ArrowRight
-            className="transition-transform duration-300 group-hover:translate-x-1"
-            size={18}
-          />
-
+          {loading ? (
+            <Loader2
+              size={18}
+              className="animate-spin text-blue-300"
+            />
+          ) : (
+            <ArrowRight
+              className="transition-transform duration-300 group-hover:translate-x-1"
+              size={18}
+            />
+          )}
         </div>
-
       </div>
     </div>
   );
 
-  if (disabled) {
-    return content;
-  }
-
-  return <Link href={href}>{content}</Link>;
+  return content;
 }
