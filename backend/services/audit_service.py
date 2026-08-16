@@ -94,7 +94,6 @@ class AuditService:
 
         except Exception as e:
 
-            print("Audit Error:", e)
 
             return {
                 "overall_score": 0,

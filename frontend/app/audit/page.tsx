@@ -264,7 +264,7 @@ export default function AuditPage() {
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-6xl font-bold">
-            Launch <span className="text-blue-500">Pilot</span>
+            Plavtora
           </h1>
 
           <p className="mt-6 text-xl text-zinc-400">

@@ -1,7 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type CallbackStage =
@@ -14,18 +22,32 @@ function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [stage, setStage] = useState<CallbackStage>("session");
-  const [errorMessage, setErrorMessage] = useState("");
+  const hasStarted = useRef(false);
+
+  const [stage, setStage] =
+    useState<CallbackStage>("session");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  const redirectParam =
+    searchParams.get("redirect");
+
+  const urlParam =
+    searchParams.get("url");
 
   useEffect(() => {
-    let cancelled = false;
+    if (hasStarted.current) {
+      return;
+    }
+
+    hasStarted.current = true;
 
     async function handleCallback() {
       try {
-        // Give Supabase a moment to finish restoring the OAuth session.
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        if (cancelled) return;
+        // ---------------------------------------------------------
+        // Restore OAuth session
+        // ---------------------------------------------------------
 
         setStage("session");
 
@@ -46,15 +68,14 @@ function AuthCallbackContent() {
           );
         }
 
-        if (cancelled) return;
-
         // ---------------------------------------------------------
         // Sync authenticated user with backend
         // ---------------------------------------------------------
 
         setStage("sync");
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL;
 
         if (!apiUrl) {
           throw new Error(
@@ -62,25 +83,63 @@ function AuthCallbackContent() {
           );
         }
 
-        const response = await fetch(
-          `${apiUrl}/auth/sync`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
+        const controller =
+          new AbortController();
+
+        const timeout = window.setTimeout(() => {
+          controller.abort();
+        }, 15000);
+
+        let response: Response;
+
+        try {
+          response = await fetch(
+            `${apiUrl}/auth/sync`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+                "Content-Type": "application/json",
+              },
+              signal: controller.signal,
+            }
+          );
+        } catch (error) {
+          if (
+            error instanceof DOMException &&
+            error.name === "AbortError"
+          ) {
+            throw new Error(
+              "Setting up your account took too long. Please try signing in again."
+            );
           }
-        );
+
+          throw new Error(
+            "We couldn't connect to Plavtora. Please try signing in again."
+          );
+        } finally {
+          window.clearTimeout(timeout);
+        }
 
         if (!response.ok) {
-          throw new Error(
-            "We couldn't finish setting up your account."
-          );
+          let message =
+            "We couldn't finish setting up your account.";
+
+          try {
+            const data =
+              await response.json();
+
+            if (data?.detail) {
+              message = data.detail;
+            }
+          } catch {
+            // Ignore invalid error responses.
+          }
+
+          throw new Error(message);
         }
 
         await response.json();
-
-        if (cancelled) return;
 
         // ---------------------------------------------------------
         // Prepare destination
@@ -88,43 +147,42 @@ function AuthCallbackContent() {
 
         setStage("workspace");
 
-        const requestedRedirect =
-          searchParams.get("redirect");
-
         const redirect =
-          requestedRedirect &&
-          requestedRedirect.startsWith("/") &&
-          !requestedRedirect.startsWith("//")
-            ? requestedRedirect
+          redirectParam &&
+          redirectParam.startsWith("/") &&
+          !redirectParam.startsWith("//")
+            ? redirectParam
             : "/dashboard";
-
-        const url = searchParams.get("url");
 
         let destination = redirect;
 
-        // Preserve the landing-page URL through OAuth.
         if (
-          redirect === "/landing_page_analyzer" &&
-          url
+          redirect ===
+            "/landing_page_analyzer" &&
+          urlParam
         ) {
-          destination = `${redirect}?url=${encodeURIComponent(
-            url
-          )}`;
+          destination =
+            `${redirect}?url=${encodeURIComponent(
+              urlParam
+            )}`;
         }
 
-        // Small delay so the final state is actually visible.
-        await new Promise((resolve) =>
-          setTimeout(resolve, 350)
+        console.log(
+          "AUTH CALLBACK: authentication complete",
+          {
+            userId: session.user.id,
+            destination,
+          }
         );
 
-        if (cancelled) return;
+        // ---------------------------------------------------------
+        // Redirect immediately
+        // ---------------------------------------------------------
 
         router.replace(destination);
       } catch (error) {
-        if (cancelled) return;
-
         console.error(
-          "Authentication callback failed:",
+          "AUTH CALLBACK: failed",
           error
         );
 
@@ -139,11 +197,7 @@ function AuthCallbackContent() {
     }
 
     handleCallback();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router, searchParams]);
+  }, [router, redirectParam, urlParam]);
 
   if (stage === "error") {
     return (
@@ -163,10 +217,12 @@ function AuthCallbackContent() {
                 d="M12 8v4"
                 strokeLinecap="round"
               />
+
               <path
                 d="M12 16h.01"
                 strokeLinecap="round"
               />
+
               <path
                 d="M10.3 3.6 2.9 16.5A2 2 0 0 0 4.6 19.5h14.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"
               />
@@ -336,6 +392,9 @@ function getStageLabel(stage: CallbackStage) {
     case "workspace":
       return "Preparing your workspace";
 
+    case "error":
+      return "Authentication";
+
     default:
       return "Authentication";
   }
@@ -352,6 +411,9 @@ function getStageTitle(stage: CallbackStage) {
     case "workspace":
       return "Taking you in";
 
+    case "error":
+      return "Signing you in";
+
     default:
       return "Signing you in";
   }
@@ -367,6 +429,9 @@ function getStageDescription(stage: CallbackStage) {
 
     case "workspace":
       return "Everything is ready. Redirecting you to your workspace.";
+
+    case "error":
+      return "Please try signing in again.";
 
     default:
       return "Please wait while we finish authentication.";
