@@ -1286,23 +1286,41 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/[0.06] px-6 py-8 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-zinc-600 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/icon.png"
-              alt="Plavtora"
-              width={24}
-              height={24}
-              className="rounded-lg opacity-80"
-            />
+<footer className="relative z-10 border-t border-white/[0.06] px-6 py-8 lg:px-8">
+  <div className="mx-auto flex max-w-7xl flex-col gap-5 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-center gap-2">
+      <Image
+        src="/icon.png"
+        alt="Plavtora"
+        width={24}
+        height={24}
+        className="rounded-lg opacity-80"
+      />
 
-            <span>© 2026 Plavtora</span>
-          </div>
+      <span>© 2026 Plavtora</span>
+    </div>
 
-          <span>Built for founders who want sharper decisions.</span>
-        </div>
-      </footer>
+    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:justify-end">
+      <span>Built for founders who want sharper decisions.</span>
+
+      <span className="hidden h-3 w-px bg-white/10 sm:block" />
+
+      <Link
+        href="/privacy"
+        className="transition-colors hover:text-zinc-300"
+      >
+        Privacy Policy
+      </Link>
+
+      <Link
+        href="/terms"
+        className="transition-colors hover:text-zinc-300"
+      >
+        Terms of Service
+      </Link>
+    </div>
+  </div>
+</footer>
 
       <style jsx>{`
         @keyframes float {
