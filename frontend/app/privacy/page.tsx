@@ -523,7 +523,7 @@ export default function PrivacyPolicyPage() {
             </div>
 
             <p className="mt-4">
-              For privacy-related requests, please include sufficient
+              For privacy related requests, please include sufficient
               information for us to identify your account and understand your
               request.
             </p>
