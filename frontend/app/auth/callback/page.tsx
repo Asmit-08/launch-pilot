@@ -167,14 +167,6 @@ function AuthCallbackContent() {
             )}`;
         }
 
-        console.log(
-          "AUTH CALLBACK: authentication complete",
-          {
-            userId: session.user.id,
-            destination,
-          }
-        );
-
         // ---------------------------------------------------------
         // Redirect immediately
         // ---------------------------------------------------------
