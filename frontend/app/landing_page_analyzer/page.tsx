@@ -81,6 +81,7 @@ function LandingPageAnalyzerContent() {
     useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
   const [isPremium, setIsPremium] = useState(false);
+  const [useSavedIcp, setUseSavedIcp] = useState(false);
 
   /*
    * ---------------------------------------------------------
@@ -272,6 +273,7 @@ function LandingPageAnalyzerContent() {
 
           body: JSON.stringify({
             url: normalizedUrl,
+            use_saved_icp: useSavedIcp,
           }),
         }
       );
@@ -382,6 +384,29 @@ function LandingPageAnalyzerContent() {
                 </button>
 
               </div>
+
+              <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/15 hover:bg-white/[0.05]">
+                <input
+                  type="checkbox"
+                  checked={useSavedIcp}
+                  onChange={(e) =>
+                    setUseSavedIcp(e.target.checked)
+                  }
+                  className="mt-1 h-4 w-4 rounded border-white/20 bg-black/20 text-violet-500 focus:ring-2 focus:ring-violet-500/30"
+                />
+
+                <span>
+                  <span className="block text-sm font-medium text-gray-200">
+                    Compare against my saved ICP
+                  </span>
+
+                  <span className="mt-1 block text-xs leading-5 text-gray-500">
+                    When enabled, Plavtora will compare this landing
+                    page against your currently saved ICP. Leave this
+                    off if the saved ICP belongs to a different product.
+                  </span>
+                </span>
+              </label>
 
               {error && (
                 <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">

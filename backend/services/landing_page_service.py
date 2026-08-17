@@ -22,7 +22,10 @@ class LandingPageService:
             # 2. Get saved ICP context
             # ---------------------------------------------------------
 
-            icp_context = current_user.get("icp_context")
+            icp_context = None
+
+            if data.use_saved_icp:
+                icp_context = current_user.get("icp_context")
 
             # ---------------------------------------------------------
             # 3. Run AI analysis

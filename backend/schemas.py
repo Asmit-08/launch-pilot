@@ -52,3 +52,4 @@ class PersonaRequest(BaseModel):
 
 class LandingPageRequest(BaseModel):
     url: str
+    use_saved_icp: bool = False
