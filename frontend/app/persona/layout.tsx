@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free AI User Persona Generator | Plavtora",
+  title: "Free AI User Persona Generator",
 
   description:
     "Generate detailed AI-powered user personas for your startup, SaaS, or business. Create customer personas with goals, pain points, motivations, buying behavior, and marketing insights in seconds.",
