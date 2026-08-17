@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://plavtora.com"),
+  metadataBase: new URL("https:/www./plavtora.com"),
 
   title: {
     default: "Plavtora | AI Startup Validation & Launch Analysis",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     title: "Plavtora | AI Startup Validation & Launch Analysis",
     description:
       "An AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions.",
-    url: "https://plavtora.com",
+    url: "https://www.plavtora.com",
     siteName: "Plavtora",
     locale: "en_US",
     type: "website",

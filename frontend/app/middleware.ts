@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const hostname = request.headers.get("host");
+  const hostname = request.headers.get("host")?.split(":")[0];
 
   if (hostname === "launch-pilot-flax.vercel.app") {
     const url = request.nextUrl.clone();
