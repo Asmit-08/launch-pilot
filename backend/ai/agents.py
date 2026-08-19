@@ -1,117 +1,87 @@
 import json
 
-from ai.prompts import build_product_prompt, build_validation_prompt, build_launch_readiness_prompt, build_risk_prompt, build_landing_page_prompt
+from ai.prompts import (
+    build_combined_audit_prompt,
+    build_persona_prompt,
+    build_landing_page_prompt,
+)
+
 from ai.gemini_client import generate_response
 
 
-def product_agent(data):
-    prompt = build_product_prompt(data)
-    response = generate_response(prompt)
-
-    if response is None:
-        return {
-            "score": 0,
-            "strengths": [],
-            "weaknesses": []
-        }
-
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
-
-    return json.loads(response)
-
-
-
-def validation_agent(data):
-
-    prompt = build_validation_prompt(data)
+def audit_agent(data):
+    prompt = build_combined_audit_prompt(data)
 
     response = generate_response(prompt)
 
     if response is None:
-        return {
-            "score": 0,
-            "strengths": [],
-            "weaknesses": []
-        }
+        raise RuntimeError("AI audit generation failed.")
 
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
+    text = response["text"]
 
-    return json.loads(response)
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
+    text = text.strip()
 
+    try:
+        result = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            "AI returned invalid audit JSON."
+        ) from e
 
-def launch_readiness_agent(data):
+    required_sections = [
+        "product",
+        "validation",
+        "launch_readiness",
+        "risk",
+    ]
 
-    prompt = build_launch_readiness_prompt(data)
+    for section in required_sections:
+        if section not in result:
+            raise RuntimeError(
+                f"AI audit response missing section: {section}"
+            )
 
-    response = generate_response(prompt)
-
-    if response is None:
-        return {
-            "score": 0,
-            "strengths": [],
-            "weaknesses": []
-        }
-
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
-
-    return json.loads(response)
-
-
-def risk_agent(data):
-
-    prompt = build_risk_prompt(data)
-
-    response = generate_response(prompt)
-
-    if response is None:
-        return {
-            "score": 0,
-            "critical_risks": [],
-            "mitigation": []
-        }
-
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
-
-    return json.loads(response)
-
-
-from ai.prompts import build_persona_prompt 
+    return {
+        "result": result,
+        "usage": {
+            "requests": 1,
+            "prompt_tokens": response["prompt_tokens"],
+            "output_tokens": response["output_tokens"],
+            "total_tokens": response["total_tokens"],
+        },
+    }
 
 
 def persona_agent(data):
     prompt = build_persona_prompt(data)
+
     response = generate_response(prompt)
 
+    # AI generation failed.
+    # Let the error propagate so the usage counter
+    # is not consumed by the router.
     if response is None:
-        return {
-            "executive_summary": "",
-            "ideal_customer_profile": "",
-            "persona": {},
-            "pain_points": [],
-            "goals": [],
-            "motivations": [],
-            "buying_triggers": [],
-            "buying_behaviour": "",
-            "common_objections": [],
-            "marketing_channels": [],
-            "messaging_recommendations": [],
-            "content_ideas": [],
-            "confidence_score": 0
-        }
+        raise RuntimeError(
+            "Persona AI generation failed."
+        )
 
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
+    text = response["text"]
 
-    return json.loads(response)
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
+    text = text.strip()
+
+    try:
+        result = json.loads(text)
+
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            "AI returned invalid persona JSON."
+        ) from e
+
+    return result
 
 def landing_page_agent(
     page_data: dict,
@@ -124,40 +94,26 @@ def landing_page_agent(
 
     response = generate_response(prompt)
 
+    # AI generation failed.
+    # Let the exception propagate so the usage counter
+    # is NOT consumed.
     if response is None:
-        return {
-            "overall_score": 0,
-            "executive_summary": "",
-            "value_proposition": {
-                "score": 0,
-                "summary": "",
-            },
-            "messaging": {
-                "score": 0,
-                "summary": "",
-            },
-            "cta": {
-                "score": 0,
-                "summary": "",
-            },
-            "trust": {
-                "score": 0,
-                "summary": "",
-            },
-            "conversion_clarity": {
-                "score": 0,
-                "summary": "",
-            },
-            "icp_alignment": {
-                "score": 0,
-                "summary": "",
-            },
-            "conversion_problems": [],
-            "recommendations": [],
-        }
+        raise RuntimeError(
+            "Landing page AI analysis failed."
+        )
 
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
+    text = response["text"]
 
-    return json.loads(response)
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
+    text = text.strip()
+
+    try:
+        result = json.loads(text)
+
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            "AI returned invalid landing page analysis JSON."
+        ) from e
+
+    return result

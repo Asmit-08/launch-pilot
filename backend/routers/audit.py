@@ -1,34 +1,48 @@
 from fastapi import APIRouter, Depends
+
 from core.auth import get_current_user
 from schemas import LaunchAuditRequest
+
 from services.audit_service import AuditService
-from ai.agents import product_agent, validation_agent, launch_readiness_agent, risk_agent
+from services.usage_service import usage_service
+
 
 router = APIRouter()
+
 
 @router.post("/audit")
 def audit(
     data: LaunchAuditRequest,
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
-    return AuditService.generate_audit(data, current_user)
+    # -----------------------------------
+    # Check audit usage BEFORE AI call
+    # -----------------------------------
 
-@router.post("/product-agent")
-def test_product_agent(data: LaunchAuditRequest):
+    usage_service.check_limit(
+        current_user,
+        "audits",
+    )
 
-    return product_agent(data)
+    # -----------------------------------
+    # Generate audit
+    # -----------------------------------
+    # This performs ONE Gemini request.
+    # AI usage is recorded inside AuditService.
 
-@router.post("/validation-agent")
-def test_validation_agnet(data: LaunchAuditRequest):
-    
-    return validation_agent(data)
+    result = AuditService.generate_audit(
+        data,
+        current_user,
+    )
 
-@router.post("/launch-readiness-agent")
-def test_launch_readiness_agent(data: LaunchAuditRequest):
+    # -----------------------------------
+    # Consume one audit only after
+    # successful audit generation
+    # -----------------------------------
 
-    return launch_readiness_agent(data)
+    usage_service.consume(
+        current_user,
+        "audits",
+    )
 
-@router.post("/risk-agent")
-def test_risk_agent(data: LaunchAuditRequest):
-
-    return risk_agent(data)
+    return result

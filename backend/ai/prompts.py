@@ -1,484 +1,305 @@
-def build_audit_prompt(data):
-
+def build_combined_audit_prompt(data):
     return f"""
-You are a world-class SaaS launch consultant.
+You are Plavtora's startup analysis engine.
 
-Analyze the following SaaS startup.
+Perform a comprehensive startup audit using FOUR independent analytical perspectives:
 
-PRODUCT INFORMATION
+1. PRODUCT
+2. VALIDATION
+3. LAUNCH READINESS
+4. RISK
 
-Product Name:
+This is ONE AI call, but you must perform all four analyses independently.
+
+IMPORTANT RULES:
+
+- Be critical and evidence-based.
+- Do not blindly agree with the founder.
+- Do not invent customers, revenue, traction, market demand, interviews, testimonials, or other evidence.
+- A completed MVP is NOT proof of market validation.
+- A founder's claim of differentiation is NOT automatically meaningful differentiation.
+- Boolean fields represent what the founder reports; do not treat them as independently verified facts.
+- Missing evidence should reduce confidence where appropriate.
+- Do not allow a strong result in one category to artificially inflate another category.
+- Give practical, specific findings rather than generic startup advice.
+- Return ONLY valid JSON.
+- Do NOT wrap the response in Markdown or ```json.
+
+
+==================================================
+STARTUP INFORMATION
+==================================================
+
+Product name:
 {data.product_name}
 
-One Line Pitch:
+One-line pitch:
 {data.one_line_pitch}
 
 Description:
 {data.description}
 
-TARGET MARKET
-
-Target Audience:
+Target audience:
 {data.target_audience}
 
 Competitors:
-{", ".join(data.competitors)}
+{data.competitors}
 
-Unique Value Proposition:
+Unique value proposition:
 {data.unique_value_proposition}
+
 
 VALIDATION
 
-Beta Users:
+Beta users:
 {data.beta_users}
 
-Feedback Collected:
+Feedback collected:
 {data.feedback_collected}
+
 
 PRODUCT STATUS
 
-MVP Completed:
+MVP completed:
 {data.mvp_completed}
 
-Critical Bugs Present:
+Critical bugs:
 {data.critical_bugs}
+
 
 MARKETING
 
-Landing Page:
+Landing page:
 {data.landing_page}
 
-Demo Video:
+Demo video:
 {data.demo_video}
 
-Social Media Presence:
+Social media presence:
 {data.social_media_presence}
+
 
 DISTRIBUTION
 
 Waitlist:
 {data.waitlist}
 
-Launch Channels:
-{", ".join(data.launch_channels)}
+Launch channels:
+{data.launch_channels}
+
 
 BUSINESS
 
 Budget:
 {data.budget} {data.currency}
 
-Pricing Model:
+Pricing model:
 {data.pricing_model}
 
-TASK
 
-Evaluate this SaaS startup and provide:
+==================================================
+1. PRODUCT ANALYSIS
+==================================================
 
-1. Launch Readiness Score (0-100)
-2. Executive Summary
-3. Missing Assets
-4. Risks
-5. Recommendations
-
-IMPORTANT:
-
-Return ONLY valid JSON.
-
-Use this exact format:
-
-{{
-    "readiness_score": 0,
-
-    "category_scores": {{
-        "product": 0,
-        "validation": 0,
-        "marketing": 0,
-        "distribution": 0,
-        "business": 0
-    }},
-
-    "summary": "",
-
-    "missing_assets": [],
-    "risks": [],
-    "recommendations": []
-}}
-
-Rules:
-- Return only JSON.
-- Do not use markdown.
-- Do not use code fences.
-- Do not add explanations before or after the JSON.
-- readiness_score must be an integer.
-
-Category Score Rules:
-
-- product: score from 0-10
-- validation: score from 0-10
-- marketing: score from 0-10
-- distribution: score from 0-10
-- business: score from 0-10
-
-readiness_score must be calculated using all category scores and returned as an integer from 0-100.
-"""
-
-def build_product_prompt(data):
-
-    return f"""
-You are an expert SaaS Product Strategist.
-
-Analyze ONLY the product itself.
-
-PRODUCT
-
-Name:
-{data.product_name}
-
-Pitch:
-{data.one_line_pitch}
-
-Description:
-{data.description}
-
-Unique Value Proposition:
-{data.unique_value_proposition}
-
-MVP Completed:
-{data.mvp_completed}
-
-Critical Bugs:
-{data.critical_bugs}
-
-TASK
+Analyze the actual product proposition.
 
 Evaluate:
 
-1. Product quality
-2. Value proposition clarity
-3. Product readiness
-4. Product strengths
-5. Product weaknesses
-
-Return ONLY valid JSON.
-
-{{
-    "score": 0,
-    "strengths": [],
-    "weaknesses": []
-}}
-
-Rules:
-- score must be from 0-10
-- return only JSON
-
-IMPORTANT:
-
-Ignore:
-- Budget
-- Marketing
-- Launch channels
-- Waitlist
-- Social media presence
-- Business risks
-
-Analyze ONLY:
-- Product quality
+- Problem/value clarity based on the provided description
+- One-line pitch clarity
 - Value proposition
-- Product differentiation
+- Product usefulness
+- Differentiation from stated competitors
+- Whether the UVP appears meaningful
 - Product readiness
+- MVP completeness
+- Critical product weaknesses
+- Whether the product appears capable of solving the stated user problem
 
-SCORING RUBRIC
+Pay particular attention to:
 
-0-2 = Critical failure
-The startup has severe unresolved issues and is unlikely to succeed without major changes.
+- vague positioning
+- weak differentiation
+- unclear value
+- feature-over-problem thinking
+- obvious competitive substitutes
 
-3-4 = Weak
-Some progress exists, but significant deficiencies remain.
+Do not invent information about competitors that was not provided.
 
-5-6 = Average
-Reasonable progress with both strengths and weaknesses.
+Return exactly:
 
-7-8 = Strong
-Well-prepared with only a few important gaps.
-
-9-10 = Exceptional
-Highly prepared with strong evidence and minimal weaknesses.
-
-IMPORTANT:
-
-A startup with:
-- MVP completed
-- active beta users
-- collected feedback
-
-should generally not receive a score below 5 in validation.
-
-A startup with:
-- a functioning product
-- some traction
-- identifiable risks
-
-should generally not receive a risk score below 3 unless survival is immediately threatened.
-"""
-
-
-def build_validation_prompt(data):
-
-    return f"""
-You are an expert Startup Validation Analyst.
-
-Analyze ONLY product validation.
-
-VALIDATION DATA
-
-Beta Users:
-{data.beta_users}
-
-Feedback Collected:
-{data.feedback_collected}
-
-IMPORTANT
-
-Ignore:
-- Budget
-- Pricing
-- Marketing
-- Landing Page
-- Demo Video
-- Social Media
-- Launch Channels
-- Competition
-
-Analyze ONLY:
-
-1. Evidence of demand
-2. Validation strength
-3. Market confidence
-4. Early user traction
-
-Return ONLY valid JSON.
-
-{{
-    "score": 0,
-    "strengths": [],
-    "weaknesses": []
+"product": {{
+    "score": integer from 0 to 10,
+    "strengths": [
+        "specific strength"
+    ],
+    "weaknesses": [
+        "specific weakness"
+    ]
 }}
 
-Rules:
-- score must be from 0 to 10
-- return only JSON
 
-SCORING RUBRIC
+==================================================
+2. VALIDATION ANALYSIS
+==================================================
 
-0-2 = Critical failure
-The startup has severe unresolved issues and is unlikely to succeed without major changes.
+Analyze ONLY evidence that the market may actually want this product.
 
-3-4 = Weak
-Some progress exists, but significant deficiencies remain.
+Evaluate:
 
-5-6 = Average
-Reasonable progress with both strengths and weaknesses.
+- Number of beta users
+- Whether feedback has been collected
+- Strength of the available validation evidence
+- Whether the evidence demonstrates demand
+- Whether validation is still mostly assumption-driven
+- Whether there is evidence of real user engagement
 
-7-8 = Strong
-Well-prepared with only a few important gaps.
+Important:
 
-9-10 = Exceptional
-Highly prepared with strong evidence and minimal weaknesses.
+- Beta users alone are not equivalent to paying customers.
+- Feedback collection is not equivalent to positive validation.
+- An MVP being completed is not validation.
+- Do not invent revenue, retention, customers, interviews, testimonials, or pre-orders.
 
-IMPORTANT:
+Return exactly:
 
-A startup with:
-- MVP completed
-- active beta users
-- collected feedback
-
-should generally not receive a score below 5 in validation.
-
-A startup with:
-- a functioning product
-- some traction
-- identifiable risks
-
-should generally not receive a risk score below 3 unless survival is immediately threatened.
-"""
-
-
-def build_launch_readiness_prompt(data):
-
-    return f"""
-You are an expert SaaS Launch Strategist.
-
-Analyze ONLY launch readiness.
-
-LAUNCH READINESS DATA
-
-Landing Page:
-{data.landing_page}
-
-Demo Video:
-{data.demo_video}
-
-Social Media Presence:
-{data.social_media_presence}
-
-Waitlist:
-{data.waitlist}
-
-Launch Channels:
-{", ".join(data.launch_channels)}
-
-IMPORTANT
-
-Ignore:
-- Product quality
-- MVP status
-- Beta users
-- Budget
-- Pricing model
-- Competition
-
-Analyze ONLY:
-
-1. Launch readiness
-2. Marketing asset readiness
-3. Audience preparation
-4. Distribution readiness
-
-Return ONLY valid JSON.
-
-{{
-    "score": 0,
-    "strengths": [],
-    "weaknesses": []
+"validation": {{
+    "score": integer from 0 to 10,
+    "strengths": [
+        "specific validation strength"
+    ],
+    "weaknesses": [
+        "specific validation weakness"
+    ]
 }}
 
-Rules:
-- score must be from 0 to 10
-- return only JSON
 
-SCORING RUBRIC
+==================================================
+3. LAUNCH READINESS ANALYSIS
+==================================================
 
-0-2 = Critical failure
-The startup has severe unresolved issues and is unlikely to succeed without major changes.
+Evaluate whether the startup is realistically prepared to launch.
 
-3-4 = Weak
-Some progress exists, but significant deficiencies remain.
+Consider:
 
-5-6 = Average
-Reasonable progress with both strengths and weaknesses.
-
-7-8 = Strong
-Well-prepared with only a few important gaps.
-
-9-10 = Exceptional
-Highly prepared with strong evidence and minimal weaknesses.
-
-IMPORTANT:
-
-A startup with:
-- MVP completed
-- active beta users
-- collected feedback
-
-should generally not receive a score below 5 in validation.
-
-A startup with:
-- a functioning product
-- some traction
-- identifiable risks
-
-should generally not receive a risk score below 3 unless survival is immediately threatened.
-"""
-
-
-def build_risk_prompt(data):
-
-    return f"""
-You are an expert Startup Risk Analyst.
-
-Analyze ONLY business and launch risks.
-
-RISK DATA
-
-Competitors:
-{", ".join(data.competitors)}
-
-Budget:
-{data.budget} {data.currency}
-
-Pricing Model:
-{data.pricing_model}
-
-IMPORTANT
-
-Ignore:
-- Product quality
-- MVP status
-- Beta users
-- Feedback
+- MVP completion
+- Critical bugs
 - Landing page
 - Demo video
-- Social media
+- Social media presence
 - Waitlist
 - Launch channels
+- Target audience clarity
+- Positioning
+- Available budget
+- Pricing model
+- Ability to acquire initial users
 
-Analyze ONLY:
+Distinguish between:
 
-1. Business risks
-2. Competitive risks
-3. Financial risks
-4. Monetization risks
+PRODUCT READINESS
+and
+GO-TO-MARKET READINESS.
 
-Return ONLY valid JSON.
+A completed MVP does not automatically mean the startup is launch-ready.
 
-{{
-    "score": 0,
-    "critical_risks": [],
-    "mitigation": []
+Identify the most important missing launch components.
+
+Return exactly:
+
+"launch_readiness": {{
+    "score": integer from 0 to 10,
+    "strengths": [
+        "specific launch strength"
+    ],
+    "weaknesses": [
+        "specific launch weakness"
+    ]
 }}
 
-IMPORTANT RISK ANALYSIS RULES
 
-1. Evaluate the severity of current business risks, NOT the probability that the startup succeeds or fails.
+==================================================
+4. RISK ANALYSIS
+==================================================
 
-2. Do not assume a startup will fail simply because:
-   - the budget is small
-   - competitors exist
-   - the startup is early-stage
-   - user numbers are currently low
+Identify the most important risks that could prevent this startup from succeeding.
 
-3. Early-stage startups are expected to have:
-   - limited budgets
-   - small beta user groups
-   - incomplete marketing assets
-   These factors alone should not automatically result in a critical score.
+Consider:
 
-4. Focus on:
-   - financial risks
-   - competitive risks
-   - monetization risks
-   - business execution risks
+- Product risk
+- Market/validation risk
+- Competitive risk
+- Differentiation risk
+- Customer acquisition risk
+- Monetization risk
+- Financial/budget risk
+- Execution risk
+- Technical/product readiness risk
 
-5. Competitors should only be considered a major risk if they solve the same primary problem for the same target audience.
+Prioritize the most consequential risks.
 
-6. Every critical risk must have a realistic mitigation strategy.
+Do NOT generate generic statements such as:
+"Competition is a risk."
 
-SCORING RUBRIC
+Instead explain the actual risk in the context of the supplied startup information.
 
-0-2 = Critical risks threatening immediate viability
-3-4 = High risks requiring urgent attention
-5-6 = Manageable risks with clear mitigation paths
-7-8 = Low risks
-9-10 = Minimal risks
+For example:
 
-IMPORTANT:
+Weak:
+"Customer acquisition may be difficult."
 
-A startup that has:
-- a completed MVP
-- some user validation
-- a defined target audience
+Better:
+"The startup currently has no waitlist and no stated launch channel beyond social media, making the initial customer acquisition path uncertain."
 
-should generally not receive a score below 3 unless there is an immediate existential threat.
+For mitigation:
+
+- Give a practical action that directly addresses the corresponding risk.
+- Keep mitigations specific and executable.
+
+Return exactly:
+
+"risk": {{
+    "score": integer from 0 to 10,
+    "critical_risks": [
+        "specific critical risk"
+    ],
+    "mitigation": [
+        "specific mitigation corresponding to the identified risks"
+    ]
+}}
+
+
+==================================================
+FINAL OUTPUT
+==================================================
+
+Return exactly this JSON structure:
+
+{{
+    "product": {{
+        "score": 0,
+        "strengths": [],
+        "weaknesses": []
+    }},
+    "validation": {{
+        "score": 0,
+        "strengths": [],
+        "weaknesses": []
+    }},
+    "launch_readiness": {{
+        "score": 0,
+        "strengths": [],
+        "weaknesses": []
+    }},
+    "risk": {{
+        "score": 0,
+        "critical_risks": [],
+        "mitigation": []
+    }}
+}}
+
+All scores must be integers between 0 and 10.
+Do not add additional top-level fields.
 """
 
 def build_persona_prompt(data):

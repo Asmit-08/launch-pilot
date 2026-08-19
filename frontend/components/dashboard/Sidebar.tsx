@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   X,
   FolderGit2,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { signOut } from "@/services/auth";
+import { getUsage, UsageStatus } from "@/lib/usage";
 
 interface Project {
   id: string;
@@ -40,8 +42,49 @@ export default function Sidebar({
   projects,
 }: SidebarProps) {
   const router = useRouter();
+
   const [loadingAction, setLoadingAction] =
     useState<LoadingAction>(null);
+
+  const [usage, setUsage] =
+    useState<UsageStatus | null>(null);
+
+  const [usageLoading, setUsageLoading] =
+    useState(true);
+
+  // -----------------------------------
+  // Load Usage
+  // -----------------------------------
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUsage() {
+      try {
+        const data = await getUsage();
+
+        if (!cancelled) {
+          setUsage(data);
+        }
+      } catch (error) {
+        console.error("Usage loading failed:", error);
+      } finally {
+        if (!cancelled) {
+          setUsageLoading(false);
+        }
+      }
+    }
+
+    loadUsage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // -----------------------------------
+  // Logout
+  // -----------------------------------
 
   async function handleLogout() {
     if (loadingAction) return;
@@ -58,23 +101,37 @@ export default function Sidebar({
     }
   }
 
+  // -----------------------------------
+  // Project Navigation
+  // -----------------------------------
+
   function handleProjectClick(projectId: string) {
     if (loadingAction) return;
 
     onClose();
+
     setLoadingAction(`project:${projectId}`);
 
     router.push(`/projects/${projectId}`);
   }
 
+  // -----------------------------------
+  // General Navigation
+  // -----------------------------------
+
   function handleNavigation(
-    action: Exclude<LoadingAction, `project:${string}` | "logout" | null>,
+    action: Exclude<
+      LoadingAction,
+      `project:${string}` | "logout" | null
+    >,
     href: string
   ) {
     if (loadingAction) return;
 
     onClose();
+
     setLoadingAction(action);
+
     router.push(href);
   }
 
@@ -83,7 +140,10 @@ export default function Sidebar({
 
   return (
     <>
+      {/* ----------------------------------- */}
       {/* Backdrop */}
+      {/* ----------------------------------- */}
+
       <div
         onClick={onClose}
         className={`
@@ -97,7 +157,10 @@ export default function Sidebar({
         `}
       />
 
+      {/* ----------------------------------- */}
       {/* Sidebar */}
+      {/* ----------------------------------- */}
+
       <aside
         className={`
           fixed left-0 top-0 z-100
@@ -112,7 +175,10 @@ export default function Sidebar({
           }
         `}
       >
+        {/* ----------------------------------- */}
         {/* Header */}
+        {/* ----------------------------------- */}
+
         <div className="flex items-center justify-between border-b border-white/10 p-6">
           <div>
             <h2 className="text-xl font-semibold text-white">
@@ -130,13 +196,23 @@ export default function Sidebar({
             aria-label="Close sidebar"
             className="rounded-xl p-2 transition hover:bg-white/5"
           >
-            <X size={20} className="text-white" />
+            <X
+              size={20}
+              className="text-white"
+            />
           </button>
         </div>
 
-        {/* Scrollable */}
+        {/* ----------------------------------- */}
+        {/* Scrollable Content */}
+        {/* ----------------------------------- */}
+
         <div className="flex-1 overflow-y-auto p-5">
+
+          {/* ----------------------------------- */}
           {/* Recent Projects */}
+          {/* ----------------------------------- */}
+
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
               Recent Projects
@@ -185,7 +261,9 @@ export default function Sidebar({
                         <div
                           className={`
                             rounded-xl
-                            bg-gradient-to-br from-blue-500 to-violet-600
+                            bg-gradient-to-br
+                            from-blue-500
+                            to-violet-600
                             p-2
                             text-white
                             ${
@@ -231,10 +309,16 @@ export default function Sidebar({
             </div>
           </div>
 
+          {/* ----------------------------------- */}
           {/* Divider */}
+          {/* ----------------------------------- */}
+
           <div className="my-6 border-t border-white/10" />
 
+          {/* ----------------------------------- */}
           {/* Quick Actions */}
+          {/* ----------------------------------- */}
+
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
               Quick Actions
@@ -257,16 +341,22 @@ export default function Sidebar({
                     ? "Opening..."
                     : "New Audit"
                 }
-                loading={loadingAction === "audit"}
+                loading={
+                  loadingAction === "audit"
+                }
                 disabled={!!loadingAction}
                 onClick={() =>
-                  handleNavigation("audit", "/dashboard")
+                  handleNavigation(
+                    "audit",
+                    "/dashboard"
+                  )
                 }
               />
 
               <SidebarItem
                 icon={
-                  loadingAction === "landing-pages" ? (
+                  loadingAction ===
+                  "landing-pages" ? (
                     <Loader2
                       size={18}
                       className="animate-spin"
@@ -276,12 +366,14 @@ export default function Sidebar({
                   )
                 }
                 title={
-                  loadingAction === "landing-pages"
+                  loadingAction ===
+                  "landing-pages"
                     ? "Opening..."
                     : "Landing Pages"
                 }
                 loading={
-                  loadingAction === "landing-pages"
+                  loadingAction ===
+                  "landing-pages"
                 }
                 disabled={!!loadingAction}
                 onClick={() =>
@@ -293,9 +385,114 @@ export default function Sidebar({
               />
             </div>
           </div>
+
+          {/* ----------------------------------- */}
+          {/* Usage */}
+          {/* ----------------------------------- */}
+
+          <div className="my-6 border-t border-white/10 pt-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                Usage
+              </h3>
+
+              {usage && (
+                <span
+                  className={`
+                    rounded-full
+                    px-2.5
+                    py-1
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-wider
+                    ${
+                      usage.plan === "free"
+                        ? "border border-white/10 bg-white/5 text-gray-400"
+                        : "border border-violet-400/20 bg-violet-400/10 text-violet-300"
+                    }
+                  `}
+                >
+                  {usage.plan}
+                </span>
+              )}
+            </div>
+
+            {usageLoading ? (
+              <div className="space-y-4">
+                <UsageSkeleton />
+                <UsageSkeleton />
+                <UsageSkeleton />
+                <UsageSkeleton />
+              </div>
+            ) : usage ? (
+              <div className="space-y-4">
+                <UsageItem
+                  label="Audits"
+                  resource={usage.usage.audits}
+                />
+
+                <UsageItem
+                  label="AI Chat"
+                  resource={
+                    usage.usage.chat_messages
+                  }
+                />
+
+                <UsageItem
+                  label="ICP"
+                  resource={
+                    usage.usage.personas
+                  }
+                />
+
+                <UsageItem
+                  label="Landing Pages"
+                  resource={
+                    usage.usage
+                      .landing_page_analyses
+                  }
+                />
+
+                {usage.plan === "free" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push("/settings")
+                    }
+                    className="
+                      mt-2
+                      w-full
+                      rounded-xl
+                      border
+                      border-violet-400/20
+                      bg-violet-500/[0.08]
+                      px-4
+                      py-3
+                      text-sm
+                      font-medium
+                      text-violet-200
+                      transition
+                      hover:border-violet-400/40
+                      hover:bg-violet-500/[0.14]
+                    "
+                  >
+                    Upgrade to Premium
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs text-gray-500">
+                Usage unavailable.
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* ----------------------------------- */}
         {/* Footer */}
+        {/* ----------------------------------- */}
+
         <div className="space-y-2 border-t border-white/10 p-5">
           <SidebarItem
             icon={
@@ -313,10 +510,15 @@ export default function Sidebar({
                 ? "Opening..."
                 : "Settings"
             }
-            loading={loadingAction === "settings"}
+            loading={
+              loadingAction === "settings"
+            }
             disabled={!!loadingAction}
             onClick={() =>
-              handleNavigation("settings", "/settings")
+              handleNavigation(
+                "settings",
+                "/settings"
+              )
             }
           />
 
@@ -336,7 +538,9 @@ export default function Sidebar({
                 ? "Signing out..."
                 : "Logout"
             }
-            loading={loadingAction === "logout"}
+            loading={
+              loadingAction === "logout"
+            }
             disabled={!!loadingAction}
             onClick={handleLogout}
           />
@@ -345,6 +549,102 @@ export default function Sidebar({
     </>
   );
 }
+
+/* ----------------------------------- */
+/* Usage Item */
+/* ----------------------------------- */
+
+function UsageItem({
+  label,
+  resource,
+}: {
+  label: string;
+  resource: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+}) {
+  const percentage =
+    resource.limit > 0
+      ? Math.min(
+          (resource.used / resource.limit) * 100,
+          100
+        )
+      : 0;
+
+  const exhausted =
+    resource.remaining <= 0;
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs text-gray-300">
+          {label}
+        </span>
+
+        <span
+          className={`text-xs ${
+            exhausted
+              ? "font-medium text-red-400"
+              : "text-gray-500"
+          }`}
+        >
+          {resource.used}/{resource.limit}
+        </span>
+      </div>
+
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+        <div
+          className={`
+            h-full
+            rounded-full
+            transition-all
+            duration-500
+            ${
+              exhausted
+                ? "bg-red-500/70"
+                : "bg-gradient-to-r from-blue-500 to-violet-500"
+            }
+          `}
+          style={{
+            width: `${percentage}%`,
+          }}
+        />
+      </div>
+
+      <p className="mt-1.5 text-[10px] text-gray-600">
+        {exhausted
+          ? "Limit reached"
+          : `${resource.remaining} remaining`}
+      </p>
+    </div>
+  );
+}
+
+/* ----------------------------------- */
+/* Usage Loading Skeleton */
+/* ----------------------------------- */
+
+function UsageSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="mb-2 flex justify-between">
+        <div className="h-3 w-16 rounded bg-white/[0.06]" />
+
+        <div className="h-3 w-8 rounded bg-white/[0.06]" />
+      </div>
+
+      <div className="h-1.5 rounded-full bg-white/[0.06]" />
+
+      <div className="mt-1.5 h-2.5 w-20 rounded bg-white/[0.04]" />
+    </div>
+  );
+}
+
+/* ----------------------------------- */
+/* Sidebar Item */
+/* ----------------------------------- */
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -399,9 +699,11 @@ function SidebarItem({
       </div>
 
       <span
-        className={`${
-          loading ? "text-blue-100" : "text-white"
-        }`}
+        className={
+          loading
+            ? "text-blue-100"
+            : "text-white"
+        }
       >
         {title}
       </span>

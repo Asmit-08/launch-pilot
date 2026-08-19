@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https:/www./plavtora.com"),
+  metadataBase: new URL("https://plavtora.com"),
 
   title: {
     default: "Plavtora | AI Startup Validation & Launch Analysis",
@@ -35,19 +35,27 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/icon.ico",
-    shortcut: "/icon.ico",
-    apple: "/icon.ico",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 
   openGraph: {
     title: "Plavtora | AI Startup Validation & Launch Analysis",
     description:
       "An AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions.",
-    url: "https://www.plavtora.com",
+    url: "https://plavtora.com",
     siteName: "Plavtora",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 1200,
+        height: 630,
+        alt: "Plavtora — AI Startup Validation & Launch Analysis",
+      },
+    ],
   },
 
   twitter: {
@@ -55,6 +63,7 @@ export const metadata: Metadata = {
     title: "Plavtora | AI Startup Validation & Launch Analysis",
     description:
       "An AI second opinion for founders. Pressure-test your startup before the market does.",
+    images: ["/icon.png"],
   },
 
   robots: {

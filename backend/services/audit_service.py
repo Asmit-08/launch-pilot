@@ -1,15 +1,11 @@
-from ai.agents import (
-    product_agent,
-    validation_agent,
-    launch_readiness_agent,
-    risk_agent,
-)
+from fastapi import HTTPException
 
-from repositories.repository_manager import (
-    audit_repository,
-)
+from ai.agents import audit_agent
+
+from repositories.repository_manager import audit_repository
 
 from services.aggregator import aggregate_results
+from services.usage_service import usage_service
 
 
 class AuditService:
@@ -54,29 +50,30 @@ class AuditService:
             )
 
             # -----------------------------------
-            # Generate AI Audit
+            # ONE AI CALL
             # -----------------------------------
 
-            product_result = product_agent(data)
+            audit_response = audit_agent(data)
 
-            validation_result = validation_agent(data)
+            audit_result = audit_response["result"]
+            ai_usage = audit_response["usage"]
 
-            launch_result = launch_readiness_agent(data)
-
-            risk_result = risk_agent(data)
+            # -----------------------------------
+            # Aggregate Results
+            # -----------------------------------
 
             result = aggregate_results(
-                product_result,
-                validation_result,
-                launch_result,
-                risk_result,
+                audit_result["product"],
+                audit_result["validation"],
+                audit_result["launch_readiness"],
+                audit_result["risk"],
             )
 
             # -----------------------------------
             # Save Audit Result
             # -----------------------------------
 
-            saved_result = audit_repository.create_audit_result(
+            audit_repository.create_audit_result(
                 audit_session_id=session["id"],
                 overall_score=result["overall_score"],
                 product_json=result["product"],
@@ -85,6 +82,19 @@ class AuditService:
                 risk_json=result["risk"],
             )
 
+            # -----------------------------------
+            # Record Actual AI Usage
+            # -----------------------------------
+
+            usage_service.record_ai_usage(
+                current_user,
+                requests=ai_usage["requests"],
+                tokens=ai_usage["total_tokens"],
+            )
+
+            # -----------------------------------
+            # Return Result
+            # -----------------------------------
 
             return {
                 **result,
@@ -92,14 +102,13 @@ class AuditService:
                 "audit_id": session["id"],
             }
 
+        except HTTPException:
+            # Preserve intentional HTTP errors.
+            raise
+
         except Exception as e:
-
-
-            return {
-                "overall_score": 0,
-                "product": {},
-                "validation": {},
-                "launch_readiness": {},
-                "risk": {},
-                "error": str(e),
-            }
+            # Never return a failed audit as a successful response.
+            raise HTTPException(
+                status_code=500,
+                detail="Audit generation failed. Please try again.",
+            ) from e

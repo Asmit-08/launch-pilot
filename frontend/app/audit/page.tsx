@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Card,
@@ -13,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
 function AuditStage({
   icon,
@@ -28,40 +28,64 @@ function AuditStage({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-2xl border px-4 py-3 transition-all duration-500 ${
-        active
-          ? "border-violet-400/20 bg-violet-400/[0.06]"
-          : complete
-            ? "border-emerald-400/10 bg-emerald-400/[0.03]"
-            : "border-white/[0.06] bg-white/[0.02]"
-      }`}
+      className={`
+        group flex items-center gap-4 rounded-xl px-4 py-3
+        transition-all duration-700
+        ${
+          active
+            ? "bg-white/[0.07] shadow-[0_0_30px_rgba(139,92,246,0.08)]"
+            : complete
+              ? "opacity-60"
+              : "opacity-25"
+        }
+      `}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-lg">{icon}</span>
-        <span
-          className={`text-sm ${
+      <div
+        className={`
+          flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
+          text-sm transition-all duration-700
+          ${
             active
-              ? "text-zinc-200"
+              ? "bg-violet-500/15 ring-1 ring-violet-400/20"
               : complete
-                ? "text-zinc-400"
-                : "text-zinc-600"
-          }`}
-        >
-          {title}
-        </span>
+                ? "bg-emerald-500/10"
+                : "bg-white/[0.03]"
+          }
+        `}
+      >
+        {complete ? "✓" : icon}
       </div>
 
-      <span
-        className={`text-[10px] uppercase tracking-[0.15em] ${
-          active
-            ? "text-violet-300"
-            : complete
-              ? "text-emerald-300"
-              : "text-zinc-700"
-        }`}
-      >
-        {active ? "Working" : complete ? "Complete" : "Waiting"}
-      </span>
+      <div className="flex-1">
+        <p
+          className={`
+            text-sm font-medium transition-colors duration-500
+            ${
+              active
+                ? "text-white"
+                : complete
+                  ? "text-zinc-400"
+                  : "text-zinc-600"
+            }
+          `}
+        >
+          {title}
+        </p>
+      </div>
+
+      {active && (
+        <div className="flex gap-1">
+          <span className="h-1 w-1 animate-pulse rounded-full bg-violet-400" />
+          <span
+            className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
+            style={{ animationDelay: "150ms" }}
+          />
+          <span
+            className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
+            style={{ animationDelay: "300ms" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -70,23 +94,8 @@ export default function AuditPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
-
-  const [loadingMessage, setLoadingMessage] = useState(
-    "Analyzing Product..."
-  );
-
+  const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState("");
-
-  const loadingProgress =
-    loadingMessage === "Analyzing Product..."
-      ? 18
-      : loadingMessage === "Checking Validation..."
-        ? 40
-        : loadingMessage === "Assessing Launch Readiness..."
-          ? 62
-          : loadingMessage === "Identifying Risks..."
-            ? 82
-            : 96;
 
   const [formData, setFormData] = useState({
     product_name: "",
@@ -115,6 +124,47 @@ export default function AuditPage() {
     pricing_model: "",
   });
 
+  const loadingStages = [
+    {
+      icon: "🧠",
+      title: "Understanding your startup",
+    },
+    {
+      icon: "📊",
+      title: "Evaluating validation",
+    },
+    {
+      icon: "🚀",
+      title: "Assessing launch readiness",
+    },
+    {
+      icon: "⚠️",
+      title: "Stress-testing risks",
+    },
+    {
+      icon: "✦",
+      title: "Synthesizing your audit",
+    },
+  ];
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStage(0);
+      return;
+    }
+
+    const timers = [
+      setTimeout(() => setLoadingStage(1), 1200),
+      setTimeout(() => setLoadingStage(2), 2400),
+      setTimeout(() => setLoadingStage(3), 3600),
+      setTimeout(() => setLoadingStage(4), 5000),
+    ];
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [loading]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -126,8 +176,8 @@ export default function AuditPage() {
         type === "checkbox"
           ? (e.target as HTMLInputElement).checked
           : type === "number"
-          ? Number(value)
-          : value,
+            ? Number(value)
+            : value,
     }));
   };
 
@@ -139,25 +189,8 @@ export default function AuditPage() {
     if (loading) return;
 
     setLoading(true);
+    setLoadingStage(0);
     setError("");
-
-    setLoadingMessage("Analyzing Product...");
-
-    const productTimer = setTimeout(() => {
-      setLoadingMessage("Checking Validation...");
-    }, 1500);
-
-    const validationTimer = setTimeout(() => {
-      setLoadingMessage("Assessing Launch Readiness...");
-    }, 3000);
-
-    const launchTimer = setTimeout(() => {
-      setLoadingMessage("Identifying Risks...");
-    }, 4500);
-
-    const reportTimer = setTimeout(() => {
-      setLoadingMessage("Generating Report...");
-    }, 6000);
 
     try {
       const payload = {
@@ -191,17 +224,31 @@ export default function AuditPage() {
         );
       }
 
-      const response = await fetch(
-        `${apiUrl}/audit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      /*
+       * ONE backend request.
+       *
+       * The backend performs the complete audit using
+       * one Gemini request and returns:
+       *
+       * - overall_score
+       * - product
+       * - validation
+       * - launch_readiness
+       * - risk
+       * - project_id
+       * - audit_id
+       */
+
+      const response = await fetch(`${apiUrl}/audit`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         let errorMessage = "Failed to generate audit.";
@@ -210,7 +257,18 @@ export default function AuditPage() {
           const errorData = await response.json();
 
           if (errorData?.detail) {
-            errorMessage = errorData.detail;
+            if (
+              typeof errorData.detail === "object" &&
+              errorData.detail.error === "usage_limit_reached"
+            ) {
+              errorMessage =
+                `You've reached your ${errorData.detail.plan} ${errorData.detail.resource} limit ` +
+                `(${errorData.detail.used}/${errorData.detail.limit}).`;
+            } else if (
+              typeof errorData.detail === "string"
+            ) {
+              errorMessage = errorData.detail;
+            }
           } else if (errorData?.error) {
             errorMessage = errorData.error;
           }
@@ -230,19 +288,21 @@ export default function AuditPage() {
       }
 
       /*
-       * The audit is now persisted in the backend.
+       * The backend persists the audit.
        *
-       * We do NOT store the result in localStorage anymore.
-       *
-       * The report page will fetch the audit directly using:
+       * The report page retrieves the saved audit using:
        *
        * /projects/{project_id}/audits/{audit_id}
        */
+
       router.push(
         `/projects/${result.project_id}/audits/${result.audit_id}`
       );
     } catch (error) {
-      console.error("Audit generation error:", error);
+      console.error(
+        "Audit generation error:",
+        error
+      );
 
       setError(
         error instanceof Error
@@ -251,80 +311,110 @@ export default function AuditPage() {
       );
 
       setLoading(false);
-    } finally {
-      clearTimeout(productTimer);
-      clearTimeout(validationTimer);
-      clearTimeout(launchTimer);
-      clearTimeout(reportTimer);
     }
   };
 
+  /*
+   * ----------------------------------------------------
+   * PREMIUM AUDIT LOADING SCREEN
+   * ----------------------------------------------------
+   */
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-6xl font-bold">
-            Plavtora
-          </h1>
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+        {/* Ambient background */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.06] blur-[120px]" />
 
-          <p className="mt-6 text-xl text-zinc-400">
-            {loadingMessage}
-          </p>
+          <div className="absolute left-[20%] top-[20%] h-40 w-40 rounded-full bg-blue-500/[0.03] blur-[80px]" />
 
-          <p className="mt-3 text-zinc-500">
-            AI agents are preparing your startup audit...
-          </p>
+          <div className="absolute bottom-[15%] right-[20%] h-40 w-40 rounded-full bg-violet-500/[0.03] blur-[80px]" />
+        </div>
 
-          <div className="mt-10 w-80 mx-auto">
-            <div className="h-3 overflow-hidden rounded-full bg-zinc-800">
-              <div className="h-full w-2/3 animate-pulse rounded-full bg-blue-500" />
+        {/* Main card */}
+        <div className="relative z-10 w-full max-w-lg px-6">
+          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.025] p-8 shadow-2xl backdrop-blur-xl">
+
+            {/* Brand */}
+            <div className="flex flex-col items-center text-center">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 animate-ping rounded-2xl bg-violet-500/10" />
+
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.05] shadow-[0_0_40px_rgba(139,92,246,0.12)]">
+                  <span className="text-2xl">
+                    ✦
+                  </span>
+                </div>
+              </div>
+
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Plavtora is thinking
+              </h1>
+
+              <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
+                Pressure-testing your startup from multiple angles.
+              </p>
+            </div>
+
+            {/* Current activity */}
+            <div className="mt-8 rounded-2xl border border-violet-400/[0.08] bg-violet-400/[0.025] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-50" />
+
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-violet-400" />
+                </div>
+
+                <span className="text-sm text-zinc-300">
+                  {loadingStages[loadingStage].title}
+                </span>
+              </div>
+            </div>
+
+            {/* Analysis stages */}
+            <div className="mt-6 space-y-1">
+              {loadingStages.map((stage, index) => (
+                <AuditStage
+                  key={stage.title}
+                  icon={stage.icon}
+                  title={stage.title}
+                  active={index === loadingStage}
+                  complete={index < loadingStage}
+                />
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-7 flex items-center justify-between border-t border-white/[0.06] pt-5">
+              <span className="text-xs text-zinc-600">
+                One comprehensive AI analysis
+              </span>
+
+              <span className="text-xs text-zinc-600">
+                Please wait
+              </span>
             </div>
           </div>
 
-          <div className="mt-10 grid w-full max-w-md gap-3 text-left">
-            <AuditStage
-              icon="🧠"
-              title="Product Agent"
-              active={loadingProgress <= 18}
-              complete={loadingProgress > 18}
-            />
-
-            <AuditStage
-              icon="📈"
-              title="Validation Agent"
-              active={loadingProgress > 18 && loadingProgress <= 40}
-              complete={loadingProgress > 40}
-            />
-
-            <AuditStage
-              icon="🚀"
-              title="Launch Readiness Agent"
-              active={loadingProgress > 40 && loadingProgress <= 62}
-              complete={loadingProgress > 62}
-            />
-
-            <AuditStage
-              icon="⚠️"
-              title="Risk Agent"
-              active={loadingProgress > 62 && loadingProgress <= 82}
-              complete={loadingProgress > 82}
-            />
-
-            <AuditStage
-              icon="✦"
-              title="Report synthesis"
-              active={loadingProgress > 82}
-              complete={false}
-            />
-          </div>
+          <p className="mt-5 text-center text-xs text-zinc-700">
+            Your audit is being generated. This may take a moment.
+          </p>
         </div>
       </main>
     );
   }
 
+  /*
+   * ----------------------------------------------------
+   * AUDIT FORM
+   * ----------------------------------------------------
+   */
+
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 py-12">
+
         <h1 className="text-5xl font-bold">
           Plavtora Launch Audit
         </h1>
@@ -333,37 +423,44 @@ export default function AuditPage() {
           Tell Plavtora about your startup.
         </p>
 
+        {/* Error */}
         {error && (
           <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400">
             {error}
           </div>
         )}
 
+        {/* Info */}
         <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
           <p className="font-medium">
-            Estimated completion time: 2-3 minutes
+            Estimated completion time: 2–3 minutes
           </p>
 
           <p className="mt-2 text-sm text-zinc-500">
-            Our AI agents will evaluate your product, validation,
-            launch readiness, and business risks.
+            Plavtora will evaluate your product,
+            validation, launch readiness, and business
+            risks in one comprehensive audit.
           </p>
         </div>
 
         <form
-          className="space-y-8"
+          className="mt-8 space-y-8"
           onSubmit={handleSubmit}
         >
-          {/* Product Card */}
+
+          {/* Product */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>🚀 Product</CardTitle>
+              <CardTitle>
+                🚀 Product
+              </CardTitle>
 
               <p className="text-sm text-zinc-500">
                 Tell us what you're building.
@@ -371,48 +468,62 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
+
               <div>
-                <Label>Product Name</Label>
+                <Label>
+                  Product Name
+                </Label>
 
                 <Input
                   name="product_name"
                   value={formData.product_name}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
               <div>
-                <Label>One Line Pitch</Label>
+                <Label>
+                  One Line Pitch
+                </Label>
 
                 <Input
                   name="one_line_pitch"
                   value={formData.one_line_pitch}
                   onChange={handleChange}
+                  required
                 />
               </div>
 
               <div>
-                <Label>Description</Label>
+                <Label>
+                  Description
+                </Label>
 
                 <Textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
+                  required
                 />
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Market Card */}
+          {/* Market */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>🎯 Market</CardTitle>
+              <CardTitle>
+                🎯 Market
+              </CardTitle>
 
               <p className="text-sm text-zinc-500">
                 Describe your audience and competitors.
@@ -420,19 +531,25 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
+
               <div>
-                <Label>Target Audience</Label>
+                <Label>
+                  Target Audience
+                </Label>
 
                 <Input
                   name="target_audience"
                   value={formData.target_audience}
                   onChange={handleChange}
                   placeholder="SaaS Founders, Indie Hackers"
+                  required
                 />
               </div>
 
               <div>
-                <Label>Competitors</Label>
+                <Label>
+                  Competitors
+                </Label>
 
                 <Textarea
                   name="competitors"
@@ -443,7 +560,9 @@ export default function AuditPage() {
               </div>
 
               <div>
-                <Label>Unique Value Proposition</Label>
+                <Label>
+                  Unique Value Proposition
+                </Label>
 
                 <Textarea
                   name="unique_value_proposition"
@@ -452,35 +571,42 @@ export default function AuditPage() {
                   placeholder="What makes your product different?"
                 />
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Validation Card */}
+          {/* Validation */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>📈 Validation</CardTitle>
+              <CardTitle>
+                📈 Validation
+              </CardTitle>
 
               <p className="text-sm text-zinc-500">
-                Show evidence that user wants it.
+                Show evidence that users want it.
               </p>
             </CardHeader>
 
             <CardContent className="space-y-6">
+
               <div>
-                <Label>Beta Users</Label>
+                <Label>
+                  Beta Users
+                </Label>
 
                 <Input
                   type="number"
                   name="beta_users"
                   value={formData.beta_users}
                   onChange={handleChange}
-                  placeholder="25"
+                  min={0}
                 />
               </div>
 
@@ -488,7 +614,9 @@ export default function AuditPage() {
                 <input
                   type="checkbox"
                   name="feedback_collected"
-                  checked={formData.feedback_collected}
+                  checked={
+                    formData.feedback_collected
+                  }
                   onChange={handleChange}
                 />
 
@@ -496,27 +624,34 @@ export default function AuditPage() {
                   Feedback Collected
                 </Label>
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Product Status Card */}
+          {/* Product Status */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>🛠 Product Status</CardTitle>
+              <CardTitle>
+                🛠 Product Status
+              </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
+
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   name="mvp_completed"
-                  checked={formData.mvp_completed}
+                  checked={
+                    formData.mvp_completed
+                  }
                   onChange={handleChange}
                 />
 
@@ -529,7 +664,9 @@ export default function AuditPage() {
                 <input
                   type="checkbox"
                   name="critical_bugs"
-                  checked={formData.critical_bugs}
+                  checked={
+                    formData.critical_bugs
+                  }
                   onChange={handleChange}
                 />
 
@@ -537,27 +674,34 @@ export default function AuditPage() {
                   Critical Bugs Present
                 </Label>
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Marketing Card */}
+          {/* Marketing */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>📢 Marketing</CardTitle>
+              <CardTitle>
+                📢 Marketing
+              </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
+
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   name="landing_page"
-                  checked={formData.landing_page}
+                  checked={
+                    formData.landing_page
+                  }
                   onChange={handleChange}
                 />
 
@@ -570,7 +714,9 @@ export default function AuditPage() {
                 <input
                   type="checkbox"
                   name="demo_video"
-                  checked={formData.demo_video}
+                  checked={
+                    formData.demo_video
+                  }
                   onChange={handleChange}
                 />
 
@@ -583,7 +729,9 @@ export default function AuditPage() {
                 <input
                   type="checkbox"
                   name="social_media_presence"
-                  checked={formData.social_media_presence}
+                  checked={
+                    formData.social_media_presence
+                  }
                   onChange={handleChange}
                 />
 
@@ -591,27 +739,34 @@ export default function AuditPage() {
                   Social Media Presence
                 </Label>
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Distribution Card */}
+          {/* Distribution */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>🌍 Distribution</CardTitle>
+              <CardTitle>
+                🌍 Distribution
+              </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-6">
+
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   name="waitlist"
-                  checked={formData.waitlist}
+                  checked={
+                    formData.waitlist
+                  }
                   onChange={handleChange}
                 />
 
@@ -621,28 +776,36 @@ export default function AuditPage() {
               </div>
 
               <div>
-                <Label>Launch Channels</Label>
+                <Label>
+                  Launch Channels
+                </Label>
 
                 <Textarea
                   name="launch_channels"
-                  value={formData.launch_channels}
+                  value={
+                    formData.launch_channels
+                  }
                   onChange={handleChange}
                   placeholder="Product Hunt, LinkedIn, Reddit"
                 />
               </div>
+
             </CardContent>
           </Card>
 
-          {/* Business Card */}
+          {/* Business */}
           <Card
             style={{
               background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border:
+                "1px solid rgba(255,255,255,0.1)",
               backdropFilter: "blur(12px)",
             }}
           >
             <CardHeader>
-              <CardTitle>💰 Business</CardTitle>
+              <CardTitle>
+                💰 Business
+              </CardTitle>
 
               <p className="text-sm text-zinc-500">
                 Revenue, pricing, and financial planning.
@@ -650,20 +813,26 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
+
               <div>
-                <Label>Budget</Label>
+                <Label>
+                  Budget
+                </Label>
 
                 <Input
                   type="number"
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
+                  min={0}
                   placeholder="500"
                 />
               </div>
 
               <div>
-                <Label>Currency</Label>
+                <Label>
+                  Currency
+                </Label>
 
                 <Input
                   name="currency"
@@ -674,7 +843,9 @@ export default function AuditPage() {
               </div>
 
               <div>
-                <Label>Pricing Model</Label>
+                <Label>
+                  Pricing Model
+                </Label>
 
                 <Input
                   name="pricing_model"
@@ -683,17 +854,20 @@ export default function AuditPage() {
                   placeholder="Freemium"
                 />
               </div>
+
             </CardContent>
           </Card>
 
+          {/* Submit */}
           <Button
             type="submit"
             size="lg"
             className="mt-8 w-full"
             disabled={loading}
           >
-            {loading ? "Starting your audit..." : "🚀 Run Launch Audit"}
+            🚀 Run Launch Audit
           </Button>
+
         </form>
       </div>
     </main>

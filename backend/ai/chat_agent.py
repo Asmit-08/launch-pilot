@@ -5,7 +5,7 @@ def chat_agent(
     message: str,
     audit_result: dict,
     startup_data: dict,
-    chat_history: list
+    chat_history: list,
 ):
 
     prompt = f"""
@@ -39,13 +39,14 @@ Instructions:
 
     response = generate_response(prompt)
 
+    # AI generation failed.
+    # Let the exception propagate so the router does NOT
+    # consume a chat message.
     if response is None:
-        return {
-            "response": (
-                "Sorry, I couldn't generate a response at the moment."
-            )
-        }
+        raise RuntimeError(
+            "Chat AI generation failed."
+        )
 
     return {
-        "response": response
+        "response": response["text"]
     }

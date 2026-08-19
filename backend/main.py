@@ -8,6 +8,7 @@ from routers.auth import router as auth_router
 from routers.projects import router as project_router
 from routers.landing_page_analysis import router as landing_page_router
 from routers.billing import router as billing_router
+from routers.usage import router as usage_router 
 
 
 app = FastAPI(
@@ -38,6 +39,7 @@ app.include_router(persona_router)
 app.include_router(project_router)
 app.include_router(landing_page_router)
 app.include_router(billing_router)
+app.include_router(usage_router)
 
 
 @app.get("/")
