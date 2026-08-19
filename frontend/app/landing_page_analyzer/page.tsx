@@ -43,6 +43,14 @@ type AnalysisResult = {
   recommendations?: string[];
 };
 
+type UsageLimitError = {
+  error: string;
+  resource?: string;
+  plan?: string;
+  limit?: number;
+  used?: number;
+};
+
 const loadingStages = [
   {
     title: "Connecting to your landing page",
@@ -77,23 +85,30 @@ function LandingPageAnalyzerContent() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
+
   const [result, setResult] =
     useState<AnalysisResult | null>(null);
+
   const [error, setError] = useState("");
+
   const [isPremium, setIsPremium] = useState(false);
+
   const [useSavedIcp, setUseSavedIcp] = useState(false);
+
+  const [usageExhausted, setUsageExhausted] = useState(false);
+
+  const [usageLimit, setUsageLimit] = useState<number | null>(
+    null
+  );
+
+  const [usageUsed, setUsageUsed] = useState<number | null>(
+    null
+  );
 
   /*
    * ---------------------------------------------------------
    * Restore URL after OAuth
    * ---------------------------------------------------------
-   *
-   * Expected callback destination:
-   *
-   * /landing_page_analyzer?url=https://example.com
-   *
-   * We restore the URL into the input but DO NOT automatically
-   * run the analysis.
    */
 
   useEffect(() => {
@@ -119,7 +134,7 @@ function LandingPageAnalyzerContent() {
 
         setIsPremium(
           subscription === "premium" ||
-          subscription === "super_premium"
+            subscription === "super_premium"
         );
       } catch (error) {
         console.error(
@@ -168,6 +183,14 @@ function LandingPageAnalyzerContent() {
   async function handleAnalyze() {
     setError("");
     setResult(null);
+
+    /*
+     * If the backend already told us that the user is exhausted,
+     * don't send another request.
+     */
+    if (usageExhausted) {
+      return;
+    }
 
     const trimmedUrl = url.trim();
 
@@ -221,9 +244,6 @@ function LandingPageAnalyzerContent() {
     /*
      * -------------------------------------------------------
      * Refresh Premium status
-     *
-     * This is important if the user purchased Premium while
-     * already being on this page.
      * -------------------------------------------------------
      */
 
@@ -234,27 +254,27 @@ function LandingPageAnalyzerContent() {
 
       setIsPremium(
         subscription === "premium" ||
-        subscription === "super_premium"
+          subscription === "super_premium"
       );
     } catch (error) {
       console.error(
         "Failed to refresh subscription status:",
         error
       );
-
-      setIsPremium(false);
     }
 
     /*
      * -------------------------------------------------------
-     * Analyze
+     * Backend
      * -------------------------------------------------------
      */
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     if (!apiUrl) {
-      setError("The application backend is not configured.");
+      setError(
+        "The application backend is not configured."
+      );
       return;
     }
 
@@ -280,14 +300,69 @@ function LandingPageAnalyzerContent() {
 
       const responseData = await response.json();
 
-      if (!response.ok) {
+      /*
+       * -------------------------------------------------------
+       * USAGE LIMIT REACHED
+       * -------------------------------------------------------
+       */
+
+      if (response.status === 429) {
+        const detail: UsageLimitError =
+          responseData?.detail || {};
+
+        if (
+          detail.error === "usage_limit_reached" &&
+          detail.resource === "landing_page_analyses"
+        ) {
+          setUsageExhausted(true);
+
+          setUsageLimit(
+            typeof detail.limit === "number"
+              ? detail.limit
+              : null
+          );
+
+          setUsageUsed(
+            typeof detail.used === "number"
+              ? detail.used
+              : null
+          );
+
+          setError("");
+
+          return;
+        }
+
         throw new Error(
-          responseData?.detail ||
-            "Unable to analyze this landing page."
+          typeof responseData?.detail === "string"
+            ? responseData.detail
+            : "Usage limit reached."
         );
       }
 
+      /*
+       * -------------------------------------------------------
+       * Other API errors
+       * -------------------------------------------------------
+       */
+
+      if (!response.ok) {
+        const detail =
+          typeof responseData?.detail === "string"
+            ? responseData.detail
+            : "Unable to analyze this landing page.";
+
+        throw new Error(detail);
+      }
+
+      /*
+       * -------------------------------------------------------
+       * Successful analysis
+       * -------------------------------------------------------
+       */
+
       setResult(responseData);
+
     } catch (err) {
       console.error(
         "Landing page analysis failed:",
@@ -302,6 +377,131 @@ function LandingPageAnalyzerContent() {
     } finally {
       setLoading(false);
     }
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * Usage exhausted screen
+   * ---------------------------------------------------------
+   */
+
+  if (usageExhausted) {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-[#050816] text-white">
+
+        {/* Background */}
+        <div className="pointer-events-none absolute inset-0">
+
+          <div className="absolute left-1/2 top-[-180px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-blue-600/15 blur-[160px]" />
+
+          <div className="absolute bottom-[-180px] right-[-120px] h-[500px] w-[500px] rounded-full bg-violet-600/15 blur-[150px]" />
+
+          <div className="absolute left-[-150px] top-1/2 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[150px]" />
+
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.025)_1px,transparent_1px)] bg-[size:48px_48px]" />
+
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl items-center justify-center px-6 py-16">
+
+          <div className="w-full max-w-2xl rounded-3xl border border-violet-400/20 bg-white/[0.04] p-8 text-center shadow-[0_0_100px_rgba(0,0,0,.4)] backdrop-blur-xl sm:p-12">
+
+            {/* Icon */}
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 text-4xl">
+              🔒
+            </div>
+
+            <p className="mt-7 text-xs font-medium uppercase tracking-[0.2em] text-violet-300">
+              Free usage limit reached
+            </p>
+
+            <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+              You've exhausted your landing page analyses.
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-gray-400 sm:text-base">
+              You've used all of your available landing page
+              analyses for this month.
+            </p>
+
+            {usageLimit !== null &&
+              usageUsed !== null && (
+                <div className="mx-auto mt-7 inline-flex items-center rounded-full border border-white/10 bg-black/20 px-5 py-2.5 text-sm text-gray-400">
+                  {usageUsed} / {usageLimit} analyses used
+                </div>
+              )}
+
+            {/* Premium card */}
+            <div className="mt-8 rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.10] via-blue-500/[0.06] to-transparent p-6 text-left">
+
+              <div className="flex items-center gap-2">
+
+                <span className="text-lg">
+                  ✨
+                </span>
+
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300">
+                  Upgrade to Premium
+                </p>
+
+              </div>
+
+              <h2 className="mt-4 text-xl font-semibold">
+                Keep analyzing your landing pages.
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-gray-400">
+                Premium gives you a much higher monthly analysis
+                limit plus access to the complete landing page
+                analysis, including ICP alignment, conversion
+                analysis, trust signals, CTA analysis, and
+                prioritized recommendations.
+              </p>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+
+                <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                  ✓ 20 landing page analyses / month
+                </div>
+
+                <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                  ✓ ICP alignment
+                </div>
+
+                <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                  ✓ CTA & conversion analysis
+                </div>
+
+                <div className="rounded-xl border border-white/5 bg-black/10 p-3 text-sm text-gray-400">
+                  ✓ Prioritized recommendations
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.push("/billing")}
+                className="mt-7 w-full rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                Upgrade to Premium
+              </button>
+
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-gray-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+            >
+              Back to Dashboard
+            </button>
+
+          </div>
+
+        </div>
+
+      </main>
+    );
   }
 
   return (
@@ -340,9 +540,9 @@ function LandingPageAnalyzerContent() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg">
-            Plavtora analyzes your landing page's
-            messaging, positioning, and conversion clarity
-            to uncover what's working and what needs attention.
+            Plavtora analyzes your landing page's messaging,
+            positioning, and conversion clarity to uncover
+            what's working and what needs attention.
           </p>
 
         </div>
@@ -350,10 +550,7 @@ function LandingPageAnalyzerContent() {
         {/* Analyzer Card */}
         <div className="mx-auto mt-12 max-w-3xl rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_0_80px_rgba(0,0,0,.35)] backdrop-blur-xl sm:p-8">
 
-          {/* =====================================================
-              INPUT
-              ===================================================== */}
-
+          {/* INPUT */}
           {!loading && !result && (
             <>
               <label className="mb-3 block text-sm font-medium text-gray-300">
@@ -377,8 +574,10 @@ function LandingPageAnalyzerContent() {
                 />
 
                 <button
+                  type="button"
                   onClick={handleAnalyze}
-                  className="h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 px-7 font-semibold transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20"
+                  disabled={usageExhausted}
+                  className="h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-violet-500 px-7 font-semibold transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Analyze Page
                 </button>
@@ -386,6 +585,7 @@ function LandingPageAnalyzerContent() {
               </div>
 
               <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/15 hover:bg-white/[0.05]">
+
                 <input
                   type="checkbox"
                   checked={useSavedIcp}
@@ -396,16 +596,20 @@ function LandingPageAnalyzerContent() {
                 />
 
                 <span>
+
                   <span className="block text-sm font-medium text-gray-200">
                     Compare against my saved ICP
                   </span>
 
                   <span className="mt-1 block text-xs leading-5 text-gray-500">
-                    When enabled, Plavtora will compare this landing
-                    page against your currently saved ICP. Leave this
-                    off if the saved ICP belongs to a different product.
+                    When enabled, Plavtora will compare this
+                    landing page against your currently saved ICP.
+                    Leave this off if the saved ICP belongs to a
+                    different product.
                   </span>
+
                 </span>
+
               </label>
 
               {error && (
@@ -456,10 +660,7 @@ function LandingPageAnalyzerContent() {
             </>
           )}
 
-          {/* =====================================================
-              LOADING
-              ===================================================== */}
-
+          {/* LOADING */}
           {loading && (
             <div className="py-10">
 
@@ -546,10 +747,7 @@ function LandingPageAnalyzerContent() {
             </div>
           )}
 
-          {/* =====================================================
-              RESULTS
-              ===================================================== */}
-
+          {/* RESULTS */}
           {!loading && result && (
             <div className="space-y-6">
 
@@ -617,15 +815,11 @@ function LandingPageAnalyzerContent() {
 
               </div>
 
-              {/* =====================================================
-                  PREMIUM ANALYSIS
-                  ===================================================== */}
-
+              {/* PREMIUM */}
               {isPremium ? (
 
                 <div className="space-y-4">
 
-                  {/* Premium Header */}
                   <div className="rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
 
                     <div className="flex items-center gap-2">
@@ -652,7 +846,6 @@ function LandingPageAnalyzerContent() {
 
                   </div>
 
-                  {/* ICP Alignment */}
                   {result.icp_alignment && (
                     <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-white/[0.03] p-6">
 
@@ -697,7 +890,6 @@ function LandingPageAnalyzerContent() {
                     </div>
                   )}
 
-                  {/* Value Proposition */}
                   {result.value_proposition && (
                     <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -728,7 +920,6 @@ function LandingPageAnalyzerContent() {
                     </div>
                   )}
 
-                  {/* CTA */}
                   {result.cta && (
                     <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -759,7 +950,6 @@ function LandingPageAnalyzerContent() {
                     </div>
                   )}
 
-                  {/* Trust */}
                   {result.trust && (
                     <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -790,7 +980,6 @@ function LandingPageAnalyzerContent() {
                     </div>
                   )}
 
-                  {/* Conversion Clarity */}
                   {result.conversion_clarity && (
                     <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
@@ -821,7 +1010,6 @@ function LandingPageAnalyzerContent() {
                     </div>
                   )}
 
-                  {/* Conversion Problems */}
                   {result.conversion_problems &&
                     result.conversion_problems.length > 0 && (
                       <div className="rounded-3xl border border-red-400/20 bg-red-500/[0.04] p-7">
@@ -856,7 +1044,6 @@ function LandingPageAnalyzerContent() {
                       </div>
                     )}
 
-                  {/* Recommendations */}
                   {result.recommendations &&
                     result.recommendations.length > 0 && (
                       <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
@@ -907,13 +1094,9 @@ function LandingPageAnalyzerContent() {
 
               ) : (
 
-                /* =====================================================
-                   FREE USER — LOCKED PREMIUM UI
-                   ===================================================== */
-
                 <div className="space-y-4">
 
-                  {/* ICP Alignment */}
+                  {/* ICP locked */}
                   <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent" />
@@ -942,15 +1125,15 @@ function LandingPageAnalyzerContent() {
 
                       <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
                         See whether your positioning actually
-                        matches the customers you're trying to reach.
-                        Plavtora compares your page against your
-                        saved ICP to identify messaging gaps,
-                        positioning mismatches, and missed customer
-                        signals.
+                        matches the customers you're trying to
+                        reach.
                       </p>
 
                       <button
-                        onClick={() => router.push("/billing")}
+                        type="button"
+                        onClick={() =>
+                          router.push("/billing")
+                        }
                         className="mt-5 text-sm font-medium text-violet-300 transition hover:text-violet-200"
                       >
                         Unlock ICP analysis →
@@ -960,7 +1143,7 @@ function LandingPageAnalyzerContent() {
 
                   </div>
 
-                  {/* Conversion Analysis */}
+                  {/* Conversion locked */}
                   <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6">
 
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] to-transparent" />
@@ -989,12 +1172,15 @@ function LandingPageAnalyzerContent() {
 
                       <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
                         Unlock detailed analysis of your CTA,
-                        conversion clarity, trust signals, and the
-                        biggest problems affecting your page.
+                        conversion clarity, trust signals, and
+                        the biggest problems affecting your page.
                       </p>
 
                       <button
-                        onClick={() => router.push("/billing")}
+                        type="button"
+                        onClick={() =>
+                          router.push("/billing")
+                        }
                         className="mt-5 text-sm font-medium text-blue-300 transition hover:text-blue-200"
                       >
                         Unlock conversion analysis →
@@ -1004,7 +1190,7 @@ function LandingPageAnalyzerContent() {
 
                   </div>
 
-                  {/* Premium Analysis CTA */}
+                  {/* Premium CTA */}
                   <div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.08] via-blue-500/[0.04] to-transparent p-7">
 
                     <div className="relative">
@@ -1055,7 +1241,10 @@ function LandingPageAnalyzerContent() {
                       </div>
 
                       <button
-                        onClick={() => router.push("/billing")}
+                        type="button"
+                        onClick={() =>
+                          router.push("/billing")
+                        }
                         className="mt-7 rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
                       >
                         Unlock Premium Analysis
@@ -1072,6 +1261,7 @@ function LandingPageAnalyzerContent() {
               <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
 
                 <button
+                  type="button"
                   onClick={() => {
                     setResult(null);
                     setError("");
@@ -1082,7 +1272,10 @@ function LandingPageAnalyzerContent() {
                 </button>
 
                 <button
-                  onClick={() => router.push("/dashboard")}
+                  type="button"
+                  onClick={() =>
+                    router.push("/dashboard")
+                  }
                   className="rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
                 >
                   Go to Dashboard
@@ -1097,8 +1290,8 @@ function LandingPageAnalyzerContent() {
 
         {!loading && !result && (
           <p className="mt-6 text-center text-xs text-gray-600">
-            Enter a public landing page URL. Plavtora
-            analyzes the page without modifying it.
+            Enter a public landing page URL. Plavtora analyzes
+            the page without modifying it.
           </p>
         )}
 

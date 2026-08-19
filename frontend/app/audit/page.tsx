@@ -76,10 +76,12 @@ function AuditStage({
       {active && (
         <div className="flex gap-1">
           <span className="h-1 w-1 animate-pulse rounded-full bg-violet-400" />
+
           <span
             className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
             style={{ animationDelay: "150ms" }}
           />
+
           <span
             className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
             style={{ animationDelay: "300ms" }}
@@ -96,6 +98,17 @@ export default function AuditPage() {
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState("");
+
+  /*
+   * Usage limit state
+   */
+  const [limitReached, setLimitReached] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<{
+    plan: string;
+    resource: string;
+    used: number;
+    limit: number;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     product_name: "",
@@ -188,11 +201,19 @@ export default function AuditPage() {
 
     if (loading) return;
 
+    /*
+     * Reset previous states
+     */
     setLoading(true);
     setLoadingStage(0);
     setError("");
+    setLimitReached(false);
+    setLimitInfo(null);
 
     try {
+      /*
+       * Prepare payload
+       */
       const payload = {
         ...formData,
 
@@ -207,6 +228,9 @@ export default function AuditPage() {
           .filter(Boolean),
       };
 
+      /*
+       * Authentication
+       */
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -216,6 +240,9 @@ export default function AuditPage() {
         return;
       }
 
+      /*
+       * Backend URL
+       */
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       if (!apiUrl) {
@@ -227,18 +254,9 @@ export default function AuditPage() {
       /*
        * ONE backend request.
        *
-       * The backend performs the complete audit using
-       * one Gemini request and returns:
-       *
-       * - overall_score
-       * - product
-       * - validation
-       * - launch_readiness
-       * - risk
-       * - project_id
-       * - audit_id
+       * The backend checks the usage limit BEFORE
+       * generating the audit.
        */
-
       const response = await fetch(`${apiUrl}/audit`, {
         method: "POST",
 
@@ -250,6 +268,53 @@ export default function AuditPage() {
         body: JSON.stringify(payload),
       });
 
+      /*
+       * ----------------------------------------------------
+       * USAGE LIMIT HANDLING
+       * ----------------------------------------------------
+       */
+
+      if (response.status === 429) {
+        let errorData: any = null;
+
+        try {
+          errorData = await response.json();
+        } catch {
+          // Ignore malformed error response.
+        }
+
+        const detail = errorData?.detail;
+
+        if (
+          detail &&
+          typeof detail === "object" &&
+          detail.error === "usage_limit_reached"
+        ) {
+          setLimitReached(true);
+
+          setLimitInfo({
+            plan: detail.plan || "free",
+            resource: detail.resource || "audits",
+            used: Number(detail.used ?? 0),
+            limit: Number(detail.limit ?? 0),
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        throw new Error(
+          "You've reached your usage limit. Upgrade to Premium to continue."
+        );
+      }
+
+      /*
+       * ----------------------------------------------------
+       * OTHER BACKEND ERRORS
+       * ----------------------------------------------------
+       */
+
       if (!response.ok) {
         let errorMessage = "Failed to generate audit.";
 
@@ -257,17 +322,15 @@ export default function AuditPage() {
           const errorData = await response.json();
 
           if (errorData?.detail) {
-            if (
+            if (typeof errorData.detail === "string") {
+              errorMessage = errorData.detail;
+            } else if (
               typeof errorData.detail === "object" &&
-              errorData.detail.error === "usage_limit_reached"
+              errorData.detail.error
             ) {
               errorMessage =
-                `You've reached your ${errorData.detail.plan} ${errorData.detail.resource} limit ` +
-                `(${errorData.detail.used}/${errorData.detail.limit}).`;
-            } else if (
-              typeof errorData.detail === "string"
-            ) {
-              errorMessage = errorData.detail;
+                errorData.detail.message ||
+                "Unable to generate the audit.";
             }
           } else if (errorData?.error) {
             errorMessage = errorData.error;
@@ -279,6 +342,12 @@ export default function AuditPage() {
         throw new Error(errorMessage);
       }
 
+      /*
+       * ----------------------------------------------------
+       * SUCCESS
+       * ----------------------------------------------------
+       */
+
       const result = await response.json();
 
       if (!result.project_id || !result.audit_id) {
@@ -288,9 +357,9 @@ export default function AuditPage() {
       }
 
       /*
-       * The backend persists the audit.
+       * Backend persists the audit.
        *
-       * The report page retrieves the saved audit using:
+       * Report page retrieves:
        *
        * /projects/{project_id}/audits/{audit_id}
        */
@@ -316,6 +385,145 @@ export default function AuditPage() {
 
   /*
    * ----------------------------------------------------
+   * USAGE LIMIT SCREEN
+   * ----------------------------------------------------
+   */
+
+  if (limitReached) {
+    return (
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 text-white">
+        {/* Ambient background */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.08] blur-[150px]" />
+
+          <div className="absolute left-[10%] top-[20%] h-40 w-40 rounded-full bg-blue-500/[0.04] blur-[80px]" />
+
+          <div className="absolute bottom-[10%] right-[15%] h-48 w-48 rounded-full bg-violet-500/[0.04] blur-[90px]" />
+        </div>
+
+        <div className="relative z-10 w-full max-w-lg">
+          <div className="rounded-3xl border border-violet-400/20 bg-white/[0.035] p-8 shadow-2xl backdrop-blur-xl">
+            {/* Icon */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10">
+              <span className="text-3xl">✦</span>
+            </div>
+
+            {/* Heading */}
+            <div className="mt-6 text-center">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-300">
+                Free Plan Limit Reached
+              </p>
+
+              <h1 className="mt-3 text-3xl font-bold tracking-tight">
+                You've used all your audits
+              </h1>
+
+              <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-zinc-400">
+                You've reached your monthly Launch Audit
+                limit. Upgrade to Premium to continue
+                pressure-testing your startup.
+              </p>
+            </div>
+
+            {/* Usage */}
+            {limitInfo && (
+              <div className="mt-7 rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-400">
+                    Launch Audits
+                  </span>
+
+                  <span className="text-sm font-semibold text-white">
+                    {limitInfo.used}/{limitInfo.limit}
+                  </span>
+                </div>
+
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-blue-500"
+                    style={{
+                      width: `${Math.min(
+                        (limitInfo.used /
+                          Math.max(limitInfo.limit, 1)) *
+                          100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <p className="mt-3 text-xs text-zinc-600">
+                  Your {limitInfo.plan} plan limit has been
+                  reached.
+                </p>
+              </div>
+            )}
+
+            {/* Premium benefits */}
+            <div className="mt-6 rounded-2xl border border-violet-400/10 bg-violet-500/[0.04] p-5">
+              <p className="text-sm font-semibold text-violet-200">
+                Premium gives you more room to validate.
+              </p>
+
+              <div className="mt-4 space-y-3 text-sm text-zinc-400">
+                <div className="flex items-center gap-3">
+                  <span className="text-emerald-400">✓</span>
+                  <span>
+                    Up to 20 Launch Audits per month
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-emerald-400">✓</span>
+                  <span>
+                    More AI analysis and conversations
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-emerald-400">✓</span>
+                  <span>
+                    Keep pressure-testing before you build
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="mt-7 flex flex-col gap-3">
+              <Button
+                type="button"
+                onClick={() => router.push("/billing")}
+                className="h-12 w-full rounded-xl bg-white font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                Upgrade to Premium →
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setLimitReached(false);
+                  setLimitInfo(null);
+                }}
+                className="h-12 w-full rounded-xl border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.07] hover:text-white"
+              >
+                Back to Audit
+              </Button>
+            </div>
+          </div>
+
+          <p className="mt-5 text-center text-xs text-zinc-700">
+            Your usage resets at the beginning of the next
+            billing period.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  /*
+   * ----------------------------------------------------
    * PREMIUM AUDIT LOADING SCREEN
    * ----------------------------------------------------
    */
@@ -335,7 +543,6 @@ export default function AuditPage() {
         {/* Main card */}
         <div className="relative z-10 w-full max-w-lg px-6">
           <div className="rounded-3xl border border-white/[0.08] bg-white/[0.025] p-8 shadow-2xl backdrop-blur-xl">
-
             {/* Brand */}
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6">
@@ -414,7 +621,6 @@ export default function AuditPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto max-w-5xl px-6 py-12">
-
         <h1 className="text-5xl font-bold">
           Plavtora Launch Audit
         </h1>
@@ -447,7 +653,6 @@ export default function AuditPage() {
           className="mt-8 space-y-8"
           onSubmit={handleSubmit}
         >
-
           {/* Product */}
           <Card
             style={{
@@ -468,7 +673,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-
               <div>
                 <Label>
                   Product Name
@@ -507,7 +711,6 @@ export default function AuditPage() {
                   required
                 />
               </div>
-
             </CardContent>
           </Card>
 
@@ -531,7 +734,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-
               <div>
                 <Label>
                   Target Audience
@@ -571,7 +773,6 @@ export default function AuditPage() {
                   placeholder="What makes your product different?"
                 />
               </div>
-
             </CardContent>
           </Card>
 
@@ -595,7 +796,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-
               <div>
                 <Label>
                   Beta Users
@@ -624,7 +824,6 @@ export default function AuditPage() {
                   Feedback Collected
                 </Label>
               </div>
-
             </CardContent>
           </Card>
 
@@ -644,7 +843,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -674,7 +872,6 @@ export default function AuditPage() {
                   Critical Bugs Present
                 </Label>
               </div>
-
             </CardContent>
           </Card>
 
@@ -694,7 +891,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -739,7 +935,6 @@ export default function AuditPage() {
                   Social Media Presence
                 </Label>
               </div>
-
             </CardContent>
           </Card>
 
@@ -759,7 +954,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -789,7 +983,6 @@ export default function AuditPage() {
                   placeholder="Product Hunt, LinkedIn, Reddit"
                 />
               </div>
-
             </CardContent>
           </Card>
 
@@ -813,7 +1006,6 @@ export default function AuditPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-
               <div>
                 <Label>
                   Budget
@@ -854,7 +1046,6 @@ export default function AuditPage() {
                   placeholder="Freemium"
                 />
               </div>
-
             </CardContent>
           </Card>
 
@@ -867,7 +1058,6 @@ export default function AuditPage() {
           >
             🚀 Run Launch Audit
           </Button>
-
         </form>
       </div>
     </main>
