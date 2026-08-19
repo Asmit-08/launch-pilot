@@ -840,14 +840,15 @@ export default function Home() {
               <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
                 Start free.
                 <span className="block text-zinc-500">
-                  Go deeper when you need to.
+                  Upgrade when you need more room to think.
                 </span>
               </h2>
 
               <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500">
-                Get useful answers for free. Upgrade when you need deeper
-                analysis, stronger recommendations, and a more complete view
-                of your startup.
+                Every plan has defined monthly limits. Free gives you enough
+                usage to evaluate Plavtora; Premium gives you substantially
+                more capacity across audits, chat, ICP/personas, and landing
+                page analysis.
               </p>
             </div>
 
@@ -879,19 +880,49 @@ export default function Home() {
                 </div>
 
                 <p className="mt-4 text-sm leading-6 text-zinc-500">
-                  Enough to understand where your startup stands before
-                  deciding whether you need more.
+                  A real starting plan with enough monthly usage to test the
+                  core workflow without committing to Premium.
                 </p>
+
+                <div className="mt-7 h-px bg-white/[0.06]" />
+
+                <div className="mt-7">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">
+                    Monthly usage limits
+                  </p>
+
+                  <div className="mt-4 space-y-3">
+                    {[
+                      ["Launch audits", "3 / month"],
+                      ["AI Co-Founder chat", "3 messages / month"],
+                      ["ICP / Persona analyses", "2 / month"],
+                      ["Landing page analyses", "2 / month"],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.015] px-4 py-3"
+                      >
+                        <span className="text-sm text-zinc-400">
+                          {label}
+                        </span>
+
+                        <span className="shrink-0 text-sm font-medium text-zinc-200">
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="mt-7 h-px bg-white/[0.06]" />
 
                 <div className="mt-7 space-y-3">
                   {[
-                    "Overall analysis scores",
-                    "Executive summaries",
-                    "Basic messaging analysis",
-                    "Useful first-pass insights",
-                    "Access to selected free tools",
+                    "Overall audit scores and core findings",
+                    "Executive summaries and first-pass insights",
+                    "Basic product, validation, launch, and risk analysis",
+                    "Basic ICP / persona generation",
+                    "Basic landing page analysis",
                   ].map((item) => (
                     <div
                       key={item}
@@ -925,6 +956,10 @@ export default function Home() {
                     "Start Free"
                   )}
                 </Button>
+
+                <p className="mt-3 text-center text-[10px] text-zinc-700">
+                  Limits reset monthly
+                </p>
               </div>
 
               {/* Premium */}
@@ -948,7 +983,7 @@ export default function Home() {
                       </div>
 
                       <div className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1 text-[10px] font-medium text-emerald-300">
-                        Full access
+                        Higher limits
                       </div>
                     </div>
 
@@ -969,22 +1004,53 @@ export default function Home() {
                     </div>
 
                     <p className="mt-5 text-sm leading-6 text-zinc-400">
-                      Unlock the deeper layer of Plavtora: more context,
-                      sharper diagnosis, and actionable recommendations.
+                      More room to use the core Plavtora workflow repeatedly:
+                      deeper validation, more strategic conversations, more
+                      personas, and more landing page analyses.
                     </p>
+
+                    <div className="mt-7 h-px bg-white/[0.07]" />
+
+                    <div className="mt-7">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300/70">
+                        Monthly usage limits
+                      </p>
+
+                      <div className="mt-4 space-y-3">
+                        {[
+                          ["Launch audits", "20 / month"],
+                          ["AI Co-Founder chat", "100 messages / month"],
+                          ["ICP / Persona analyses", "20 / month"],
+                          ["Landing page analyses", "20 / month"],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="flex items-center justify-between gap-4 rounded-xl border border-violet-400/[0.09] bg-violet-400/[0.025] px-4 py-3"
+                          >
+                            <span className="text-sm text-zinc-300">
+                              {label}
+                            </span>
+
+                            <span className="shrink-0 text-sm font-semibold text-white">
+                              {value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
                     <div className="mt-7 h-px bg-white/[0.07]" />
 
                     <div className="mt-7 space-y-3">
                       {[
                         "Everything in Free",
-                        "Full ICP alignment analysis",
-                        "CTA & conversion analysis",
-                        "Trust & credibility analysis",
-                        "Conversion clarity breakdown",
-                        "Conversion problems",
-                        "Prioritized recommendations",
+                        "20 launch audits per month",
+                        "100 AI Co-Founder chat messages per month",
+                        "20 ICP / Persona analyses per month",
+                        "20 landing page analyses per month",
+                        "Full landing page analysis including ICP alignment",
                         "Deeper Persona / ICP insights",
+                        "Prioritized recommendations and strategic guidance",
                       ].map((item, index) => (
                         <div
                           key={item}
@@ -1021,23 +1087,29 @@ export default function Home() {
                     </Button>
 
                     <p className="mt-3 text-center text-[10px] text-zinc-700">
-                      Premium subscription
+                      Limits reset monthly
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mx-auto mt-8 flex max-w-5xl flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[10px] uppercase tracking-[0.16em] text-zinc-700">
-              <span>Free plan available</span>
+            <div className="mx-auto mt-8 max-w-5xl text-center text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+              <span>
+                Free: 3 audits · 3 chat messages · 2 personas · 2 landing page
+                analyses
+              </span>
 
-              <span className="h-1 w-1 rounded-full bg-zinc-800" />
+              <span className="mx-3 text-zinc-800">•</span>
 
-              <span>Premium at $8.99/month</span>
+              <span>
+                Premium: 20 audits · 100 chat messages · 20 personas · 20
+                landing page analyses
+              </span>
 
-              <span className="h-1 w-1 rounded-full bg-zinc-800" />
-
-              <span>Deeper analysis when you need it</span>
+              <p className="mt-3 normal-case tracking-normal text-zinc-700">
+                All usage limits reset at the start of each month.
+              </p>
             </div>
           </div>
         </section>

@@ -458,7 +458,7 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() =>
-                      router.push("/settings")
+                      router.push("/billing")
                     }
                     className="
                       mt-2

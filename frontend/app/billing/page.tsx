@@ -4,7 +4,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const freeFeatures = [
+  "3 Launch Audits per month",
+  "3 AI Co-Founder messages per month",
+  "2 ICP / Persona analyses per month",
+  "2 Landing Page Analyses per month",
+  "Overall analysis scores",
+  "Executive summaries",
+  "Basic messaging analysis",
+  "Useful first-pass insights",
+  "Access to selected free tools",
+];
+
 const premiumFeatures = [
+  "20 Launch Audits per month",
+  "100 AI Co-Founder messages per month",
+  "20 ICP / Persona analyses per month",
+  "20 Landing Page Analyses per month",
   "Full ICP alignment analysis",
   "CTA & conversion analysis",
   "Trust & credibility analysis",
@@ -13,14 +29,6 @@ const premiumFeatures = [
   "Prioritized recommendations",
   "Deeper Persona / ICP insights",
   "Premium AI decision support",
-];
-
-const freeFeatures = [
-  "Overall analysis scores",
-  "Executive summaries",
-  "Basic messaging analysis",
-  "Useful first-pass insights",
-  "Access to selected free tools",
 ];
 
 export default function BillingPage() {
@@ -47,7 +55,8 @@ export default function BillingPage() {
           return;
         }
 
-        const apiBaseUrl = "https://launch-pilot-backend.onrender.com";
+        const apiBaseUrl =
+          "https://launch-pilot-backend.onrender.com";
 
         const response = await fetch(`${apiBaseUrl}/auth/me`, {
           headers: {
@@ -95,7 +104,8 @@ export default function BillingPage() {
         return;
       }
 
-      const apiBaseUrl = "https://launch-pilot-backend.onrender.com";
+      const apiBaseUrl =
+        "https://launch-pilot-backend.onrender.com";
 
       const response = await fetch(
         `${apiBaseUrl}/billing/create-checkout`,
@@ -144,7 +154,10 @@ export default function BillingPage() {
 
         <div className="relative flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-violet-400" />
-          <p className="text-sm text-zinc-500">Loading your plan...</p>
+
+          <p className="text-sm text-zinc-500">
+            Loading your plan...
+          </p>
         </div>
       </main>
     );
@@ -154,7 +167,9 @@ export default function BillingPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-15%] top-[-15%] h-[700px] w-[700px] rounded-full bg-blue-600/[0.07] blur-[160px]" />
+
         <div className="absolute right-[-15%] top-[5%] h-[700px] w-[700px] rounded-full bg-violet-600/[0.08] blur-[170px]" />
+
         <div className="absolute bottom-[-20%] left-[25%] h-[600px] w-[600px] rounded-full bg-fuchsia-500/[0.04] blur-[160px]" />
 
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:56px_56px]" />
@@ -199,9 +214,10 @@ export default function BillingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500 sm:text-lg">
-            Premium unlocks the deeper layer of Plavtora so you can move from
-            basic signals to sharper diagnosis, stronger recommendations, and
-            clearer next moves.
+            Premium gives you significantly more analysis capacity and
+            unlocks deeper intelligence so you can move from basic signals
+            to sharper diagnosis, stronger recommendations, and clearer
+            next moves.
           </p>
         </div>
 
@@ -210,11 +226,16 @@ export default function BillingPage() {
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/[0.1] text-xs">
               ✓
             </span>
+
             You already have Plavtora Premium access.
           </div>
         )}
 
         <div className="mx-auto mt-14 grid max-w-5xl gap-5 lg:grid-cols-2">
+          {/* =====================================================
+              FREE
+          ===================================================== */}
+
           <section className="relative rounded-[30px] border border-white/[0.08] bg-white/[0.02] p-7 sm:p-9">
             <div className="flex items-start justify-between gap-5">
               <div>
@@ -233,29 +254,41 @@ export default function BillingPage() {
             </div>
 
             <div className="mt-8 flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight">$0</span>
-              <span className="text-sm text-zinc-600">/ forever</span>
+              <span className="text-5xl font-semibold tracking-tight">
+                $0
+              </span>
+
+              <span className="text-sm text-zinc-600">
+                / forever
+              </span>
             </div>
 
             <p className="mt-4 max-w-md text-sm leading-6 text-zinc-500">
               Start with genuinely useful analysis and understand where your
-              startup stands.
+              startup stands without paying anything.
             </p>
 
             <div className="my-8 h-px bg-white/[0.06]" />
 
-            <div className="space-y-4">
-              {freeFeatures.map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-start gap-3 text-sm text-zinc-400"
-                >
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[10px] text-zinc-500">
-                    ✓
-                  </span>
-                  <span>{feature}</span>
-                </div>
-              ))}
+            <div>
+              <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">
+                Monthly usage
+              </p>
+
+              <div className="space-y-4">
+                {freeFeatures.map((feature) => (
+                  <div
+                    key={feature}
+                    className="flex items-start gap-3 text-sm text-zinc-400"
+                  >
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[10px] text-zinc-500">
+                      ✓
+                    </span>
+
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <button
@@ -265,6 +298,10 @@ export default function BillingPage() {
               Continue with Free
             </button>
           </section>
+
+          {/* =====================================================
+              PREMIUM
+          ===================================================== */}
 
           <section className="relative">
             <div className="absolute -inset-[1px] rounded-[31px] bg-gradient-to-br from-violet-400/45 via-blue-400/15 to-transparent blur-[1px]" />
@@ -286,7 +323,7 @@ export default function BillingPage() {
                   </div>
 
                   <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1.5 text-[10px] font-medium text-emerald-300">
-                    Full access
+                    Higher limits
                   </span>
                 </div>
 
@@ -301,26 +338,32 @@ export default function BillingPage() {
                 </div>
 
                 <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
-                  Go beyond surface-level answers. Get the analysis,
-                  explanations, and priorities you need to make stronger
-                  startup decisions.
+                  Go beyond surface-level answers. Get substantially more
+                  usage plus the deeper analysis, explanations, and
+                  recommendations needed to make stronger startup decisions.
                 </p>
 
                 <div className="my-8 h-px bg-white/[0.07]" />
 
-                <div className="space-y-4">
-                  {premiumFeatures.map((feature) => (
-                    <div
-                      key={feature}
-                      className="flex items-start gap-3 text-sm text-zinc-300"
-                    >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/[0.1] text-[10px] text-violet-300">
-                        ✓
-                      </span>
+                <div>
+                  <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300">
+                    Monthly usage
+                  </p>
 
-                      <span>{feature}</span>
-                    </div>
-                  ))}
+                  <div className="space-y-4">
+                    {premiumFeatures.map((feature) => (
+                      <div
+                        key={feature}
+                        className="flex items-start gap-3 text-sm text-zinc-300"
+                      >
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/[0.1] text-[10px] text-violet-300">
+                          ✓
+                        </span>
+
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <button
@@ -342,12 +385,16 @@ export default function BillingPage() {
                 )}
 
                 <p className="mt-4 text-center text-[10px] text-zinc-700">
-                  Monthly subscription · Dodo checkout will be connected here.
+                  Monthly subscription · Usage limits reset each month.
                 </p>
               </div>
             </div>
           </section>
         </div>
+
+        {/* =====================================================
+            COMPARISON / POSITIONING
+        ===================================================== */}
 
         <section className="mx-auto mt-16 max-w-5xl rounded-[28px] border border-white/[0.07] bg-white/[0.018] p-7 sm:p-9">
           <div className="grid gap-8 md:grid-cols-3">
@@ -357,8 +404,9 @@ export default function BillingPage() {
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Understand the basics and decide whether Plavtora is useful
-                for you.
+                Get real startup analysis with defined monthly limits. Enough
+                to understand your product, test the workflow, and decide
+                whether deeper analysis is useful.
               </p>
             </div>
 
@@ -370,8 +418,9 @@ export default function BillingPage() {
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Go deeper when the decision matters and you need stronger
-                evidence, diagnosis, and recommendations.
+                Get substantially higher monthly limits plus deeper ICP,
+                conversion, risk, recommendation, and AI decision-support
+                capabilities.
               </p>
             </div>
 
@@ -383,13 +432,94 @@ export default function BillingPage() {
               </p>
 
               <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Free gives real value. Premium gives more depth—not artificial
-                censorship.
+                Free gives real value. Premium gives more capacity and more
+                depth—not artificial censorship. Both plans have defined
+                usage limits.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================
+            LIMIT SUMMARY
+        ===================================================== */}
+
+        <section className="mx-auto mt-8 max-w-5xl">
+          <div className="rounded-[28px] border border-white/[0.07] bg-white/[0.018] p-7 sm:p-9">
+            <div className="text-center">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
+                Monthly usage at a glance
+              </p>
+
+              <h3 className="mt-3 text-xl font-semibold">
+                More room to analyze, iterate, and decide
+              </h3>
+            </div>
+
+            <div className="mt-8 overflow-hidden rounded-2xl border border-white/[0.06]">
+              <div className="grid grid-cols-3 border-b border-white/[0.06] bg-white/[0.025] px-5 py-4 text-xs font-medium uppercase tracking-[0.12em] text-zinc-500">
+                <span>Capability</span>
+                <span className="text-center">Free</span>
+                <span className="text-center text-violet-300">
+                  Premium
+                </span>
+              </div>
+
+              <div className="divide-y divide-white/[0.06]">
+                <LimitRow
+                  label="Launch Audits"
+                  free="3 / month"
+                  premium="20 / month"
+                />
+
+                <LimitRow
+                  label="AI Co-Founder messages"
+                  free="3 / month"
+                  premium="100 / month"
+                />
+
+                <LimitRow
+                  label="ICP / Persona analyses"
+                  free="2 / month"
+                  premium="20 / month"
+                />
+
+                <LimitRow
+                  label="Landing Page Analyses"
+                  free="2 / month"
+                  premium="20 / month"
+                />
+              </div>
             </div>
           </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function LimitRow({
+  label,
+  free,
+  premium,
+}: {
+  label: string;
+  free: string;
+  premium: string;
+}) {
+  return (
+    <div className="grid grid-cols-3 items-center px-5 py-4 text-sm">
+      <span className="text-zinc-400">
+        {label}
+      </span>
+
+      <span className="text-center text-zinc-500">
+        {free}
+      </span>
+
+      <span className="text-center font-medium text-violet-300">
+        {premium}
+      </span>
+    </div>
   );
 }
