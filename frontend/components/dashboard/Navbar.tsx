@@ -6,7 +6,6 @@ import { Menu, Bell } from "lucide-react";
 
 import UserMenu from "./Usermenu";
 import { getCurrentUser } from "@/services/user";
-import logo from "@/icon.png";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -66,7 +65,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
           <div className="flex items-center gap-3">
             <Image
-              src={logo}
+              src="/icon.png"
               alt="Plavtora"
               width={40}
               height={40}
