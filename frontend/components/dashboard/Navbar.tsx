@@ -6,7 +6,7 @@ import { Menu, Bell } from "lucide-react";
 
 import UserMenu from "./Usermenu";
 import { getCurrentUser } from "@/services/user";
-import logo from "@/app/icon.png";
+import logo from "@/icon.png";
 
 interface NavbarProps {
   onMenuClick: () => void;
