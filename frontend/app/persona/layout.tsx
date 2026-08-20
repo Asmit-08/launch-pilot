@@ -35,9 +35,9 @@ export const metadata: Metadata = {
 
     images: [
       {
-        url: "/og-user-persona-generator.png",
-        width: 1200,
-        height: 630,
+        url: "/icon.png",
+        width: 1000,
+        height: 1000,
         alt: "Plavtora AI User Persona Generator",
       },
     ],
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     description:
       "Generate detailed customer personas with AI in seconds.",
 
-    images: ["/og-user-persona-generator.png"],
+    images: ["/icon.png"],
   },
 
   robots: {
