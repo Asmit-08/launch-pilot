@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   ],
 
   alternates: {
-    canonical: "https://plavtora.com/persona",
+    canonical: "https://www.plavtora.com/persona",
   },
 
   openGraph: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     description:
       "Generate detailed customer personas in seconds using AI. Perfect for startup founders, marketers, and SaaS teams.",
 
-    url: "https://plavtora.com/persona",
+    url: "https://www.plavtora.com/persona",
 
     siteName: "Plavtora",
 
