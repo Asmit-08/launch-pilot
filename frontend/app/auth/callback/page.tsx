@@ -171,7 +171,7 @@ function AuthCallbackContent() {
         // Redirect immediately
         // ---------------------------------------------------------
 
-        router.replace(destination);
+        router.push(destination);
       } catch (error) {
         console.error(
           "AUTH CALLBACK: failed",
