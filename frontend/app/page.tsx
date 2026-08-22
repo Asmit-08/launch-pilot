@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
-import HeroContent from "@/components/HeroContent";
 import Image from "next/image";
 
 const tools = [
@@ -117,6 +116,7 @@ export default function Home() {
 
   const navigateWithLoading = (href: string) => {
     if (navigatingTo) return;
+
     setNavigatingTo(href);
     router.push(href);
   };
@@ -135,6 +135,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white selection:bg-violet-500/30">
+
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-[-20%] top-[-18%] h-[700px] w-[700px] rounded-full bg-blue-600/10 blur-[150px]" />
@@ -148,6 +149,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_82%)]" />
       </div>
 
+      {/* Navigation progress */}
       {navigatingTo && (
         <div className="fixed left-0 right-0 top-0 z-[70] h-0.5 overflow-hidden bg-white/[0.04]">
           <div className="h-full w-1/3 animate-[routeProgress_1.1s_ease-in-out_infinite] bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400" />
@@ -157,6 +159,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/[0.06] bg-black/55 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+
           <Link href="/" className="flex items-center gap-3">
             <Image
               src="/icon.png"
@@ -173,6 +176,7 @@ export default function Home() {
           </Link>
 
           <div className="hidden items-center gap-2 md:flex">
+
             <a
               href="#product"
               className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
@@ -201,16 +205,19 @@ export default function Home() {
               How it works
             </a>
 
+            {/* FIX: generic CTA goes to /auth */}
             <Button asChild className="ml-2">
-              <Link href="/auth?redirect=/auth/callback">Try Plavtora</Link>
+              <Link href="/auth">Try Plavtora</Link>
             </Button>
           </div>
 
           <div className="md:hidden">
+            {/* FIX: generic CTA goes to /auth */}
             <Button asChild size="sm">
-              <Link href="/auth?redirect=/auth/callback">Try it</Link>
+              <Link href="/auth">Try it</Link>
             </Button>
           </div>
+
         </div>
       </nav>
 
@@ -218,8 +225,11 @@ export default function Home() {
       <AnimatedSection>
         <section className="relative z-10 px-6 pb-20 pt-36 sm:pt-44 lg:px-8">
           <div className="mx-auto max-w-7xl">
+
             <div className="grid items-center gap-16 lg:grid-cols-[1fr_0.95fr] lg:gap-20">
+
               <div className="max-w-3xl">
+
                 <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-4 py-2 text-xs font-medium tracking-wide text-violet-300">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
                   BUILT FOR FOUNDERS
@@ -239,16 +249,15 @@ export default function Home() {
                 </p>
 
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+
                   <Button
                     type="button"
                     size="lg"
                     disabled={!!navigatingTo}
-                    onClick={() =>
-                      navigateWithLoading("/auth?redirect=/auth/callback")
-                    }
+                    onClick={() => navigateWithLoading("/auth")}
                     className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)] disabled:cursor-wait disabled:opacity-90"
                   >
-                    {navigatingTo === "/auth?redirect=/auth/callback" ? (
+                    {navigatingTo === "/auth" ? (
                       <span className="flex items-center gap-2">
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                         Starting Plavtora...
@@ -266,6 +275,7 @@ export default function Home() {
                   >
                     <a href="#product">See how it works</a>
                   </Button>
+
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-zinc-500">
@@ -277,14 +287,18 @@ export default function Home() {
                   <span className="h-1 w-1 rounded-full bg-zinc-700" />
                   <span>Risk analysis</span>
                 </div>
+
               </div>
 
               {/* Hero product panel */}
               <div className="relative">
+
                 <div className="absolute -inset-8 rounded-[40px] bg-gradient-to-br from-blue-500/10 via-violet-500/[0.08] to-transparent blur-3xl" />
 
                 <div className="relative rounded-[28px] border border-white/10 bg-[#0a0a0d]/95 p-3 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+
                   <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-red-400/70" />
                       <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
@@ -292,16 +306,19 @@ export default function Home() {
                     </div>
 
                     <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] text-zinc-500">
-                      plavtora.com/auth/callback
+                      plavtora.com/workspace
                     </div>
 
                     <div className="w-10" />
+
                   </div>
 
                   <div className="p-5 sm:p-6">
+
                     <div className="flex items-start justify-between gap-4">
+
                       <div>
-                        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-600">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
                           Startup overview
                         </p>
 
@@ -311,6 +328,7 @@ export default function Home() {
                       </div>
 
                       <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-2 text-right">
+
                         <p className="text-[9px] uppercase tracking-wider text-emerald-400/70">
                           Status
                         </p>
@@ -318,17 +336,23 @@ export default function Home() {
                         <p className="mt-0.5 text-xs font-medium text-emerald-300">
                           Review
                         </p>
+
                       </div>
+
                     </div>
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-3">
+
                       {dashboardCards.map((card, index) => (
                         <div
                           key={card.label}
                           className={`animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 ${
                             index === 1 ? "[animation-delay:700ms]" : ""
-                          } ${index === 2 ? "[animation-delay:1400ms]" : ""}`}
+                          } ${
+                            index === 2 ? "[animation-delay:1400ms]" : ""
+                          }`}
                         >
+
                           <p className="text-[10px] text-zinc-500">
                             {card.label}
                           </p>
@@ -356,12 +380,16 @@ export default function Home() {
                           >
                             {card.change}
                           </p>
+
                         </div>
                       ))}
+
                     </div>
 
                     <div className="mt-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+
                       <div className="flex items-center justify-between">
+
                         <div>
                           <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
                             Priority
@@ -375,52 +403,73 @@ export default function Home() {
                         <div className="rounded-lg border border-violet-400/15 bg-violet-400/[0.07] px-2.5 py-1.5 text-[10px] text-violet-300">
                           High impact
                         </div>
+
                       </div>
 
                       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
                         <div className="h-full w-[72%] animate-[loadbar_2s_ease-out_forwards] rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
                       </div>
+
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
+
                       <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.04] p-4">
+
                         <p className="text-[10px] uppercase tracking-[0.18em] text-blue-300/70">
                           Landing page
                         </p>
 
                         <div className="mt-2 flex items-end justify-between">
-                          <span className="text-2xl font-semibold">74</span>
+
+                          <span className="text-2xl font-semibold">
+                            74
+                          </span>
 
                           <span className="text-xs text-blue-300">
                             Good foundation
                           </span>
+
                         </div>
+
                       </div>
 
                       <div className="rounded-2xl border border-amber-400/10 bg-amber-400/[0.04] p-4">
+
                         <p className="text-[10px] uppercase tracking-[0.18em] text-amber-300/70">
                           Risk
                         </p>
 
                         <div className="mt-2 flex items-end justify-between">
-                          <span className="text-2xl font-semibold">3</span>
+
+                          <span className="text-2xl font-semibold">
+                            3
+                          </span>
 
                           <span className="text-xs text-amber-300">
                             Needs review
                           </span>
+
                         </div>
+
                       </div>
+
                     </div>
+
                   </div>
+
                 </div>
 
                 <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-white/10 bg-[#0c0c10]/95 px-4 py-3 shadow-2xl sm:block">
+
                   <div className="flex items-center gap-3">
+
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
                       ✦
                     </div>
 
                     <div>
+
                       <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">
                         AI challenge
                       </p>
@@ -428,13 +477,19 @@ export default function Home() {
                       <p className="mt-1 text-xs font-medium">
                         Your assumption may be weak.
                       </p>
+
                     </div>
+
                   </div>
+
                 </div>
+
               </div>
+
             </div>
 
             <div className="mt-24 flex justify-center">
+
               <a
                 href="#product"
                 className="group flex flex-col items-center gap-3 text-zinc-600 transition hover:text-zinc-400"
@@ -447,7 +502,9 @@ export default function Home() {
                   <span className="h-2 w-1 animate-bounce rounded-full bg-zinc-500" />
                 </span>
               </a>
+
             </div>
+
           </div>
         </section>
       </AnimatedSection>
@@ -455,7 +512,9 @@ export default function Home() {
       {/* Thesis */}
       <AnimatedSection>
         <section className="relative z-10 border-y border-white/[0.06] bg-white/[0.015] px-6 py-24 lg:px-8">
+
           <div className="mx-auto max-w-5xl text-center">
+
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
               The problem
             </p>
@@ -472,16 +531,22 @@ export default function Home() {
               tasks won't solve that. The hard part is knowing which
               assumptions are strong, which are weak, and what to do next.
             </p>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Product */}
       <AnimatedSection>
         <section id="product" className="relative z-10 px-6 py-28 lg:px-8">
+
           <div className="mx-auto max-w-7xl">
+
             <div className="grid items-end gap-8 lg:grid-cols-[1fr_0.7fr]">
+
               <div className="max-w-3xl">
+
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-blue-300">
                   One founder workspace
                 </p>
@@ -489,6 +554,7 @@ export default function Home() {
                 <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
                   Your startup's intelligence layer.
                 </h2>
+
               </div>
 
               <p className="max-w-xl text-base leading-7 text-zinc-500 lg:justify-self-end">
@@ -496,14 +562,19 @@ export default function Home() {
                 use AI to examine them from multiple angles—not just generate
                 more output.
               </p>
+
             </div>
 
             <div className="mt-14 grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
+
               <div className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.025] p-7 transition duration-500 hover:-translate-y-1 hover:border-white/15">
+
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.08] via-transparent to-transparent opacity-70" />
 
                 <div className="relative">
+
                   <div className="flex items-center justify-between gap-4">
+
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.2em] text-blue-300">
                         Startup command center
@@ -517,9 +588,11 @@ export default function Home() {
                     <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500">
                       Live analysis
                     </div>
+
                   </div>
 
                   <div className="mt-8 grid gap-3 sm:grid-cols-2">
+
                     {[
                       ["Product", "Strong differentiation"],
                       ["Customer", "ICP needs refinement"],
@@ -530,7 +603,9 @@ export default function Home() {
                         key={label}
                         className="rounded-2xl border border-white/[0.07] bg-black/20 p-4 transition duration-300 group-hover:border-white/10"
                       >
+
                         <div className="flex items-center justify-between">
+
                           <span className="text-xs text-zinc-500">
                             {label}
                           </span>
@@ -538,22 +613,28 @@ export default function Home() {
                           <span className="text-[10px] text-zinc-700">
                             0{index + 1}
                           </span>
+
                         </div>
 
                         <p className="mt-3 text-sm font-medium text-zinc-200">
                           {value}
                         </p>
+
                       </div>
                     ))}
+
                   </div>
 
                   <div className="mt-4 rounded-2xl border border-violet-400/10 bg-violet-400/[0.035] p-5">
+
                     <div className="flex items-start gap-4">
+
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
                         ✦
                       </div>
 
                       <div>
+
                         <p className="text-[10px] uppercase tracking-[0.18em] text-violet-300/70">
                           Plavtora challenge
                         </p>
@@ -562,16 +643,23 @@ export default function Home() {
                           You are focusing on feature depth before proving
                           the acquisition channel.
                         </p>
+
                       </div>
+
                     </div>
+
                   </div>
+
                 </div>
+
               </div>
 
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.025] p-7">
+
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.08] to-transparent" />
 
                 <div className="relative">
+
                   <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300">
                     Next best action
                   </p>
@@ -590,6 +678,7 @@ export default function Home() {
                   </p>
 
                   <div className="mt-8 space-y-3">
+
                     {[
                       "Talk to 5 target users",
                       "Compare objections",
@@ -599,26 +688,39 @@ export default function Home() {
                         key={item}
                         className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3"
                       >
+
                         <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/10 text-[10px] text-zinc-500">
                           {index + 1}
                         </span>
 
-                        <span className="text-xs text-zinc-400">{item}</span>
+                        <span className="text-xs text-zinc-400">
+                          {item}
+                        </span>
+
                       </div>
                     ))}
+
                   </div>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Features */}
       <AnimatedSection>
         <section id="features" className="relative z-10 px-6 py-28 lg:px-8">
+
           <div className="mx-auto max-w-7xl">
+
             <div className="max-w-3xl">
+
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-emerald-300">
                 Built for the hard parts
               </p>
@@ -629,20 +731,25 @@ export default function Home() {
                   tells you what you want to hear.
                 </span>
               </h2>
+
             </div>
 
             <div className="mt-14 grid gap-4 md:grid-cols-2">
+
               {tools.map((tool) => (
                 <div
                   key={tool.number}
                   className={`group relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br ${tool.accent} p-7 transition duration-500 hover:-translate-y-1 hover:border-white/15`}
                 >
+
                   <div className="absolute right-[-30px] top-[-30px] text-[180px] font-semibold leading-none text-white/[0.02] transition duration-700 group-hover:text-white/[0.04]">
                     {tool.number}
                   </div>
 
                   <div className="relative">
+
                     <div className="flex items-start justify-between">
+
                       <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-lg text-zinc-300">
                         {tool.icon}
                       </span>
@@ -650,6 +757,7 @@ export default function Home() {
                       <span className="text-[10px] tracking-[0.2em] text-zinc-600">
                         {tool.number}
                       </span>
+
                     </div>
 
                     <p className="mt-8 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
@@ -670,21 +778,29 @@ export default function Home() {
                         →
                       </span>
                     </div>
+
                   </div>
+
                 </div>
               ))}
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Founder research insights */}
       <AnimatedSection>
         <section className="relative z-10 overflow-hidden px-6 py-28 lg:px-8">
+
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.04] blur-[140px]" />
 
           <div className="relative mx-auto max-w-7xl">
+
             <div className="mx-auto max-w-3xl text-center">
+
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
                 Built from founder conversations
               </p>
@@ -698,10 +814,13 @@ export default function Home() {
                 uncertainty, weak validation, unclear ICPs, positioning drift,
                 acquisition difficulty, and deciding what deserves attention.
               </p>
+
             </div>
 
             <div className="mt-16">
+
               <div className="flex items-center justify-center gap-3">
+
                 <button
                   onClick={previousInsight}
                   aria-label="Previous founder insight"
@@ -711,6 +830,7 @@ export default function Home() {
                 </button>
 
                 <div className="flex items-center gap-2">
+
                   {founderInsights.map((_, index) => (
                     <button
                       key={index}
@@ -723,6 +843,7 @@ export default function Home() {
                       }`}
                     />
                   ))}
+
                 </div>
 
                 <button
@@ -732,11 +853,15 @@ export default function Home() {
                 >
                   →
                 </button>
+
               </div>
 
               <div className="mx-auto mt-10 flex max-w-5xl items-center justify-center">
+
                 <div className="grid w-full gap-4 md:grid-cols-3">
+
                   {[1, 0, 2].map((offset) => {
+
                     const index =
                       (activeInsight + offset) % founderInsights.length;
 
@@ -753,6 +878,7 @@ export default function Home() {
                             : "scale-100 opacity-60 hover:opacity-90"
                         }`}
                       >
+
                         <div
                           className={`absolute -inset-px rounded-[26px] transition-all duration-500 ${
                             isActive
@@ -768,7 +894,9 @@ export default function Home() {
                               : "border-white/[0.07]"
                           }`}
                         >
+
                           <div className="flex items-center justify-between">
+
                             <div
                               className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-500 ${
                                 isActive
@@ -782,6 +910,7 @@ export default function Home() {
                             <span className="text-[9px] uppercase tracking-[0.2em] text-zinc-600">
                               Insight {String(index + 1).padStart(2, "0")}
                             </span>
+
                           </div>
 
                           <p
@@ -795,9 +924,12 @@ export default function Home() {
                           </p>
 
                           <div className="mt-8 border-t border-white/[0.06] pt-5">
+
                             <p
                               className={`text-xs font-medium transition-all duration-500 ${
-                                isActive ? "text-zinc-200" : "text-zinc-400"
+                                isActive
+                                  ? "text-zinc-200"
+                                  : "text-zinc-400"
                               }`}
                             >
                               {insight.role}
@@ -806,20 +938,28 @@ export default function Home() {
                             <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-zinc-600">
                               {insight.label}
                             </p>
+
                           </div>
+
                         </div>
+
                       </button>
                     );
                   })}
+
                 </div>
+
               </div>
 
               <p className="mt-8 text-center text-[10px] text-zinc-700">
                 Anonymized founder research · Statements are presented as
                 research insights, not customer testimonials.
               </p>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
@@ -829,10 +969,13 @@ export default function Home() {
           id="pricing"
           className="relative z-10 overflow-hidden px-6 py-28 lg:px-8"
         >
+
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.035] blur-[150px]" />
 
           <div className="relative mx-auto max-w-6xl">
+
             <div className="mx-auto max-w-3xl text-center">
+
               <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
                 Simple pricing
               </p>
@@ -850,12 +993,16 @@ export default function Home() {
                 more capacity across audits, chat, ICP/personas, and landing
                 page analysis.
               </p>
+
             </div>
 
             <div className="mx-auto mt-14 grid max-w-5xl gap-5 md:grid-cols-2">
+
               {/* Free */}
               <div className="relative rounded-[30px] border border-white/[0.08] bg-white/[0.02] p-7 sm:p-8">
+
                 <div className="flex items-start justify-between gap-4">
+
                   <div>
                     <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
                       Free
@@ -869,14 +1016,19 @@ export default function Home() {
                   <div className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
                     FREE
                   </div>
+
                 </div>
 
                 <div className="mt-8 flex items-baseline gap-2">
+
                   <span className="text-5xl font-semibold tracking-tight">
                     $0
                   </span>
 
-                  <span className="text-sm text-zinc-600">forever</span>
+                  <span className="text-sm text-zinc-600">
+                    forever
+                  </span>
+
                 </div>
 
                 <p className="mt-4 text-sm leading-6 text-zinc-500">
@@ -887,11 +1039,13 @@ export default function Home() {
                 <div className="mt-7 h-px bg-white/[0.06]" />
 
                 <div className="mt-7">
+
                   <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">
                     Monthly usage limits
                   </p>
 
                   <div className="mt-4 space-y-3">
+
                     {[
                       ["Launch audits", "3 / month"],
                       ["AI Co-Founder chat", "3 messages / month"],
@@ -902,6 +1056,7 @@ export default function Home() {
                         key={label}
                         className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.015] px-4 py-3"
                       >
+
                         <span className="text-sm text-zinc-400">
                           {label}
                         </span>
@@ -909,14 +1064,18 @@ export default function Home() {
                         <span className="shrink-0 text-sm font-medium text-zinc-200">
                           {value}
                         </span>
+
                       </div>
                     ))}
+
                   </div>
+
                 </div>
 
                 <div className="mt-7 h-px bg-white/[0.06]" />
 
                 <div className="mt-7 space-y-3">
+
                   {[
                     "Overall audit scores and core findings",
                     "Executive summaries and first-pass insights",
@@ -928,26 +1087,28 @@ export default function Home() {
                       key={item}
                       className="flex items-start gap-3 text-sm text-zinc-400"
                     >
+
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[10px] text-zinc-500">
                         ✓
                       </span>
 
                       <span>{item}</span>
+
                     </div>
                   ))}
+
                 </div>
 
+                {/* FIX: generic CTA goes to /auth */}
                 <Button
                   type="button"
                   variant="outline"
                   size="lg"
                   disabled={!!navigatingTo}
-                  onClick={() =>
-                    navigateWithLoading("/auth?redirect=/auth/callback")
-                  }
+                  onClick={() => navigateWithLoading("/auth")}
                   className="mt-9 h-12 w-full rounded-xl border-white/10 bg-white/[0.02] text-sm font-semibold hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
                 >
-                  {navigatingTo === "/auth?redirect=/auth/callback" ? (
+                  {navigatingTo === "/auth" ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
                       Opening Plavtora...
@@ -960,18 +1121,24 @@ export default function Home() {
                 <p className="mt-3 text-center text-[10px] text-zinc-700">
                   Limits reset monthly
                 </p>
+
               </div>
 
               {/* Premium */}
               <div className="relative">
+
                 <div className="absolute -inset-[1px] rounded-[31px] bg-gradient-to-br from-violet-400/40 via-blue-400/15 to-transparent opacity-90 blur-[1px]" />
 
                 <div className="relative overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#0a0a0e] p-7 shadow-[0_25px_100px_rgba(139,92,246,0.12)] sm:p-8">
+
                   <div className="absolute right-[-100px] top-[-100px] h-[300px] w-[300px] rounded-full bg-violet-500/[0.08] blur-[80px]" />
 
                   <div className="relative">
+
                     <div className="flex items-start justify-between gap-4">
+
                       <div>
+
                         <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/[0.08] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-violet-300">
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
                           Best for serious builders
@@ -980,14 +1147,17 @@ export default function Home() {
                         <h3 className="mt-4 text-2xl font-semibold">
                           Plavtora Premium
                         </h3>
+
                       </div>
 
                       <div className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1 text-[10px] font-medium text-emerald-300">
                         Higher limits
                       </div>
+
                     </div>
 
                     <div className="mt-8 flex items-end gap-2">
+
                       <span className="text-5xl font-semibold tracking-tight">
                         $8.99
                       </span>
@@ -995,6 +1165,7 @@ export default function Home() {
                       <span className="pb-1 text-sm text-zinc-500">
                         / month
                       </span>
+
                     </div>
 
                     <div className="mt-3">
@@ -1012,11 +1183,13 @@ export default function Home() {
                     <div className="mt-7 h-px bg-white/[0.07]" />
 
                     <div className="mt-7">
+
                       <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300/70">
                         Monthly usage limits
                       </p>
 
                       <div className="mt-4 space-y-3">
+
                         {[
                           ["Launch audits", "20 / month"],
                           ["AI Co-Founder chat", "100 messages / month"],
@@ -1027,6 +1200,7 @@ export default function Home() {
                             key={label}
                             className="flex items-center justify-between gap-4 rounded-xl border border-violet-400/[0.09] bg-violet-400/[0.025] px-4 py-3"
                           >
+
                             <span className="text-sm text-zinc-300">
                               {label}
                             </span>
@@ -1034,14 +1208,18 @@ export default function Home() {
                             <span className="shrink-0 text-sm font-semibold text-white">
                               {value}
                             </span>
+
                           </div>
                         ))}
+
                       </div>
+
                     </div>
 
                     <div className="mt-7 h-px bg-white/[0.07]" />
 
                     <div className="mt-7 space-y-3">
+
                       {[
                         "Everything in Free",
                         "20 launch audits per month",
@@ -1060,13 +1238,16 @@ export default function Home() {
                               : "text-zinc-400"
                           }`}
                         >
+
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/[0.1] text-[10px] text-violet-300">
                             ✓
                           </span>
 
                           <span>{item}</span>
+
                         </div>
                       ))}
+
                     </div>
 
                     <Button
@@ -1089,12 +1270,17 @@ export default function Home() {
                     <p className="mt-3 text-center text-[10px] text-zinc-700">
                       Limits reset monthly
                     </p>
+
                   </div>
+
                 </div>
+
               </div>
+
             </div>
 
             <div className="mx-auto mt-8 max-w-5xl text-center text-[10px] uppercase tracking-[0.16em] text-zinc-700">
+
               <span>
                 Free: 3 audits · 3 chat messages · 2 personas · 2 landing page
                 analyses
@@ -1110,8 +1296,11 @@ export default function Home() {
               <p className="mt-3 normal-case tracking-normal text-zinc-700">
                 All usage limits reset at the start of each month.
               </p>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
@@ -1121,9 +1310,13 @@ export default function Home() {
           id="how-it-works"
           className="relative z-10 border-y border-white/[0.06] bg-white/[0.012] px-6 py-28 lg:px-8"
         >
+
           <div className="mx-auto max-w-7xl">
+
             <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
+
               <div>
+
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-amber-300">
                   The workflow
                 </p>
@@ -1140,9 +1333,11 @@ export default function Home() {
                   deciding what deserves attention when the information is
                   incomplete.
                 </p>
+
               </div>
 
               <div className="space-y-3">
+
                 {[
                   {
                     number: "01",
@@ -1169,16 +1364,21 @@ export default function Home() {
                     key={step.number}
                     className="group flex gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 transition duration-300 hover:border-white/[0.13] hover:bg-white/[0.03]"
                   >
+
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-xs text-zinc-500 transition group-hover:border-violet-400/20 group-hover:text-violet-300">
                       {step.number}
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-semibold">{step.title}</h3>
+
+                      <h3 className="text-sm font-semibold">
+                        {step.title}
+                      </h3>
 
                       <p className="mt-2 text-sm leading-6 text-zinc-500">
                         {step.text}
                       </p>
+
                     </div>
 
                     {index < 3 && (
@@ -1186,25 +1386,35 @@ export default function Home() {
                         ↓
                       </div>
                     )}
+
                   </div>
                 ))}
+
               </div>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Landing Page Analyzer */}
       <AnimatedSection>
         <section className="relative z-10 px-6 py-28 lg:px-8">
+
           <div className="mx-auto max-w-7xl">
+
             <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0a0d] p-7 sm:p-10 lg:p-12">
+
               <div className="absolute right-[-120px] top-[-140px] h-[500px] w-[500px] rounded-full bg-blue-600/[0.08] blur-[120px]" />
 
               <div className="absolute bottom-[-180px] left-[-100px] h-[500px] w-[500px] rounded-full bg-violet-600/[0.08] blur-[120px]" />
 
               <div className="relative grid items-center gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+
                 <div>
+
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-300">
                     Free tool
                   </p>
@@ -1223,6 +1433,7 @@ export default function Home() {
                   </p>
 
                   <div className="mt-8">
+
                     <Button
                       type="button"
                       size="lg"
@@ -1241,13 +1452,19 @@ export default function Home() {
                         "Analyze a landing page"
                       )}
                     </Button>
+
                   </div>
+
                 </div>
 
                 <div className="rounded-[26px] border border-white/[0.08] bg-black/30 p-4">
+
                   <div className="rounded-[22px] border border-white/[0.06] bg-[#0c0c10] p-5">
+
                     <div className="flex items-center justify-between">
+
                       <div>
+
                         <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
                           AI landing page analysis
                         </p>
@@ -1255,31 +1472,48 @@ export default function Home() {
                         <p className="mt-2 text-sm font-medium">
                           yourproduct.com
                         </p>
+
                       </div>
 
                       <div className="rounded-full border border-emerald-400/10 bg-emerald-400/[0.06] px-3 py-1 text-[10px] text-emerald-300">
                         74/100
                       </div>
+
                     </div>
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-3">
+
                       <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">Messaging</p>
-                        <p className="mt-3 text-2xl font-semibold">8.1</p>
+                        <p className="text-[10px] text-zinc-600">
+                          Messaging
+                        </p>
+                        <p className="mt-3 text-2xl font-semibold">
+                          8.1
+                        </p>
                       </div>
 
                       <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">Clarity</p>
-                        <p className="mt-3 text-2xl font-semibold">7.6</p>
+                        <p className="text-[10px] text-zinc-600">
+                          Clarity
+                        </p>
+                        <p className="mt-3 text-2xl font-semibold">
+                          7.6
+                        </p>
                       </div>
 
                       <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">CTA</p>
-                        <p className="mt-3 text-2xl font-semibold">6.9</p>
+                        <p className="text-[10px] text-zinc-600">
+                          CTA
+                        </p>
+                        <p className="mt-3 text-2xl font-semibold">
+                          6.9
+                        </p>
                       </div>
+
                     </div>
 
                     <div className="mt-3 rounded-2xl border border-violet-400/10 bg-violet-400/[0.035] p-4">
+
                       <p className="text-[10px] uppercase tracking-[0.18em] text-violet-300/70">
                         Challenge
                       </p>
@@ -1288,19 +1522,28 @@ export default function Home() {
                         Your headline explains what the product does, but not
                         why the target customer should care now.
                       </p>
+
                     </div>
+
                   </div>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Final CTA */}
       <AnimatedSection>
         <section className="relative z-10 px-6 pb-28 pt-16 lg:px-8">
+
           <div className="mx-auto max-w-5xl text-center">
+
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
               Build with more certainty
             </p>
@@ -1314,16 +1557,16 @@ export default function Home() {
             </p>
 
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+
+              {/* FIX: generic CTA goes to /auth */}
               <Button
                 type="button"
                 size="lg"
                 disabled={!!navigatingTo}
-                onClick={() =>
-                  navigateWithLoading("/auth?redirect=/auth/callback")
-                }
+                onClick={() => navigateWithLoading("/auth")}
                 className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)] disabled:cursor-wait disabled:opacity-90"
               >
-                {navigatingTo === "/auth?redirect=/auth/callback" ? (
+                {navigatingTo === "/auth" ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
                     Starting Plavtora...
@@ -1352,47 +1595,60 @@ export default function Home() {
                   "Analyze a landing page"
                 )}
               </Button>
+
             </div>
+
           </div>
+
         </section>
       </AnimatedSection>
 
       {/* Footer */}
-<footer className="relative z-10 border-t border-white/[0.06] px-6 py-8 lg:px-8">
-  <div className="mx-auto flex max-w-7xl flex-col gap-5 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
-    <div className="flex items-center gap-2">
-      <Image
-        src="/icon.png"
-        alt="Plavtora"
-        width={24}
-        height={24}
-        className="rounded-lg opacity-80"
-      />
+      <footer className="relative z-10 border-t border-white/[0.06] px-6 py-8 lg:px-8">
 
-      <span>© 2026 Plavtora</span>
-    </div>
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
 
-    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:justify-end">
-      <span>Built for founders who want sharper decisions.</span>
+          <div className="flex items-center gap-2">
 
-      <span className="hidden h-3 w-px bg-white/10 sm:block" />
+            <Image
+              src="/icon.png"
+              alt="Plavtora"
+              width={24}
+              height={24}
+              className="rounded-lg opacity-80"
+            />
 
-      <Link
-        href="/privacy"
-        className="transition-colors hover:text-zinc-300"
-      >
-        Privacy Policy
-      </Link>
+            <span>© 2026 Plavtora</span>
 
-      <Link
-        href="/terms"
-        className="transition-colors hover:text-zinc-300"
-      >
-        Terms of Service
-      </Link>
-    </div>
-  </div>
-</footer>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:justify-end">
+
+            <span>
+              Built for founders who want sharper decisions.
+            </span>
+
+            <span className="hidden h-3 w-px bg-white/10 sm:block" />
+
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-zinc-300"
+            >
+              Privacy Policy
+            </Link>
+
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-zinc-300"
+            >
+              Terms of Service
+            </Link>
+
+          </div>
+
+        </div>
+
+      </footer>
 
       <style jsx>{`
         @keyframes float {
@@ -1426,6 +1682,7 @@ export default function Home() {
           }
         }
       `}</style>
+
     </main>
   );
 }

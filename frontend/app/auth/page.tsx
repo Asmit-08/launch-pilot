@@ -31,11 +31,12 @@ export default function AuthPage() {
       params.get("url");
 
     const redirect =
-      requestedRedirect &&
-      requestedRedirect.startsWith("/") &&
-      !requestedRedirect.startsWith("//")
-        ? requestedRedirect
-        : "/dashboard";
+  requestedRedirect &&
+  requestedRedirect.startsWith("/") &&
+  !requestedRedirect.startsWith("//") &&
+  requestedRedirect !== "/auth/callback"
+    ? requestedRedirect
+    : "/dashboard";
 
     return {
       redirect,
@@ -75,10 +76,6 @@ export default function AuthPage() {
           `${redirect}?url=${encodeURIComponent(url)}`;
       }
 
-      console.log(
-        "Authenticated user redirect:",
-        destination
-      );
 
       router.replace(destination);
     }
