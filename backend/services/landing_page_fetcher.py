@@ -309,6 +309,12 @@ def fetch_landing_page(url: str) -> dict:
                     # Handle HTTP errors.
                     # -------------------------------------------------
 
+                    print(
+                            "LANDING PAGE RESPONSE:",
+                            response.status_code,
+                            dict(response.headers),
+                        )
+
                     if response.status_code >= 400:
                         raise ValueError(
                             "Landing page returned HTTP "
