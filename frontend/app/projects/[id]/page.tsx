@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
 import {
   ArrowLeft,
+  ArrowRight,
+  Bot,
+  CheckCircle2,
   ExternalLink,
   FolderGit2,
   Loader2,
-  ShieldAlert,
-  Target,
-  Rocket,
   Package,
-  CheckCircle2,
+  Rocket,
   Send,
-  Bot,
+  ShieldAlert,
+  Sparkles,
+  Target,
+  TriangleAlert,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
@@ -38,25 +41,15 @@ export default function ProjectPage() {
   const [latestAudit, setLatestAudit] =
     useState<LatestAudit | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const [error, setError] =
     useState<string | null>(null);
 
-  /* =========================================================
-     Project Navigation
-  ========================================================= */
-
   const [activeTab, setActiveTab] =
     useState("Overview");
 
-  /* =========================================================
-     Chat State
-  ========================================================= */
-
-  const [message, setMessage] =
-    useState("");
+  const [message, setMessage] = useState("");
 
   const [messages, setMessages] = useState<
     {
@@ -65,8 +58,7 @@ export default function ProjectPage() {
     }[]
   >([]);
 
-  const [isTyping, setIsTyping] =
-    useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const [chatError, setChatError] =
     useState<string | null>(null);
@@ -76,10 +68,6 @@ export default function ProjectPage() {
 
   const messagesEndRef =
     useRef<HTMLDivElement>(null);
-
-  /* =========================================================
-     Load Project
-  ========================================================= */
 
   useEffect(() => {
     async function loadProject() {
@@ -115,19 +103,11 @@ export default function ProjectPage() {
     }
   }, [projectId]);
 
-  /* =========================================================
-     Scroll Chat
-  ========================================================= */
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, isTyping]);
-
-  /* =========================================================
-     Navigation
-  ========================================================= */
 
   const handleNavigation = (
     key: string,
@@ -139,28 +119,16 @@ export default function ProjectPage() {
     router.push(href);
   };
 
-  /* =========================================================
-     Chat Error Parser
-  ========================================================= */
-
   const getChatErrorMessage = (
     errorData: any,
     responseStatus: number
   ) => {
-    /*
-     * Authentication error
-     */
-
     if (
       responseStatus === 401 ||
       responseStatus === 403
     ) {
       return "Your session has expired. Please sign in again.";
     }
-
-    /*
-     * UsageService limit error
-     */
 
     if (
       errorData?.detail &&
@@ -181,17 +149,11 @@ export default function ProjectPage() {
       const plan =
         errorData.detail.plan || "free";
 
-      return (
-        `You've reached your ${plan} ${resource.replace(
-          /_/g,
-          " "
-        )} limit (${used}/${limit}).`
-      );
+      return `You've reached your ${plan} ${resource.replace(
+        /_/g,
+        " "
+      )} limit (${used}/${limit}).`;
     }
-
-    /*
-     * Standard FastAPI string detail
-     */
 
     if (
       typeof errorData?.detail ===
@@ -200,20 +162,12 @@ export default function ProjectPage() {
       return errorData.detail;
     }
 
-    /*
-     * Standard custom error
-     */
-
     if (
       typeof errorData?.error ===
       "string"
     ) {
       return errorData.error;
     }
-
-    /*
-     * Backend message
-     */
 
     if (
       typeof errorData?.message ===
@@ -224,10 +178,6 @@ export default function ProjectPage() {
 
     return `Chat request failed (${responseStatus}).`;
   };
-
-  /* =========================================================
-     Send Chat Message
-  ========================================================= */
 
   const handleSendMessage = async () => {
     if (
@@ -258,37 +208,16 @@ export default function ProjectPage() {
     setIsTyping(true);
 
     try {
-      /*
-       * ------------------------------------------------------
-       * Get authenticated Supabase session
-       * ------------------------------------------------------
-       *
-       * This was missing from the previous chat request.
-       *
-       * Audit already sends the access token.
-       * Chat must do the same now that usage/auth
-       * is centralized in the backend.
-       */
-
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (!session) {
         setMessages(messages);
-
         setMessage(currentMessage);
-
         router.push("/auth");
-
         return;
       }
-
-      /*
-       * ------------------------------------------------------
-       * Backend URL
-       * ------------------------------------------------------
-       */
 
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL;
@@ -299,117 +228,51 @@ export default function ProjectPage() {
         );
       }
 
-      /*
-       * ------------------------------------------------------
-       * Latest audit context
-       * ------------------------------------------------------
-       */
-
       const auditResult =
         latestAudit?.result;
-
-      /*
-       * ------------------------------------------------------
-       * Send request
-       * ------------------------------------------------------
-       *
-       * IMPORTANT:
-       *
-       * We do NOT check or consume the chat usage
-       * from the frontend.
-       *
-       * The backend UsageService is the source of truth.
-       *
-       * Backend should:
-       *
-       * 1. authenticate the user
-       * 2. check_limit(user, "chat_messages")
-       * 3. generate the response
-       * 4. consume(user, "chat_messages")
-       *    only after successful generation
-       *
-       */
 
       const response = await fetch(
         `${apiUrl}/chat`,
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
-
             Authorization: `Bearer ${session.access_token}`,
           },
-
           body: JSON.stringify({
             message: currentMessage,
-
-            /*
-             * Normalize the database audit
-             * into the structure expected
-             * by the AI Co-Founder.
-             */
-
             audit_result: auditResult
               ? {
                   overall_score:
                     auditResult.overall_score,
-
                   product:
                     auditResult.product_json,
-
                   validation:
                     auditResult.validation_json,
-
                   launch_readiness:
                     auditResult.launch_json,
-
                   risk:
                     auditResult.risk_json,
                 }
               : {},
-
-            /*
-             * Project context.
-             */
-
             startup_data: {
               id: project.id,
-
               name: project.name,
-
               description:
                 project.description,
-
               website:
                 project.website,
-
               industry:
                 project.industry,
-
               stage:
                 project.stage,
             },
-
-            /*
-             * Conversation history.
-             *
-             * We send the current user message
-             * as part of the history.
-             */
-
             chat_history:
               updatedMessages,
           }),
         }
       );
-
-      /*
-       * ------------------------------------------------------
-       * Handle backend errors
-       * ------------------------------------------------------
-       */
 
       if (!response.ok) {
         let errorData: any = null;
@@ -418,9 +281,7 @@ export default function ProjectPage() {
           errorData =
             await response.json();
         } catch {
-          /*
-           * Response wasn't JSON.
-           */
+          // Ignore malformed response.
         }
 
         const errorMessage =
@@ -429,10 +290,6 @@ export default function ProjectPage() {
             response.status
           );
 
-        /*
-         * Authentication failure
-         */
-
         if (
           response.status === 401 ||
           response.status === 403
@@ -440,20 +297,11 @@ export default function ProjectPage() {
           await supabase.auth.signOut();
 
           setMessages(messages);
-
           setMessage(currentMessage);
 
           router.push("/auth");
-
           return;
         }
-
-        /*
-         * Usage limit
-         *
-         * Do not add a fake assistant message
-         * to the conversation.
-         */
 
         if (
           errorData?.detail &&
@@ -463,46 +311,16 @@ export default function ProjectPage() {
             "usage_limit_reached"
         ) {
           setMessages(messages);
-
           setMessage(currentMessage);
-
-          setChatError(
-            errorMessage
-          );
-
+          setChatError(errorMessage);
           return;
         }
 
-        throw new Error(
-          errorMessage
-        );
+        throw new Error(errorMessage);
       }
-
-      /*
-       * ------------------------------------------------------
-       * Parse successful response
-       * ------------------------------------------------------
-       */
 
       const data =
         await response.json();
-
-      console.log(
-        "Chat response:",
-        data
-      );
-
-      /*
-       * Your backend currently appears
-       * to return:
-       *
-       * {
-       *   response: "..."
-       * }
-       *
-       * Support a couple of common
-       * alternative response names too.
-       */
 
       const assistantResponse =
         typeof data.response ===
@@ -517,29 +335,16 @@ export default function ProjectPage() {
               : null;
 
       if (!assistantResponse) {
-        console.error(
-          "Unexpected chat response:",
-          data
-        );
-
         throw new Error(
           "The AI responded, but no message was returned by the backend."
         );
       }
 
-      /*
-       * ------------------------------------------------------
-       * Add assistant response
-       * ------------------------------------------------------
-       */
-
       setMessages([
         ...updatedMessages,
-
         {
           role: "assistant",
-          content:
-            assistantResponse,
+          content: assistantResponse,
         },
       ]);
     } catch (error) {
@@ -548,16 +353,7 @@ export default function ProjectPage() {
         error
       );
 
-      /*
-       * Remove the unsent user message
-       * if the request failed.
-       *
-       * This prevents the UI from showing
-       * a message that the backend never processed.
-       */
-
       setMessages(messages);
-
       setMessage(currentMessage);
 
       setChatError(
@@ -570,112 +366,52 @@ export default function ProjectPage() {
     }
   };
 
-  /* =========================================================
-     Loading
-  ========================================================= */
-
   if (loading) {
-    return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020617] px-6 text-white">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/2 top-[-180px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/[0.07] blur-[140px]" />
-
-          <div className="absolute bottom-[-180px] right-[-100px] h-[440px] w-[440px] rounded-full bg-blue-500/[0.05] blur-[130px]" />
-
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-md text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-400/15 bg-violet-400/[0.06] shadow-[0_0_60px_rgba(139,92,246,0.10)]">
-            <Loader2
-              size={30}
-              className="animate-spin text-violet-300"
-            />
-          </div>
-
-          <p className="mt-7 text-[10px] font-medium uppercase tracking-[0.25em] text-violet-300/80">
-            Plavtora workspace
-          </p>
-
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
-            Opening your project
-          </h1>
-
-          <p className="mt-4 text-sm leading-6 text-gray-500">
-            Fetching the project, latest audit,
-            and workspace context.
-          </p>
-
-          <div className="mx-auto mt-8 h-1 w-full max-w-xs overflow-hidden rounded-full bg-white/[0.05]">
-            <div className="h-full w-1/3 animate-[projectProgress_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400" />
-          </div>
-        </div>
-
-        <style jsx>{`
-          @keyframes projectProgress {
-            0% {
-              transform: translateX(-120%);
-            }
-
-            100% {
-              transform: translateX(360%);
-            }
-          }
-        `}</style>
-      </main>
-    );
+    return <ProjectLoader />;
   }
-
-  /* =========================================================
-     Error
-  ========================================================= */
 
   if (error || !project) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#020617] px-6 text-white">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold">
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-6">
+        <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-900/5">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+            <TriangleAlert size={24} />
+          </div>
+
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-950">
             Project not found
           </h1>
 
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-sm leading-6 text-slate-500">
             {error ||
               "This project does not exist or you don't have access to it."}
           </p>
 
           <button
+            type="button"
             onClick={() =>
               handleNavigation(
                 "error-dashboard",
                 "/dashboard"
               )
             }
-            disabled={
-              !!navigationLoading
-            }
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-70"
+            disabled={!!navigationLoading}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
           >
             {navigationLoading ===
               "error-dashboard" && (
               <Loader2
-                size={16}
+                size={15}
                 className="animate-spin"
               />
             )}
 
-            {navigationLoading ===
-            "error-dashboard"
-              ? "Opening..."
-              : "Back to Dashboard"}
+            Back to Dashboard
           </button>
         </div>
       </main>
     );
   }
-
-  /* =========================================================
-     Audit Scores
-  ========================================================= */
 
   const auditResult =
     latestAudit?.result;
@@ -696,59 +432,97 @@ export default function ProjectPage() {
     auditResult?.risk_json
   );
 
-  /* =========================================================
-     Render
-  ========================================================= */
+  const overallScore =
+    Number(
+      auditResult?.overall_score ?? 0
+    );
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white">
-      {/* =====================================================
-          Top Navigation
-      ===================================================== */}
-
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl items-center px-6 py-5">
+    <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <button
+            type="button"
             onClick={() =>
               router.push("/dashboard")
             }
-            className="group flex items-center gap-2 text-sm text-gray-400 transition hover:text-white"
+            className="group flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950"
           >
             <ArrowLeft
-              size={18}
+              size={17}
               className="transition-transform group-hover:-translate-x-1"
             />
+            Dashboard
+          </button>
 
-            Back to Dashboard
+          <div className="hidden items-center gap-2 sm:flex">
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-8 w-8 rounded-lg"
+            />
+
+            <span className="text-sm font-bold tracking-tight text-slate-900">
+              Plavtora
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              latestAudit
+                ? handleNavigation(
+                    "latest-audit",
+                    `/projects/${projectId}/audits/${latestAudit.session.id}`
+                  )
+                : handleNavigation(
+                    "run-audit",
+                    "/audit"
+                  )
+            }
+            disabled={!!navigationLoading}
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600"
+          >
+            {(navigationLoading ===
+              "latest-audit" ||
+              navigationLoading ===
+                "run-audit") && (
+              <Loader2
+                size={14}
+                className="animate-spin"
+              />
+            )}
+
+            {latestAudit
+              ? "Open Full Audit"
+              : "Run Audit"}
           </button>
         </div>
       </header>
 
-      {/* =====================================================
-          Project Header
-      ===================================================== */}
-
-      <section className="mx-auto max-w-7xl px-6 pt-8">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-5">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg">
-                <FolderGit2 size={30} />
+      {/* Project context */}
+      <section className="mx-auto max-w-7xl px-5 pt-8 sm:px-6 lg:px-8">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm sm:h-16 sm:w-16">
+                <FolderGit2 size={27} />
               </div>
 
               <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-bold">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-2xl font-bold tracking-[-0.03em] text-slate-950 sm:text-3xl">
                     {project.name}
                   </h1>
 
-                  <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium capitalize text-blue-300">
+                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
                     {project.stage}
                   </span>
                 </div>
 
                 {project.description && (
-                  <p className="mt-2 max-w-2xl text-gray-400">
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                     {project.description}
                   </p>
                 )}
@@ -758,72 +532,62 @@ export default function ProjectPage() {
                     href={project.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 text-sm text-blue-400 transition hover:text-blue-300"
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 transition hover:text-blue-700"
                   >
                     {project.website}
-
-                    <ExternalLink
-                      size={14}
-                    />
+                    <ExternalLink size={13} />
                   </a>
                 )}
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                if (latestAudit) {
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
                   handleNavigation(
-                    "latest-audit",
-                    `/projects/${projectId}/audits/${latestAudit.session.id}`
-                  );
-                } else {
-                  handleNavigation(
-                    "run-audit",
-                    "/audit"
-                  );
+                    "audits-tab",
+                    `/projects/${projectId}/audits`
+                  )
                 }
-              }}
-              disabled={
-                !!navigationLoading
-              }
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-3 font-medium text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-blue-500/20 disabled:cursor-wait disabled:opacity-70"
-            >
-              {(navigationLoading ===
-                "latest-audit" ||
-                navigationLoading ===
-                  "run-audit") && (
-                <Loader2
-                  size={17}
-                  className="animate-spin"
-                />
-              )}
+                disabled={!!navigationLoading}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Audit history
+              </button>
 
-              {navigationLoading ===
-              "latest-audit"
-                ? "Opening Audit..."
-                : navigationLoading ===
-                    "run-audit"
-                  ? "Opening Audit..."
-                  : latestAudit
-                    ? "Open Audit"
-                    : "Run Audit"}
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  latestAudit
+                    ? handleNavigation(
+                        "latest-audit",
+                        `/projects/${projectId}/audits/${latestAudit.session.id}`
+                      )
+                    : handleNavigation(
+                        "run-audit",
+                        "/audit"
+                      )
+                }
+                disabled={!!navigationLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
+              >
+                {latestAudit
+                  ? "Open latest audit"
+                  : "Run first audit"}
+                <ArrowRight size={15} />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* =====================================================
-          Project Navigation
-      ===================================================== */}
-
-      <nav className="mx-auto mt-8 max-w-7xl overflow-x-auto px-6">
-        <div className="flex min-w-max gap-1 border-b border-white/10">
+      {/* Navigation */}
+      <nav className="mx-auto mt-7 max-w-7xl overflow-x-auto px-5 sm:px-6 lg:px-8">
+        <div className="flex min-w-max gap-1 border-b border-slate-200">
           <ProjectTab
             label="Overview"
-            active={
-              activeTab === "Overview"
-            }
+            active={activeTab === "Overview"}
             onClick={() =>
               setActiveTab("Overview")
             }
@@ -831,9 +595,7 @@ export default function ProjectPage() {
 
           <ProjectTab
             label="Audits"
-            active={
-              activeTab === "Audits"
-            }
+            active={activeTab === "Audits"}
             onClick={() =>
               handleNavigation(
                 "audits-tab",
@@ -845,7 +607,6 @@ export default function ProjectPage() {
           <ProjectTab
             label="ICP Analysis"
             badge="New"
-            active={false}
             onClick={() =>
               handleNavigation(
                 "icp-tab",
@@ -857,7 +618,6 @@ export default function ProjectPage() {
           <ProjectTab
             label="Landing Page"
             badge="New"
-            active={false}
             onClick={() =>
               handleNavigation(
                 "landing-tab",
@@ -869,19 +629,15 @@ export default function ProjectPage() {
           <ProjectTab
             label="Roadmap"
             badge="Soon"
-            active={
-              activeTab === "Roadmap"
-            }
+            active={activeTab === "Roadmap"}
             onClick={() =>
               setActiveTab("Roadmap")
             }
           />
 
           <ProjectTab
-            label="Chat"
-            active={
-              activeTab === "Chat"
-            }
+            label="AI Co-Founder"
+            active={activeTab === "Chat"}
             onClick={() =>
               setActiveTab("Chat")
             }
@@ -889,9 +645,7 @@ export default function ProjectPage() {
 
           <ProjectTab
             label="Settings"
-            active={
-              activeTab === "Settings"
-            }
+            active={activeTab === "Settings"}
             onClick={() =>
               setActiveTab("Settings")
             }
@@ -899,543 +653,698 @@ export default function ProjectPage() {
         </div>
       </nav>
 
-      {/* =====================================================
-          Chat
-      ===================================================== */}
-
+      {/* Chat */}
       {activeTab === "Chat" ? (
-        <section className="mx-auto max-w-5xl px-6 py-8">
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
-            {/* Chat Header */}
-
-            <div className="border-b border-white/10 p-7">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
-                  <Bot size={25} />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    AI Co-Founder
-                  </h2>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    Your strategic partner for{" "}
-                    {project.name}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
-                  Project context
-                </span>
-
-                {latestAudit && (
-                  <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                    Latest audit:{" "}
-                    {auditResult?.overall_score ??
-                      0}
-                    /100
-                  </span>
-                )}
-
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
-                  AI Co-Founder
-                </span>
-              </div>
-            </div>
-
-            {/* Chat Error */}
-
-            {chatError && (
-              <div className="border-b border-red-500/20 bg-red-500/[0.06] px-6 py-4">
-                <div className="flex items-start gap-3">
-                  <ShieldAlert
-                    size={18}
-                    className="mt-0.5 shrink-0 text-red-400"
-                  />
-
-                  <div>
-                    <p className="text-sm font-medium text-red-300">
-                      Chat unavailable
-                    </p>
-
-                    <p className="mt-1 text-sm leading-6 text-red-400/80">
-                      {chatError}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Conversation */}
-
-            <div className="h-[520px] overflow-y-auto p-6">
-              {messages.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-3xl">
-                    🤖
-                  </div>
-
-                  <h3 className="mt-5 text-2xl font-semibold">
-                    Your AI Co-Founder
-                  </h3>
-
-                  <p className="mt-3 max-w-lg text-sm leading-relaxed text-gray-400">
-                    Ask questions about your
-                    product, validation,
-                    launch strategy, risks,
-                    or next steps.
-
-                    {latestAudit
-                      ? " Your latest audit is available as context."
-                      : " Run an audit to give your AI Co-Founder deeper project context."}
-                  </p>
-
-                  <div className="mt-7 grid gap-2 text-left sm:grid-cols-2">
-                    <Suggestion
-                      text="What should I fix first?"
-                      onClick={() =>
-                        setMessage(
-                          "What should I fix first?"
-                        )
-                      }
-                    />
-
-                    <Suggestion
-                      text="What is my biggest risk?"
-                      onClick={() =>
-                        setMessage(
-                          "What is my biggest risk?"
-                        )
-                      }
-                    />
-
-                    <Suggestion
-                      text="How can I improve validation?"
-                      onClick={() =>
-                        setMessage(
-                          "How can I improve validation?"
-                        )
-                      }
-                    />
-
-                    <Suggestion
-                      text="What should I do next?"
-                      onClick={() =>
-                        setMessage(
-                          "What should I do next?"
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {messages.map(
-                    (msg, index) => (
-                      <div
-                        key={index}
-                        className={`mb-5 flex ${
-                          msg.role === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-7 ${
-                            msg.role === "user"
-                              ? "bg-blue-600 text-white"
-                              : "border border-white/10 bg-white/5 text-gray-200"
-                          }`}
-                        >
-                          {msg.role ===
-                          "assistant" ? (
-                            <div className="prose prose-invert max-w-none prose-p:my-3 prose-headings:mb-3 prose-headings:mt-5 prose-headings:font-semibold prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-strong:text-white">
-                              <ReactMarkdown>
-                                {msg.content}
-                              </ReactMarkdown>
-                            </div>
-                          ) : (
-                            <p className="whitespace-pre-wrap">
-                              {msg.content}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
-
-                  {isTyping && (
-                    <div className="mb-5 flex justify-start">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm text-gray-400">
-                        <div className="flex items-center gap-2">
-                          <Loader2
-                            size={15}
-                            className="animate-spin"
-                          />
-
-                          AI Co-Founder is thinking...
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div
-                    ref={messagesEndRef}
-                  />
-                </>
-              )}
-            </div>
-
-            {/* Input */}
-
-            <div className="border-t border-white/10 p-5">
-              <div className="flex gap-3">
-                <input
-                  value={message}
-                  onChange={(event) =>
-                    setMessage(
-                      event.target.value
-                    )
-                  }
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === "Enter" &&
-                      !event.shiftKey
-                    ) {
-                      event.preventDefault();
-
-                      handleSendMessage();
-                    }
-                  }}
-                  disabled={isTyping}
-                  placeholder="Ask your AI Co-Founder..."
-                  className="flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-gray-600 focus:border-blue-500/40"
-                />
-
-                <button
-                  onClick={
-                    handleSendMessage
-                  }
-                  disabled={
-                    !message.trim() ||
-                    isTyping
-                  }
-                  className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {isTyping ? (
-                    <Loader2
-                      size={17}
-                      className="animate-spin"
-                    />
-                  ) : (
-                    <Send size={17} />
-                  )}
-
-                  {isTyping
-                    ? "Thinking..."
-                    : "Send"}
-                </button>
-              </div>
-
-              <p className="mt-3 text-xs text-gray-600">
-                The AI Co-Founder uses this
-                project's information and latest
-                audit as context. Usage limits are
-                enforced by your current plan.
-              </p>
-            </div>
-          </div>
-        </section>
+        <ChatWorkspace
+          project={project}
+          latestAudit={latestAudit}
+          auditResult={auditResult}
+          messages={messages}
+          message={message}
+          isTyping={isTyping}
+          chatError={chatError}
+          messagesEndRef={messagesEndRef}
+          onMessageChange={setMessage}
+          onSend={handleSendMessage}
+          onSuggestion={setMessage}
+        />
       ) : activeTab === "Overview" ? (
-        /* ===================================================
-           Overview
-        =================================================== */
-
-        <section className="mx-auto max-w-7xl px-6 py-8">
-          {!latestAudit ? (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
-                <Rocket
-                  size={24}
-                  className="text-gray-400"
-                />
-              </div>
-
-              <h2 className="mt-5 text-2xl font-semibold">
-                No audits yet
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-lg text-gray-400">
-                Run your first launch audit for{" "}
-                {project.name} to start building
-                your project workspace.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Score Cards */}
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <ScoreCard
-                  title="Overall"
-                  score={
-                    auditResult?.overall_score ??
-                    0
-                  }
-                  maxScore={100}
-                  icon={
-                    <Target size={20} />
-                  }
-                  primary
-                />
-
-                <ScoreCard
-                  title="Product"
-                  score={productScore}
-                  maxScore={10}
-                  icon={
-                    <Package size={20} />
-                  }
-                />
-
-                <ScoreCard
-                  title="Validation"
-                  score={
-                    validationScore
-                  }
-                  maxScore={10}
-                  icon={
-                    <CheckCircle2
-                      size={20}
-                    />
-                  }
-                />
-
-                <ScoreCard
-                  title="Launch Readiness"
-                  score={launchScore}
-                  maxScore={10}
-                  icon={
-                    <Rocket size={20} />
-                  }
-                />
-
-                <RiskCard
-                  score={riskScore}
-                  icon={
-                    <ShieldAlert
-                      size={20}
-                    />
-                  }
-                />
-              </div>
-
-              {/* Latest Audit */}
-
-              <div className="mt-8 grid gap-6 lg:grid-cols-3">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-7 lg:col-span-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-gray-500">
-                        Latest Audit
-                      </p>
-
-                      <h2 className="mt-1 text-xl font-semibold">
-                        Launch Audit
-                      </h2>
-                    </div>
-
-                    <span className="rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium capitalize text-green-400">
-                      {
-                        latestAudit.session
-                          .status
-                      }
-                    </span>
-                  </div>
-
-                  <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-gray-500">
-                        Overall Score
-                      </p>
-
-                      <p className="mt-1 text-3xl font-bold">
-                        {auditResult?.overall_score ??
-                          0}
-
-                        <span className="text-lg text-gray-500">
-                          /100
-                        </span>
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs uppercase tracking-wider text-gray-500">
-                        Audited
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-300">
-                        {formatDate(
-                          auditResult?.created_at ||
-                            latestAudit
-                              .session
-                              .created_at
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      handleNavigation(
-                        "view-audits",
-                        `/projects/${projectId}/audits`
-                      )
-                    }
-                    disabled={
-                      !!navigationLoading
-                    }
-                    className="mt-7 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-70"
-                  >
-                    {navigationLoading ===
-                      "view-audits" && (
-                      <Loader2
-                        size={15}
-                        className="animate-spin"
-                      />
-                    )}
-
-                    {navigationLoading ===
-                    "view-audits"
-                      ? "Opening..."
-                      : "View Full Audit"}
-                  </button>
-                </div>
-
-                {/* Project Status */}
-
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-7">
-                  <p className="text-sm text-gray-500">
-                    Project Status
-                  </p>
-
-                  <h2 className="mt-1 text-xl font-semibold capitalize">
-                    {project.stage}
-                  </h2>
-
-                  <div className="mt-6 space-y-4">
-                    <StatusRow
-                      label="Audit completed"
-                      completed={
-                        latestAudit.session
-                          .status ===
-                        "completed"
-                      }
-                    />
-
-                    <StatusRow
-                      label="Product analysis"
-                      completed={
-                        productScore > 0
-                      }
-                    />
-
-                    <StatusRow
-                      label="Validation analysis"
-                      completed={
-                        validationScore >
-                        0
-                      }
-                    />
-
-                    <StatusRow
-                      label="Launch analysis"
-                      completed={
-                        launchScore > 0
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Recommended Actions */}
-
-              <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-7">
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Continue Building
-                  </p>
-
-                  <h2 className="mt-1 text-xl font-semibold">
-                    Recommended Next Steps
-                  </h2>
-
-                  <p className="mt-2 text-sm text-gray-400">
-                    Generate additional insights
-                    only when you need them.
-                  </p>
-                </div>
-
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  <ActionCard
-                    title="Analyze ICP"
-                    description="Understand and refine your ideal customer profile."
-                    onNavigate={() =>
-                      handleNavigation(
-                        "action-icp",
-                        "/persona"
-                      )
-                    }
-                  />
-
-                  <ActionCard
-                    title="Analyze Landing Page"
-                    description="Review your landing page before sending traffic."
-                    onNavigate={() =>
-                      handleNavigation(
-                        "action-landing",
-                        "/landing_page_analyzer"
-                      )
-                    }
-                  />
-
-                  <ActionCard
-                    title="Generate Roadmap"
-                    description="Turn your audit findings into an execution plan."
-                    comingSoon
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </section>
+        <OverviewWorkspace
+          project={project}
+          latestAudit={latestAudit}
+          auditResult={auditResult}
+          overallScore={overallScore}
+          productScore={productScore}
+          validationScore={validationScore}
+          launchScore={launchScore}
+          riskScore={riskScore}
+          navigationLoading={navigationLoading}
+          onNavigation={handleNavigation}
+        />
       ) : (
-        /* ===================================================
-           Placeholder for Future Tabs
-        =================================================== */
-
-        <section className="mx-auto max-w-7xl px-6 py-8">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center">
-            <h2 className="text-2xl font-semibold">
-              {activeTab}
-            </h2>
-
-            <p className="mt-2 text-gray-400">
-              This workspace is coming next.
-            </p>
-          </div>
-        </section>
+        <PlaceholderWorkspace
+          title={activeTab}
+        />
       )}
     </main>
   );
 }
 
-/* =========================================================
-   Project Tab
-========================================================= */
+function OverviewWorkspace({
+  project,
+  latestAudit,
+  auditResult,
+  overallScore,
+  productScore,
+  validationScore,
+  launchScore,
+  riskScore,
+  navigationLoading,
+  onNavigation,
+}: {
+  project: Project;
+  latestAudit: LatestAudit | null;
+  auditResult: any;
+  overallScore: number;
+  productScore: number;
+  validationScore: number;
+  launchScore: number;
+  riskScore: number;
+  navigationLoading: string | null;
+  onNavigation: (
+    key: string,
+    href: string
+  ) => void;
+}) {
+  if (!latestAudit) {
+    return (
+      <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+            <Rocket size={24} />
+          </div>
+
+          <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+            First decision
+          </p>
+
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
+            Run your first audit.
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
+            Plavtora will evaluate {project.name} across product,
+            validation, launch readiness, and risk.
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              onNavigation(
+                "run-first-audit",
+                "/audit"
+              )
+            }
+            disabled={!!navigationLoading}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
+          >
+            {navigationLoading ===
+              "run-first-audit" && (
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+            )}
+            Run SaaS Audit
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const overallLabel =
+    overallScore >= 80
+      ? "Strong position"
+      : overallScore >= 60
+        ? "Needs attention"
+        : "High risk";
+
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
+      {/* Main verdict */}
+      <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Latest startup diagnosis
+            </p>
+
+            <div className="mt-4 flex items-end gap-3">
+              <span className="text-6xl font-bold leading-none tracking-[-0.06em] text-slate-950">
+                {overallScore}
+              </span>
+
+              <span className="pb-1 text-lg font-medium text-slate-400">
+                /100
+              </span>
+            </div>
+
+            <p className="mt-3 text-lg font-bold text-slate-900">
+              {overallLabel}
+            </p>
+
+            <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Your latest audit is the current baseline for this project.
+              Use it to decide what deserves attention before spending more.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigation(
+                    "full-audit",
+                    `/projects/${project.id}/audits/${latestAudit.session.id}`
+                  )
+                }
+                disabled={!!navigationLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
+              >
+                View full audit
+                <ArrowRight size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigation(
+                    "new-audit",
+                    "/audit"
+                  )
+                }
+                disabled={!!navigationLoading}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Run another audit
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-slate-950 p-6 text-white sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                  Four angles
+                </p>
+
+                <h2 className="mt-2 text-xl font-bold">
+                  Where your startup stands
+                </h2>
+              </div>
+
+              <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60">
+                {formatDate(
+                  auditResult?.created_at ||
+                    latestAudit.session.created_at
+                )}
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              <DarkScoreRow
+                label="Product"
+                score={productScore}
+                max={10}
+              />
+
+              <DarkScoreRow
+                label="Validation"
+                score={validationScore}
+                max={10}
+              />
+
+              <DarkScoreRow
+                label="Launch readiness"
+                score={launchScore}
+                max={10}
+              />
+
+              <DarkScoreRow
+                label="Risk"
+                score={riskScore}
+                max={10}
+                risk
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Score cards */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <ScoreCard
+          title="Overall"
+          score={overallScore}
+          maxScore={100}
+          icon={<Target size={18} />}
+          primary
+        />
+
+        <ScoreCard
+          title="Product"
+          score={productScore}
+          maxScore={10}
+          icon={<Package size={18} />}
+        />
+
+        <ScoreCard
+          title="Validation"
+          score={validationScore}
+          maxScore={10}
+          icon={<CheckCircle2 size={18} />}
+        />
+
+        <ScoreCard
+          title="Launch"
+          score={launchScore}
+          maxScore={10}
+          icon={<Rocket size={18} />}
+        />
+
+        <RiskCard
+          score={riskScore}
+          icon={<ShieldAlert size={18} />}
+        />
+      </div>
+
+      {/* Project status + next steps */}
+      <div className="mt-5 grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            Project status
+          </p>
+
+          <h2 className="mt-2 text-xl font-bold capitalize text-slate-950">
+            {project.stage}
+          </h2>
+
+          <div className="mt-6 space-y-4">
+            <StatusRow
+              label="Audit completed"
+              completed={
+                latestAudit.session.status ===
+                "completed"
+              }
+            />
+
+            <StatusRow
+              label="Product analyzed"
+              completed={productScore > 0}
+            />
+
+            <StatusRow
+              label="Validation analyzed"
+              completed={
+                validationScore > 0
+              }
+            />
+
+            <StatusRow
+              label="Launch analyzed"
+              completed={
+                launchScore > 0
+              }
+            />
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-end justify-between gap-5">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Continue building
+              </p>
+
+              <h2 className="mt-2 text-xl font-bold text-slate-950">
+                Turn the diagnosis into another decision.
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Use the result to investigate a specific weak point instead
+                of starting another broad research loop.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            <ActionCard
+              title="Analyze ICP"
+              description="Refine who should actually buy this."
+              onNavigate={() =>
+                onNavigation(
+                  "action-icp",
+                  "/persona"
+                )
+              }
+            />
+
+            <ActionCard
+              title="Analyze Landing Page"
+              description="Find conversion friction before traffic scales."
+              onNavigate={() =>
+                onNavigation(
+                  "action-landing",
+                  "/landing_page_analyzer"
+                )
+              }
+            />
+
+            <ActionCard
+              title="Generate Roadmap"
+              description="Turn findings into a prioritized execution plan."
+              comingSoon
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Premium context */}
+      <div className="mt-5 overflow-hidden rounded-[28px] border border-violet-100 bg-gradient-to-r from-violet-50 to-blue-50 p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
+              <Sparkles size={18} />
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-slate-950">
+                Want to question the diagnosis?
+              </p>
+
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+                Use the AI Co-Founder to challenge the audit, investigate a
+                finding, and work through what to do next.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              onNavigation(
+                "project-chat",
+                "#"
+              )
+            }
+            className="shrink-0 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-600"
+          >
+            Open AI Co-Founder
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ChatWorkspace({
+  project,
+  latestAudit,
+  auditResult,
+  messages,
+  message,
+  isTyping,
+  chatError,
+  messagesEndRef,
+  onMessageChange,
+  onSend,
+  onSuggestion,
+}: {
+  project: Project;
+  latestAudit: LatestAudit | null;
+  auditResult: any;
+  messages: {
+    role: "user" | "assistant";
+    content: string;
+  }[];
+  message: string;
+  isTyping: boolean;
+  chatError: string | null;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  onMessageChange: (
+    value: string
+  ) => void;
+  onSend: () => void;
+  onSuggestion: (value: string) => void;
+}) {
+  return (
+    <section className="mx-auto max-w-5xl px-5 py-8 sm:px-6 lg:px-8">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-6 sm:p-7">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <Bot size={23} />
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                AI decision support
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold text-slate-950">
+                Your AI Co-Founder
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Working from the context of {project.name}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+              Project context
+            </span>
+
+            {latestAudit && (
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                Latest audit:{" "}
+                {auditResult?.overall_score ??
+                  0}
+                /100
+              </span>
+            )}
+
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+              Strategic chat
+            </span>
+          </div>
+        </div>
+
+        {chatError && (
+          <div className="border-b border-amber-200 bg-amber-50 px-6 py-4">
+            <div className="flex items-start gap-3">
+              <ShieldAlert
+                size={18}
+                className="mt-0.5 shrink-0 text-amber-600"
+              />
+
+              <div>
+                <p className="text-sm font-semibold text-amber-800">
+                  Chat unavailable
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-amber-700">
+                  {chatError}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="h-[520px] overflow-y-auto bg-slate-50/60 p-5 sm:p-6">
+          {messages.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                <Bot size={25} />
+              </div>
+
+              <h3 className="mt-5 text-2xl font-bold text-slate-950">
+                Challenge the audit.
+              </h3>
+
+              <p className="mt-3 max-w-lg text-sm leading-6 text-slate-500">
+                Ask why a score is low, what to fix first, or how to validate
+                an assumption. The project and latest audit are provided as
+                context.
+              </p>
+
+              <div className="mt-7 grid w-full max-w-xl gap-2 text-left sm:grid-cols-2">
+                <Suggestion
+                  text="What should I fix first?"
+                  onClick={() =>
+                    onSuggestion(
+                      "What should I fix first?"
+                    )
+                  }
+                />
+
+                <Suggestion
+                  text="What is my biggest risk?"
+                  onClick={() =>
+                    onSuggestion(
+                      "What is my biggest risk?"
+                    )
+                  }
+                />
+
+                <Suggestion
+                  text="How can I improve validation?"
+                  onClick={() =>
+                    onSuggestion(
+                      "How can I improve validation?"
+                    )
+                  }
+                />
+
+                <Suggestion
+                  text="What should I do next?"
+                  onClick={() =>
+                    onSuggestion(
+                      "What should I do next?"
+                    )
+                  }
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`mb-5 flex ${
+                    msg.role === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-7 ${
+                      msg.role === "user"
+                        ? "bg-slate-950 text-white"
+                        : "border border-slate-200 bg-white text-slate-700 shadow-sm"
+                    }`}
+                  >
+                    {msg.role ===
+                    "assistant" ? (
+                      <div className="prose prose-slate max-w-none prose-p:my-3 prose-headings:mb-3 prose-headings:mt-5 prose-headings:font-semibold prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-strong:text-slate-950">
+                        <ReactMarkdown>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="mb-5 flex justify-start">
+                  <div className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm text-slate-500 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Loader2
+                        size={15}
+                        className="animate-spin"
+                      />
+                      AI Co-Founder is thinking...
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </div>
+
+        <div className="border-t border-slate-100 bg-white p-5">
+          <div className="flex gap-3">
+            <input
+              value={message}
+              onChange={(event) =>
+                onMessageChange(
+                  event.target.value
+                )
+              }
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  !event.shiftKey
+                ) {
+                  event.preventDefault();
+                  onSend();
+                }
+              }}
+              disabled={isTyping}
+              placeholder="Ask your AI Co-Founder..."
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
+            />
+
+            <button
+              type="button"
+              onClick={onSend}
+              disabled={!message.trim() || isTyping}
+              className="flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isTyping ? (
+                <Loader2
+                  size={17}
+                  className="animate-spin"
+                />
+              ) : (
+                <Send size={17} />
+              )}
+
+              <span className="hidden sm:inline">
+                {isTyping
+                  ? "Thinking..."
+                  : "Send"}
+              </span>
+            </button>
+          </div>
+
+          <p className="mt-3 text-[10px] leading-5 text-slate-400">
+            Chat uses the project's startup context and latest audit.
+            Usage limits are enforced by the backend.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProjectLoader() {
+  return (
+    <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
+            <div>
+              <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+              <div className="mt-2 h-2.5 w-36 animate-pulse rounded bg-slate-100" />
+            </div>
+          </div>
+
+          <div className="h-10 w-32 animate-pulse rounded-xl bg-slate-200" />
+        </div>
+
+        <div className="mt-10 rounded-[28px] bg-white p-7 shadow-sm ring-1 ring-slate-200">
+          <div className="flex gap-4">
+            <div className="h-14 w-14 animate-pulse rounded-2xl bg-slate-100" />
+            <div className="flex-1">
+              <div className="h-6 w-48 animate-pulse rounded bg-slate-100" />
+              <div className="mt-3 h-4 w-96 max-w-full animate-pulse rounded bg-slate-100" />
+              <div className="mt-2 h-3 w-64 animate-pulse rounded bg-slate-100" />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200"
+            />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
 
 interface ProjectTabProps {
   label: string;
@@ -1452,31 +1361,28 @@ function ProjectTab({
 }: ProjectTabProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
+      className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition ${
         active
-          ? "text-blue-400"
-          : "text-gray-400 hover:text-white"
+          ? "text-slate-950"
+          : "text-slate-400 hover:text-slate-700"
       }`}
     >
       {label}
 
       {badge && (
-        <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-300">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
           {badge}
         </span>
       )}
 
       {active && (
-        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+        <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-slate-950" />
       )}
     </button>
   );
 }
-
-/* =========================================================
-   Suggestion
-========================================================= */
 
 function Suggestion({
   text,
@@ -1487,17 +1393,14 @@ function Suggestion({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm text-gray-400 transition hover:border-blue-500/30 hover:bg-white/[0.06] hover:text-white"
+      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-950"
     >
       {text}
     </button>
   );
 }
-
-/* =========================================================
-   Score Card
-========================================================= */
 
 interface ScoreCardProps {
   title: string;
@@ -1516,26 +1419,31 @@ function ScoreCard({
 }: ScoreCardProps) {
   return (
     <div
-      className={`rounded-3xl border p-6 backdrop-blur-xl ${
+      className={`rounded-2xl border p-5 shadow-sm ${
         primary
-          ? "border-blue-500/30 bg-blue-500/10"
-          : "border-white/10 bg-white/5"
+          ? "border-blue-200 bg-blue-50"
+          : "border-slate-200 bg-white"
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-400">
+        <span className="text-xs font-semibold text-slate-500">
           {title}
         </span>
 
-        <div className="text-blue-400">
+        <div
+          className={
+            primary
+              ? "text-blue-600"
+              : "text-slate-400"
+          }
+        >
           {icon}
         </div>
       </div>
 
-      <p className="mt-5 text-3xl font-bold">
+      <p className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
         {score}
-
-        <span className="text-base text-gray-500">
+        <span className="text-sm font-medium text-slate-400">
           /{maxScore}
         </span>
       </p>
@@ -1543,35 +1451,28 @@ function ScoreCard({
   );
 }
 
-/* =========================================================
-   Risk Card
-========================================================= */
-
-interface RiskCardProps {
-  score: number;
-  icon: React.ReactNode;
-}
-
 function RiskCard({
   score,
   icon,
-}: RiskCardProps) {
+}: {
+  score: number;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="rounded-3xl border border-red-500/20 bg-white/5 p-6 backdrop-blur-xl">
+    <div className="rounded-2xl border border-red-100 bg-red-50 p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-400">
+        <span className="text-xs font-semibold text-red-700">
           Risk
         </span>
 
-        <div className="text-red-400">
+        <div className="text-red-600">
           {icon}
         </div>
       </div>
 
-      <p className="mt-5 text-3xl font-bold">
+      <p className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
         {score}
-
-        <span className="text-base text-gray-500">
+        <span className="text-sm font-medium text-slate-400">
           /10
         </span>
       </p>
@@ -1579,46 +1480,79 @@ function RiskCard({
   );
 }
 
-/* =========================================================
-   Status Row
-========================================================= */
-
-interface StatusRowProps {
+function DarkScoreRow({
+  label,
+  score,
+  max,
+  risk = false,
+}: {
   label: string;
-  completed: boolean;
+  score: number;
+  max: number;
+  risk?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs text-white/50">
+          {label}
+        </span>
+
+        <span
+          className={`text-sm font-bold ${
+            risk
+              ? "text-rose-300"
+              : "text-white"
+          }`}
+        >
+          {score}/{max}
+        </span>
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className={`h-full rounded-full ${
+            risk
+              ? "bg-rose-400"
+              : "bg-violet-400"
+          }`}
+          style={{
+            width: `${Math.min(
+              (score /
+                Math.max(max, 1)) *
+                100,
+              100
+            )}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function StatusRow({
   label,
   completed,
-}: StatusRowProps) {
+}: {
+  label: string;
+  completed: boolean;
+}) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-gray-400">
+      <span className="text-sm text-slate-500">
         {label}
       </span>
 
       {completed ? (
         <CheckCircle2
           size={18}
-          className="text-green-400"
+          className="text-emerald-600"
         />
       ) : (
-        <span className="h-2 w-2 rounded-full bg-gray-600" />
+        <span className="h-2 w-2 rounded-full bg-slate-300" />
       )}
     </div>
   );
-}
-
-/* =========================================================
-   Action Card
-========================================================= */
-
-interface ActionCardProps {
-  title: string;
-  description: string;
-  onNavigate?: () => void;
-  comingSoon?: boolean;
 }
 
 function ActionCard({
@@ -1626,7 +1560,12 @@ function ActionCard({
   description,
   onNavigate,
   comingSoon = false,
-}: ActionCardProps) {
+}: {
+  title: string;
+  description: string;
+  onNavigate?: () => void;
+  comingSoon?: boolean;
+}) {
   const [loading, setLoading] =
     useState(false);
 
@@ -1648,31 +1587,31 @@ function ActionCard({
       type="button"
       onClick={handleClick}
       disabled={comingSoon || loading}
-      className={`rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left transition-all ${
+      className={`rounded-2xl border p-5 text-left transition ${
         comingSoon
-          ? "cursor-not-allowed opacity-60"
+          ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60"
           : loading
-            ? "cursor-wait border-blue-500/30 bg-white/[0.06]"
-            : "hover:border-blue-500/30 hover:bg-white/[0.06]"
+            ? "cursor-wait border-blue-200 bg-blue-50"
+            : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white hover:shadow-sm"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="font-medium text-white">
+        <h3 className="font-semibold text-slate-900">
           {title}
         </h3>
 
         {comingSoon && (
-          <span className="shrink-0 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-amber-300">
-            Coming Soon
+          <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-700">
+            Soon
           </span>
         )}
       </div>
 
-      <p className="mt-2 text-sm leading-relaxed text-gray-400">
+      <p className="mt-2 text-sm leading-6 text-slate-500">
         {description}
       </p>
 
-      <span className="mt-4 inline-flex items-center gap-2 text-sm text-blue-400">
+      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
         {loading ? (
           <>
             <Loader2
@@ -1682,25 +1621,22 @@ function ActionCard({
             Opening...
           </>
         ) : comingSoon ? (
-          "Planned feature"
+          "Planned"
         ) : (
-          "Open →"
+          <>
+            Open
+            <ArrowRight size={14} />
+          </>
         )}
       </span>
     </button>
   );
 }
 
-/* =========================================================
-   Score Helper
-========================================================= */
-
 function getScore(
   data: Record<string, any> | undefined
 ): number {
-  if (!data) {
-    return 0;
-  }
+  if (!data) return 0;
 
   const possibleKeys = [
     "score",
@@ -1721,16 +1657,10 @@ function getScore(
   return 0;
 }
 
-/* =========================================================
-   Date Helper
-========================================================= */
-
 function formatDate(
   date: string | undefined
 ) {
-  if (!date) {
-    return "Unknown";
-  }
+  if (!date) return "Unknown";
 
   return new Date(date).toLocaleString(
     "en-IN",
@@ -1738,5 +1668,39 @@ function formatDate(
       dateStyle: "medium",
       timeStyle: "short",
     }
+  );
+}
+
+function PlaceholderWorkspace({
+  title,
+}: {
+  title: string;
+}) {
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+          <Sparkles size={24} />
+        </div>
+
+        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+          Coming next
+        </p>
+
+        <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
+          {title}
+        </h2>
+
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+          This workspace is not available yet. It will be added to
+          your Plavtora project as the feature is released.
+        </p>
+
+        <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          In development
+        </div>
+      </div>
+    </section>
   );
 }

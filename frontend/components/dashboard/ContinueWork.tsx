@@ -26,7 +26,9 @@ export default function ContinueWork({
   projects,
 }: ContinueWorkProps) {
   const router = useRouter();
-  const [openingProject, setOpeningProject] = useState<string | null>(null);
+
+  const [openingProject, setOpeningProject] =
+    useState<string | null>(null);
 
   const handleProjectOpen = (projectId: string) => {
     if (openingProject) return;
@@ -36,132 +38,121 @@ export default function ContinueWork({
   };
 
   return (
-    <section className="mx-auto mt-12 max-w-7xl px-6 pb-10">
-      {/* Main CTA */}
+    <section className="mx-auto max-w-7xl px-6 pb-12 pt-10">
+      {/* Continue banner */}
       <button
+        type="button"
         onClick={onOpenSidebar}
-        className="
-          group
-          flex w-full items-center justify-between
-          rounded-3xl
-          border border-white/10
-          bg-white/5
-          p-6
-          backdrop-blur-xl
-          transition-all duration-300
-          hover:border-blue-500/40
-          hover:bg-white/[0.07]
-        "
+        className="group flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm transition hover:border-slate-300 hover:shadow-md"
       >
-        <div className="flex items-center gap-5">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-lg">
-            <History size={24} />
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+            <History size={21} />
           </div>
 
-          <div className="text-left">
-            <h3 className="text-xl font-semibold text-white">
-              Continue Previous Work
+          <div>
+            <h3 className="font-bold text-slate-900">
+              Continue previous work
             </h3>
 
-            <p className="mt-1 text-gray-400">
-              Open one of your previous audits and continue where you left off.
+            <p className="mt-1 text-sm text-slate-500">
+              Open your saved audits and continue where you left off.
             </p>
           </div>
         </div>
 
         <ArrowRight
-          className="text-gray-400 transition-transform duration-300 group-hover:translate-x-1"
-          size={22}
+          size={19}
+          className="text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-900"
         />
       </button>
 
-      {/* Recent Projects */}
-      <div className="mt-8">
-        <h3 className="mb-4 text-lg font-semibold text-white">
-          Recent Projects
-        </h3>
+      {/* Projects */}
+      {projects.length > 0 && (
+        <div className="mt-10">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                Workspace
+              </p>
 
-        <div className="grid gap-4">
-          {projects.map((project) => {
-            const isOpening = openingProject === project.id;
+              <h3 className="mt-1 text-xl font-bold text-slate-950">
+                Recent projects
+              </h3>
+            </div>
 
-            return (
-              <button
-                key={project.id}
-                type="button"
-                disabled={!!openingProject}
-                onClick={() => handleProjectOpen(project.id)}
-                className={`
-                  group
-                  flex
-                  w-full
-                  items-center
-                  justify-between
-                  rounded-2xl
-                  border
-                  border-white/10
-                  bg-white/5
-                  p-5
-                  text-left
-                  transition-all
-                  duration-300
-                  ${
-                    isOpening
-                      ? "cursor-wait border-blue-500/30 bg-white/[0.08] opacity-85"
-                      : "hover:border-blue-500/40 hover:bg-white/10"
+            <span className="text-xs font-medium text-slate-400">
+              {projects.length} saved
+            </span>
+          </div>
+
+          <div className="grid gap-3">
+            {projects.map((project) => {
+              const isOpening =
+                openingProject === project.id;
+
+              return (
+                <button
+                  key={project.id}
+                  type="button"
+                  disabled={!!openingProject}
+                  onClick={() =>
+                    handleProjectOpen(project.id)
                   }
-                `}
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`
-                      flex h-12 w-12 items-center justify-center
-                      rounded-xl
-                      bg-gradient-to-br from-blue-500 to-violet-600
-                      text-white
-                      transition-transform duration-300
-                      ${isOpening ? "scale-95" : "group-hover:scale-[1.03]"}
-                    `}
-                  >
-                    {isOpening ? (
-                      <Loader2
-                        size={20}
-                        className="animate-spin"
-                      />
-                    ) : (
-                      <FolderGit2 size={20} />
-                    )}
+                  className={`
+                    group flex w-full items-center justify-between
+                    rounded-2xl border border-slate-200
+                    bg-white p-4 text-left
+                    shadow-sm transition
+                    ${
+                      isOpening
+                        ? "cursor-wait border-blue-200 opacity-80"
+                        : "hover:border-slate-300 hover:shadow-md"
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                      {isOpening ? (
+                        <Loader2
+                          size={19}
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <FolderGit2 size={19} />
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-slate-900">
+                        {project.name}
+                      </h4>
+
+                      <p className="mt-1 text-xs capitalize text-slate-500">
+                        {isOpening
+                          ? "Opening project..."
+                          : project.stage}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h4 className="font-semibold text-white">
-                      {project.name}
-                    </h4>
-
-                    <p className="mt-1 text-sm capitalize text-gray-400">
-                      {isOpening
-                        ? "Opening project..."
-                        : project.stage}
-                    </p>
-                  </div>
-                </div>
-
-                {isOpening ? (
-                  <Loader2
-                    size={20}
-                    className="animate-spin text-blue-300"
-                  />
-                ) : (
-                  <ArrowRight
-                    size={20}
-                    className="text-gray-400 transition-transform group-hover:translate-x-1"
-                  />
-                )}
-              </button>
-            );
-          })}
+                  {isOpening ? (
+                    <Loader2
+                      size={18}
+                      className="animate-spin text-blue-600"
+                    />
+                  ) : (
+                    <ArrowRight
+                      size={18}
+                      className="text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-900"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

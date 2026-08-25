@@ -11,6 +11,8 @@ import {
   Settings,
   LogOut,
   Loader2,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 import { signOut } from "@/services/auth";
@@ -52,10 +54,6 @@ export default function Sidebar({
   const [usageLoading, setUsageLoading] =
     useState(true);
 
-  // -----------------------------------
-  // Load Usage
-  // -----------------------------------
-
   useEffect(() => {
     let cancelled = false;
 
@@ -82,10 +80,6 @@ export default function Sidebar({
     };
   }, []);
 
-  // -----------------------------------
-  // Logout
-  // -----------------------------------
-
   async function handleLogout() {
     if (loadingAction) return;
 
@@ -101,10 +95,6 @@ export default function Sidebar({
     }
   }
 
-  // -----------------------------------
-  // Project Navigation
-  // -----------------------------------
-
   function handleProjectClick(projectId: string) {
     if (loadingAction) return;
 
@@ -114,10 +104,6 @@ export default function Sidebar({
 
     router.push(`/projects/${projectId}`);
   }
-
-  // -----------------------------------
-  // General Navigation
-  // -----------------------------------
 
   function handleNavigation(
     action: Exclude<
@@ -140,14 +126,11 @@ export default function Sidebar({
 
   return (
     <>
-      {/* ----------------------------------- */}
       {/* Backdrop */}
-      {/* ----------------------------------- */}
-
       <div
         onClick={onClose}
         className={`
-          fixed inset-0 z-90 bg-black/50 backdrop-blur-sm
+          fixed inset-0 z-90 bg-slate-950/20 backdrop-blur-sm
           transition-opacity duration-300
           ${
             isOpen
@@ -157,16 +140,12 @@ export default function Sidebar({
         `}
       />
 
-      {/* ----------------------------------- */}
       {/* Sidebar */}
-      {/* ----------------------------------- */}
-
       <aside
         className={`
-          fixed left-0 top-0 z-100
-          flex h-screen w-80 flex-col
-          border-r border-white/10
-          bg-[#020617]
+          fixed left-0 top-0 z-100 flex h-screen w-80 flex-col
+          border-r border-slate-200 bg-white
+          shadow-[10px_0_40px_rgba(15,23,42,0.06)]
           transition-transform duration-300
           ${
             isOpen
@@ -175,18 +154,15 @@ export default function Sidebar({
           }
         `}
       >
-        {/* ----------------------------------- */}
         {/* Header */}
-        {/* ----------------------------------- */}
-
-        <div className="flex items-center justify-between border-b border-white/10 p-6">
+        <div className="flex items-center justify-between border-b border-slate-100 p-6">
           <div>
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-lg font-bold tracking-tight text-slate-950">
               Plavtora
             </h2>
 
-            <p className="text-sm text-gray-400">
-              Workspace
+            <p className="mt-0.5 text-xs text-slate-500">
+              Founder workspace
             </p>
           </div>
 
@@ -194,33 +170,22 @@ export default function Sidebar({
             type="button"
             onClick={onClose}
             aria-label="Close sidebar"
-            className="rounded-xl p-2 transition hover:bg-white/5"
+            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
           >
-            <X
-              size={20}
-              className="text-white"
-            />
+            <X size={19} />
           </button>
         </div>
 
-        {/* ----------------------------------- */}
-        {/* Scrollable Content */}
-        {/* ----------------------------------- */}
-
         <div className="flex-1 overflow-y-auto p-5">
-
-          {/* ----------------------------------- */}
-          {/* Recent Projects */}
-          {/* ----------------------------------- */}
-
+          {/* Recent projects */}
           <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
               Recent Projects
             </h3>
 
             <div className="space-y-2">
               {projects.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-gray-500">
+                <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
                   No projects yet.
                 </div>
               ) : (
@@ -237,60 +202,36 @@ export default function Sidebar({
                         handleProjectClick(project.id)
                       }
                       className={`
-                        group
-                        flex
-                        w-full
-                        items-center
-                        justify-between
-                        rounded-2xl
-                        border
-                        border-white/5
-                        bg-white/5
-                        p-4
-                        text-left
-                        transition-all
-                        duration-300
+                        group flex w-full items-center justify-between
+                        rounded-xl border border-slate-100
+                        bg-slate-50 p-3 text-left transition
                         ${
                           projectLoading
-                            ? "cursor-wait border-blue-500/30 bg-white/[0.08] opacity-85"
-                            : "hover:border-blue-500/30 hover:bg-white/10"
+                            ? "cursor-wait border-blue-200"
+                            : "hover:border-slate-200 hover:bg-white hover:shadow-sm"
                         }
                       `}
                     >
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`
-                            rounded-xl
-                            bg-gradient-to-br
-                            from-blue-500
-                            to-violet-600
-                            p-2
-                            text-white
-                            ${
-                              projectLoading
-                                ? "opacity-80"
-                                : ""
-                            }
-                          `}
-                        >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-600 ring-1 ring-slate-200">
                           {projectLoading ? (
                             <Loader2
-                              size={18}
+                              size={16}
                               className="animate-spin"
                             />
                           ) : (
-                            <FolderGit2 size={18} />
+                            <FolderGit2 size={16} />
                           )}
                         </div>
 
-                        <div className="text-left">
-                          <p className="font-medium text-white">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-800">
                             {project.name}
                           </p>
 
-                          <p className="text-xs capitalize text-gray-400">
+                          <p className="text-[11px] capitalize text-slate-400">
                             {projectLoading
-                              ? "Opening project..."
+                              ? "Opening..."
                               : project.stage}
                           </p>
                         </div>
@@ -298,8 +239,8 @@ export default function Sidebar({
 
                       {projectLoading && (
                         <Loader2
-                          size={16}
-                          className="animate-spin text-blue-300"
+                          size={14}
+                          className="animate-spin text-blue-600"
                         />
                       )}
                     </button>
@@ -309,31 +250,21 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* ----------------------------------- */}
-          {/* Divider */}
-          {/* ----------------------------------- */}
+          <div className="my-6 border-t border-slate-100" />
 
-          <div className="my-6 border-t border-white/10" />
-
-          {/* ----------------------------------- */}
-          {/* Quick Actions */}
-          {/* ----------------------------------- */}
-
+          {/* Quick actions */}
           <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
               Quick Actions
             </h3>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <SidebarItem
                 icon={
                   loadingAction === "audit" ? (
-                    <Loader2
-                      size={18}
-                      className="animate-spin"
-                    />
+                    <Loader2 size={17} className="animate-spin" />
                   ) : (
-                    <Plus size={18} />
+                    <Plus size={17} />
                   )
                 }
                 title={
@@ -341,39 +272,28 @@ export default function Sidebar({
                     ? "Opening..."
                     : "New Audit"
                 }
-                loading={
-                  loadingAction === "audit"
-                }
+                loading={loadingAction === "audit"}
                 disabled={!!loadingAction}
                 onClick={() =>
-                  handleNavigation(
-                    "audit",
-                    "/dashboard"
-                  )
+                  handleNavigation("audit", "/audit")
                 }
               />
 
               <SidebarItem
                 icon={
-                  loadingAction ===
-                  "landing-pages" ? (
-                    <Loader2
-                      size={18}
-                      className="animate-spin"
-                    />
+                  loadingAction === "landing-pages" ? (
+                    <Loader2 size={17} className="animate-spin" />
                   ) : (
-                    <Globe size={18} />
+                    <Globe size={17} />
                   )
                 }
                 title={
-                  loadingAction ===
-                  "landing-pages"
+                  loadingAction === "landing-pages"
                     ? "Opening..."
                     : "Landing Pages"
                 }
                 loading={
-                  loadingAction ===
-                  "landing-pages"
+                  loadingAction === "landing-pages"
                 }
                 disabled={!!loadingAction}
                 onClick={() =>
@@ -386,30 +306,28 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* ----------------------------------- */}
           {/* Usage */}
-          {/* ----------------------------------- */}
-
-          <div className="my-6 border-t border-white/10 pt-6">
+          <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-                Usage
-              </h3>
+              <div>
+                <p className="text-xs font-bold text-slate-900">
+                  Your usage
+                </p>
+
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  Current plan limits
+                </p>
+              </div>
 
               {usage && (
                 <span
                   className={`
-                    rounded-full
-                    px-2.5
-                    py-1
-                    text-[10px]
-                    font-semibold
-                    uppercase
-                    tracking-wider
+                    rounded-full px-2.5 py-1 text-[9px]
+                    font-bold uppercase tracking-wider
                     ${
                       usage.plan === "free"
-                        ? "border border-white/10 bg-white/5 text-gray-400"
-                        : "border border-violet-400/20 bg-violet-400/10 text-violet-300"
+                        ? "bg-slate-200 text-slate-500"
+                        : "bg-emerald-100 text-emerald-700"
                     }
                   `}
                 >
@@ -434,23 +352,18 @@ export default function Sidebar({
 
                 <UsageItem
                   label="AI Chat"
-                  resource={
-                    usage.usage.chat_messages
-                  }
+                  resource={usage.usage.chat_messages}
                 />
 
                 <UsageItem
                   label="ICP"
-                  resource={
-                    usage.usage.personas
-                  }
+                  resource={usage.usage.personas}
                 />
 
                 <UsageItem
                   label="Landing Pages"
                   resource={
-                    usage.usage
-                      .landing_page_analyses
+                    usage.usage.landing_page_analyses
                   }
                 />
 
@@ -460,49 +373,41 @@ export default function Sidebar({
                     onClick={() =>
                       router.push("/billing")
                     }
-                    className="
-                      mt-2
-                      w-full
-                      rounded-xl
-                      border
-                      border-violet-400/20
-                      bg-violet-500/[0.08]
-                      px-4
-                      py-3
-                      text-sm
-                      font-medium
-                      text-violet-200
-                      transition
-                      hover:border-violet-400/40
-                      hover:bg-violet-500/[0.14]
-                    "
+                    className="group mt-2 flex w-full items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-left text-white shadow-sm transition hover:bg-slate-800"
                   >
-                    Upgrade to Premium
+                    <span>
+                      <span className="block text-xs font-bold">
+                        Unlock Premium
+                      </span>
+
+                      <span className="mt-0.5 block text-[10px] text-slate-400">
+                        More usage & deeper tools
+                      </span>
+                    </span>
+
+                    <ArrowRight
+                      size={15}
+                      className="transition-transform group-hover:translate-x-1"
+                    />
                   </button>
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs text-gray-500">
+              <div className="rounded-xl bg-white p-3 text-xs text-slate-400">
                 Usage unavailable.
               </div>
             )}
           </div>
         </div>
 
-        {/* ----------------------------------- */}
         {/* Footer */}
-        {/* ----------------------------------- */}
-
-        <div className="space-y-2 border-t border-white/10 p-5">
+        <div className="space-y-1 border-t border-slate-100 p-4">
           <SidebarItem
             icon={
               loadingAction === "settings" ? (
-                <Loader2
-                  size={18}
-                  className="animate-spin"
-                />
+                <Loader2 size={17} className="animate-spin" />
               ) : (
-                <Settings size={18} />
+                <Settings size={17} />
               )
             }
             title={
@@ -510,27 +415,19 @@ export default function Sidebar({
                 ? "Opening..."
                 : "Settings"
             }
-            loading={
-              loadingAction === "settings"
-            }
+            loading={loadingAction === "settings"}
             disabled={!!loadingAction}
             onClick={() =>
-              handleNavigation(
-                "settings",
-                "/settings"
-              )
+              handleNavigation("settings", "/settings")
             }
           />
 
           <SidebarItem
             icon={
               loadingAction === "logout" ? (
-                <Loader2
-                  size={18}
-                  className="animate-spin"
-                />
+                <Loader2 size={17} className="animate-spin" />
               ) : (
-                <LogOut size={18} />
+                <LogOut size={17} />
               )
             }
             title={
@@ -538,9 +435,7 @@ export default function Sidebar({
                 ? "Signing out..."
                 : "Logout"
             }
-            loading={
-              loadingAction === "logout"
-            }
+            loading={loadingAction === "logout"}
             disabled={!!loadingAction}
             onClick={handleLogout}
           />
@@ -549,10 +444,6 @@ export default function Sidebar({
     </>
   );
 }
-
-/* ----------------------------------- */
-/* Usage Item */
-/* ----------------------------------- */
 
 function UsageItem({
   label,
@@ -573,47 +464,40 @@ function UsageItem({
         )
       : 0;
 
-  const exhausted =
-    resource.remaining <= 0;
+  const exhausted = resource.remaining <= 0;
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs text-gray-300">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-[11px] font-medium text-slate-600">
           {label}
         </span>
 
         <span
-          className={`text-xs ${
+          className={`text-[10px] font-medium ${
             exhausted
-              ? "font-medium text-red-400"
-              : "text-gray-500"
+              ? "text-red-500"
+              : "text-slate-400"
           }`}
         >
           {resource.used}/{resource.limit}
         </span>
       </div>
 
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
         <div
-          className={`
-            h-full
-            rounded-full
-            transition-all
-            duration-500
-            ${
-              exhausted
-                ? "bg-red-500/70"
-                : "bg-gradient-to-r from-blue-500 to-violet-500"
-            }
-          `}
+          className={`h-full rounded-full transition-all ${
+            exhausted
+              ? "bg-red-500"
+              : "bg-slate-900"
+          }`}
           style={{
             width: `${percentage}%`,
           }}
         />
       </div>
 
-      <p className="mt-1.5 text-[10px] text-gray-600">
+      <p className="mt-1 text-[9px] text-slate-400">
         {exhausted
           ? "Limit reached"
           : `${resource.remaining} remaining`}
@@ -622,29 +506,20 @@ function UsageItem({
   );
 }
 
-/* ----------------------------------- */
-/* Usage Loading Skeleton */
-/* ----------------------------------- */
-
 function UsageSkeleton() {
   return (
     <div className="animate-pulse">
       <div className="mb-2 flex justify-between">
-        <div className="h-3 w-16 rounded bg-white/[0.06]" />
-
-        <div className="h-3 w-8 rounded bg-white/[0.06]" />
+        <div className="h-2.5 w-14 rounded bg-slate-200" />
+        <div className="h-2.5 w-7 rounded bg-slate-200" />
       </div>
 
-      <div className="h-1.5 rounded-full bg-white/[0.06]" />
+      <div className="h-1.5 rounded-full bg-slate-200" />
 
-      <div className="mt-1.5 h-2.5 w-20 rounded bg-white/[0.04]" />
+      <div className="mt-1.5 h-2 w-16 rounded bg-slate-100" />
     </div>
   );
 }
-
-/* ----------------------------------- */
-/* Sidebar Item */
-/* ----------------------------------- */
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -667,42 +542,30 @@ function SidebarItem({
       onClick={onClick}
       disabled={disabled}
       className={`
-        group
-        flex
-        w-full
-        items-center
-        gap-4
-        rounded-2xl
-        p-4
-        text-left
-        transition-all
-        duration-300
+        group flex w-full items-center gap-3 rounded-xl
+        px-3 py-2.5 text-left text-sm transition
         ${
           loading
-            ? "cursor-wait bg-white/[0.05]"
-            : "hover:bg-white/5"
+            ? "bg-slate-50"
+            : "hover:bg-slate-50"
         }
-        disabled:cursor-wait
       `}
     >
-      <div
-        className={`
-          transition
-          ${
-            loading
-              ? "text-blue-300"
-              : "text-gray-400 group-hover:text-blue-400"
-          }
-        `}
+      <span
+        className={
+          loading
+            ? "text-blue-600"
+            : "text-slate-400 group-hover:text-slate-700"
+        }
       >
         {icon}
-      </div>
+      </span>
 
       <span
         className={
           loading
-            ? "text-blue-100"
-            : "text-white"
+            ? "font-medium text-blue-700"
+            : "font-medium text-slate-700"
         }
       >
         {title}

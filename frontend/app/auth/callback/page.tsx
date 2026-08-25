@@ -7,9 +7,18 @@ import {
   useState,
 } from "react";
 import {
+  ArrowRight,
+  Check,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
+import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+
 import { supabase } from "@/lib/supabase";
 
 type CallbackStage =
@@ -48,13 +57,14 @@ function AuthCallbackContent() {
     ) {
       return new Promise<any>(
         async (resolve, reject) => {
-          const timeout = window.setTimeout(() => {
-            reject(
-              new Error(
-                "Authentication took too long. Please try signing in again."
-              )
-            );
-          }, timeoutMs);
+          const timeout =
+            window.setTimeout(() => {
+              reject(
+                new Error(
+                  "Authentication took too long. Please try signing in again."
+                )
+              );
+            }, timeoutMs);
 
           try {
             const {
@@ -102,10 +112,13 @@ function AuthCallbackContent() {
           `${apiUrl}/auth/sync`,
           {
             method: "POST",
+
             headers: {
               Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
+              "Content-Type":
+                "application/json",
             },
+
             signal: controller.signal,
           }
         );
@@ -119,7 +132,11 @@ function AuthCallbackContent() {
               await response.json();
 
             if (data?.detail) {
-              message = data.detail;
+              message =
+                typeof data.detail ===
+                "string"
+                  ? data.detail
+                  : message;
             }
           } catch {
             // Ignore malformed error response.
@@ -147,13 +164,13 @@ function AuthCallbackContent() {
 
     async function handleCallback() {
       try {
-        setStage("session");
-
         /*
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          * STEP 1 — Restore Supabase session
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          */
+
+        setStage("session");
 
         const session =
           await getSessionWithTimeout();
@@ -166,15 +183,10 @@ function AuthCallbackContent() {
 
         if (!mounted) return;
 
-        console.log(
-          "OAuth session restored:",
-          session.user.email
-        );
-
         /*
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          * STEP 2 — Sync user with backend
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          */
 
         setStage("sync");
@@ -186,9 +198,9 @@ function AuthCallbackContent() {
         if (!mounted) return;
 
         /*
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          * STEP 3 — Build destination
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          */
 
         setStage("workspace");
@@ -197,11 +209,16 @@ function AuthCallbackContent() {
           redirectParam &&
           redirectParam.startsWith("/") &&
           !redirectParam.startsWith("//") &&
-          redirectParam !== "/auth/callback"
+          redirectParam !==
+            "/auth/callback"
             ? redirectParam
             : "/dashboard";
 
         let destination = redirect;
+
+        /*
+         * Preserve analyzer URL after OAuth.
+         */
 
         if (
           redirect ===
@@ -217,15 +234,10 @@ function AuthCallbackContent() {
             `${redirect}?${params.toString()}`;
         }
 
-        console.log(
-          "OAuth redirect destination:",
-          destination
-        );
-
         /*
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          * STEP 4 — Redirect
-         * -------------------------------------------------------
+         * ------------------------------------------------------
          */
 
         router.replace(destination);
@@ -260,41 +272,42 @@ function AuthCallbackContent() {
 
   /*
    * ---------------------------------------------------------
-   * ERROR SCREEN
+   * ERROR
    * ---------------------------------------------------------
    */
 
   if (stage === "error") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-white">
-        <div className="w-full max-w-md text-center">
+      <main className="min-h-screen bg-[#f7f8fc] px-6 text-slate-950">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-full max-w-md rounded-[30px] border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-900/5 sm:p-10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <TriangleAlert size={24} />
+            </div>
 
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/20 bg-red-400/[0.06]">
-            <span className="text-2xl">
-              !
-            </span>
+            <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">
+              Authentication interrupted
+            </p>
+
+            <h1 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950">
+              We couldn't finish signing you in.
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-slate-500">
+              {errorMessage}
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.replace("/auth")
+              }
+              className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 text-sm font-semibold text-white transition hover:bg-blue-600"
+            >
+              Return to Sign In
+              <ArrowRight size={16} />
+            </button>
           </div>
-
-          <p className="mt-7 text-[11px] uppercase tracking-[0.24em] text-red-300/70">
-            Authentication interrupted
-          </p>
-
-          <h1 className="mt-3 text-3xl font-semibold">
-            We couldn't finish signing you in.
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-zinc-500">
-            {errorMessage}
-          </p>
-
-          <button
-            onClick={() =>
-              router.replace("/auth")
-            }
-            className="mt-8 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black"
-          >
-            Return to Sign In
-          </button>
         </div>
       </main>
     );
@@ -302,56 +315,161 @@ function AuthCallbackContent() {
 
   /*
    * ---------------------------------------------------------
-   * LOADING SCREEN
+   * LOADING
    * ---------------------------------------------------------
    */
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#050505] px-6 text-white">
-      <div className="flex w-full max-w-md flex-col items-center text-center">
+    <main className="min-h-screen bg-[#f7f8fc] px-6 text-slate-950">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-[-180px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-100 blur-[150px]" />
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-400/[0.07]">
-          <span className="text-lg font-semibold text-violet-200">
-            P
-          </span>
-        </div>
+        <div className="absolute bottom-[-160px] right-[-100px] h-[420px] w-[420px] rounded-full bg-blue-100 blur-[140px]" />
+      </div>
 
-        <div className="relative mt-14 flex h-24 w-24 items-center justify-center">
+      <div className="relative z-10 flex min-h-screen items-center justify-center">
+        <div className="w-full max-w-md text-center">
+          {/* Brand */}
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+            <span className="text-lg font-bold">
+              P
+            </span>
+          </div>
 
-          <div className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-violet-400 border-r-blue-400/30" />
+          {/* Animated icon */}
+          <div className="relative mx-auto mt-10 flex h-20 w-20 items-center justify-center">
+            <div className="absolute inset-0 rounded-3xl border border-slate-200 bg-white shadow-sm" />
 
-          <div className="h-10 w-10 animate-pulse rounded-full bg-violet-500/[0.08]" />
+            <div className="absolute inset-1 rounded-[22px] border border-transparent border-t-violet-500 animate-spin" />
 
-        </div>
-
-        <p className="mt-9 text-[10px] uppercase tracking-[0.25em] text-violet-300/80">
-          {getStageLabel(stage)}
-        </p>
-
-        <h1 className="mt-3 text-3xl font-semibold">
-          {getStageTitle(stage)}
-        </h1>
-
-        <p className="mt-4 max-w-sm text-sm leading-6 text-zinc-500">
-          {getStageDescription(stage)}
-        </p>
-
-        <div className="mt-9 w-full max-w-xs">
-          <div className="h-1 overflow-hidden rounded-full bg-white/[0.05]">
-            <div
-              className={`h-full rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400 transition-all duration-700 ${
-                stage === "session"
-                  ? "w-1/3"
-                  : stage === "sync"
-                    ? "w-2/3"
-                    : "w-full"
-              }`}
+            <Sparkles
+              size={24}
+              className="relative text-violet-600"
             />
           </div>
-        </div>
 
+          {/* Stage */}
+          <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-violet-600">
+            {getStageLabel(stage)}
+          </p>
+
+          <h1 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950">
+            {getStageTitle(stage)}
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-slate-500">
+            {getStageDescription(stage)}
+          </p>
+
+          {/* Progress */}
+          <div className="mx-auto mt-8 max-w-xs">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-slate-950 transition-all duration-700"
+                style={{
+                  width:
+                    stage === "session"
+                      ? "33%"
+                      : stage === "sync"
+                        ? "66%"
+                        : "100%",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div className="mx-auto mt-8 max-w-sm space-y-2 text-left">
+            <CallbackStep
+              title="Restore secure session"
+              active={
+                stage === "session"
+              }
+              complete={
+                stage === "sync" ||
+                stage === "workspace"
+              }
+            />
+
+            <CallbackStep
+              title="Sync your Plavtora account"
+              active={stage === "sync"}
+              complete={
+                stage === "workspace"
+              }
+            />
+
+            <CallbackStep
+              title="Prepare your workspace"
+              active={
+                stage === "workspace"
+              }
+              complete={false}
+            />
+          </div>
+
+          <div className="mt-7 flex items-center justify-center gap-2 text-xs text-slate-400">
+            <ShieldCheck size={13} />
+            Secure authentication
+          </div>
+        </div>
       </div>
     </main>
+  );
+}
+
+function CallbackStep({
+  title,
+  active,
+  complete,
+}: {
+  title: string;
+  active: boolean;
+  complete: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
+        active
+          ? "border-slate-900 bg-slate-900 text-white"
+          : complete
+            ? "border-emerald-100 bg-emerald-50"
+            : "border-slate-200 bg-white"
+      }`}
+    >
+      <div
+        className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+          active
+            ? "bg-white/10"
+            : complete
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-slate-100 text-slate-400"
+        }`}
+      >
+        {complete ? (
+          <Check size={14} />
+        ) : active ? (
+          <Loader2
+            size={14}
+            className="animate-spin"
+          />
+        ) : (
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+        )}
+      </div>
+
+      <span
+        className={`text-sm font-medium ${
+          active
+            ? "text-white"
+            : complete
+              ? "text-emerald-800"
+              : "text-slate-500"
+        }`}
+      >
+        {title}
+      </span>
+    </div>
   );
 }
 
@@ -379,7 +497,7 @@ function getStageTitle(
     case "sync":
       return "Connecting your account";
     case "workspace":
-      return "Taking you in";
+      return "Preparing your workspace";
     default:
       return "Signing you in";
   }
@@ -404,12 +522,21 @@ export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#050505] text-white">
+        <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-6">
           <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-violet-400" />
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+              <Loader2
+                size={20}
+                className="animate-spin"
+              />
+            </div>
 
-            <p className="mt-5 text-sm text-zinc-500">
-              Preparing Plavtora...
+            <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Plavtora
+            </p>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Preparing your workspace...
             </p>
           </div>
         </main>

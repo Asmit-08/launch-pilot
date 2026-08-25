@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Menu, Bell } from "lucide-react";
+import { Menu, Bell, Sparkles } from "lucide-react";
 
 import UserMenu from "./Usermenu";
 import { getCurrentUser } from "@/services/user";
@@ -50,17 +50,17 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#020617]/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
         {/* Left */}
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={onMenuClick}
             aria-label="Open dashboard menu"
-            className="rounded-xl p-2 transition hover:bg-white/5"
+            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           >
-            <Menu className="h-5 w-5 text-gray-300" />
+            <Menu className="h-5 w-5" />
           </button>
 
           <div className="flex items-center gap-3">
@@ -74,35 +74,44 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             />
 
             <div>
-              <h1 className="text-lg font-semibold text-white">
+              <h1 className="text-lg font-bold tracking-tight text-slate-900">
                 Plavtora
               </h1>
 
-              <p className="text-xs text-gray-500">
-                AI decision support for founders
+              <p className="hidden text-xs text-slate-500 sm:block">
+                SaaS decision intelligence
               </p>
             </div>
           </div>
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => window.location.href = "/billing"}
+            className="hidden items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 sm:flex"
+          >
+            <Sparkles size={16} />
+            Upgrade
+          </button>
+
           <button
             type="button"
             aria-label="Notifications"
-            className="rounded-xl p-2 transition hover:bg-white/5"
+            className="rounded-xl p-2.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           >
-            <Bell className="h-5 w-5 text-gray-300" />
+            <Bell className="h-5 w-5" />
           </button>
 
           {userLoading ? (
             <div className="flex items-center gap-3">
               <div className="hidden space-y-2 sm:block">
-                <div className="ml-auto h-3 w-20 animate-pulse rounded bg-white/[0.06]" />
-                <div className="ml-auto h-2.5 w-28 animate-pulse rounded bg-white/[0.04]" />
+                <div className="ml-auto h-3 w-20 animate-pulse rounded bg-slate-200" />
+                <div className="ml-auto h-2.5 w-28 animate-pulse rounded bg-slate-100" />
               </div>
 
-              <div className="h-10 w-10 animate-pulse rounded-full bg-white/[0.06]" />
+              <div className="h-10 w-10 animate-pulse rounded-full bg-slate-200" />
             </div>
           ) : (
             <UserMenu

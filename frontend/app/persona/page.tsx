@@ -14,6 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import JsonLd from "./components/JsonLd";
+import {
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  ShieldAlert,
+  CheckCircle2,
+  ArrowLeft,
+  Target
+} from "lucide-react";
 
 interface PersonaResult {
   executive_summary: string;
@@ -49,9 +58,9 @@ interface UsageLimitInfo {
 }
 
 const cardStyle = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  backdropFilter: "blur(12px)",
+  background: "white",
+  border: "1px solid #e2e8f0",
+  boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
 };
 
 const LOADING_STAGES = [
@@ -109,12 +118,10 @@ function InsightCard({
 function ConfidenceRing({ score }: { score: number }) {
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
-
   const clamped = Math.max(
     0,
     Math.min(100, score ?? 0)
   );
-
   const offset =
     circumference - (clamped / 100) * circumference;
 
@@ -129,7 +136,7 @@ function ConfidenceRing({ score }: { score: number }) {
           cy="50"
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="#e2e8f0"
           strokeWidth="6"
         />
 
@@ -138,23 +145,24 @@ function ConfidenceRing({ score }: { score: number }) {
           cy="50"
           r={radius}
           fill="none"
-          stroke="#3b82f6"
+          stroke="#7c3aed"
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           style={{
-            transition: "stroke-dashoffset 0.8s ease",
+            transition:
+              "stroke-dashoffset 0.8s ease",
           }}
         />
       </svg>
 
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-bold text-white">
+        <span className="text-2xl font-bold text-slate-950">
           {clamped}%
         </span>
 
-        <span className="text-[10px] uppercase tracking-wide text-zinc-500">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
           confidence
         </span>
       </div>
@@ -487,135 +495,92 @@ export default function PersonaPage() {
    * =========================================================
    */
 
-  if (usageLimitReached) {
-    const used =
-      usageLimitInfo?.used ?? 2;
+  
 
-    const limit =
-      usageLimitInfo?.limit ?? 2;
+function LockIcon() {
+  return <span className="text-lg">🔒</span>;
+}
+
+function ShieldIcon() {
+  return (
+    <ShieldAlert
+      size={18}
+      className="mt-0.5 shrink-0 text-red-600"
+    />
+  );
+}
+
+
+  if (usageLimitReached) {
+    const used = usageLimitInfo?.used ?? 2;
+    const limit = usageLimitInfo?.limit ?? 2;
 
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] px-6 text-white">
-
+      <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 text-slate-950 sm:px-6">
         <JsonLd />
 
-        {/* Ambient background */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
-          <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/[0.08] blur-[160px]" />
-
-          <div className="absolute bottom-[-180px] right-[-120px] h-[500px] w-[500px] rounded-full bg-violet-600/[0.07] blur-[150px]" />
-
-          <div className="absolute left-[-140px] top-[20%] h-[400px] w-[400px] rounded-full bg-cyan-500/[0.05] blur-[140px]" />
-
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
-
-        </div>
-
-        <div className="relative z-10 w-full max-w-lg">
-
-          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-8 shadow-2xl backdrop-blur-xl sm:p-10">
-
-            {/* Icon */}
-            <div className="flex justify-center">
-
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-2xl shadow-[0_0_40px_rgba(59,130,246,0.12)]">
-                🔒
-              </div>
-
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-lg items-center justify-center">
+          <div className="w-full rounded-[30px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-9">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <LockIcon />
             </div>
 
-            {/* Heading */}
-            <div className="mt-7 text-center">
-
-              <Eyebrow>
+            <div className="mt-6 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
                 Free usage limit reached
-              </Eyebrow>
+              </p>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-zinc-100">
+              <h1 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950">
                 You've used all your free persona generations.
               </h1>
 
-              <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-zinc-500">
+              <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-500">
                 You've used{" "}
-                <span className="font-semibold text-zinc-200">
-                  {used}
-                </span>{" "}
+                <span className="font-bold text-slate-900">{used}</span>{" "}
                 of{" "}
-                <span className="font-semibold text-zinc-200">
-                  {limit}
-                </span>{" "}
+                <span className="font-bold text-slate-900">{limit}</span>{" "}
                 free persona generations for this month.
               </p>
-
             </div>
 
-            {/* Premium box */}
-            <div className="mt-8 rounded-2xl border border-blue-400/15 bg-blue-500/[0.06] p-5">
-
-              <div className="flex items-center gap-3">
-
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-sm">
-                  ✦
+            <div className="mt-7 overflow-hidden rounded-2xl border border-violet-100 bg-violet-50 p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
+                  <Sparkles size={17} />
                 </div>
 
                 <div>
-                  <p className="font-semibold text-zinc-100">
-                    Upgrade to Premium
+                  <p className="font-semibold text-slate-950">
+                    Premium gives you more room to research.
                   </p>
 
-                  <p className="text-xs text-zinc-500">
-                    Keep generating without waiting.
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Keep generating personas and unlock deeper customer intelligence.
                   </p>
                 </div>
-
               </div>
 
               <div className="mt-5 space-y-3">
-
-                <div className="flex items-center gap-3 text-sm text-zinc-400">
-                  <span className="text-blue-400">
-                    ✓
-                  </span>
-                  <span>
-                    20 persona generations per month
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-zinc-400">
-                  <span className="text-blue-400">
-                    ✓
-                  </span>
-                  <span>
-                    Detailed customer insights
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-zinc-400">
-                  <span className="text-blue-400">
-                    ✓
-                  </span>
-                  <span>
-                    Buying triggers and objections
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-zinc-400">
-                  <span className="text-blue-400">
-                    ✓
-                  </span>
-                  <span>
-                    Marketing channels and messaging
-                  </span>
-                </div>
-
+                {[
+                  "20 persona generations per month",
+                  "Detailed customer insights",
+                  "Buying triggers and objections",
+                  "Marketing channels and messaging",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 text-sm text-slate-600"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-violet-600 shadow-sm">
+                      <CheckCircle2 size={12} />
+                    </span>
+                    {item}
+                  </div>
+                ))}
               </div>
-
             </div>
 
-            {/* Actions */}
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <Button
                 type="button"
                 variant="outline"
@@ -624,7 +589,7 @@ export default function PersonaPage() {
                   setUsageLimitInfo(null);
                   setGenerationError(null);
                 }}
-                className="h-12 flex-1 rounded-full border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                className="h-12 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               >
                 Back
               </Button>
@@ -632,92 +597,50 @@ export default function PersonaPage() {
               <Button
                 type="button"
                 onClick={() => {
-                  window.location.href =
-                    "/billing";
+                  window.location.href = "/billing";
                 }}
-                className="h-12 flex-1 rounded-full bg-blue-600 text-white hover:bg-blue-500"
+                className="h-12 rounded-xl bg-slate-950 text-white hover:bg-violet-600"
               >
-                Upgrade to Premium →
+                Upgrade to Premium
+                <ArrowRight size={16} />
               </Button>
-
             </div>
 
-            <p className="mt-5 text-center text-xs text-zinc-600">
-              Your usage resets at the start of the next
-              monthly usage period.
+            <p className="mt-5 text-center text-xs text-slate-400">
+              Usage resets at the start of the next monthly usage period.
             </p>
-
           </div>
-
         </div>
-
       </main>
     );
   }
 
-  /*
-   * =========================================================
-   * LOADING
-   * =========================================================
-   */
 
   if (loading) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
-
+      <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 text-slate-950 sm:px-6">
         <JsonLd />
 
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
-          <div className="absolute left-1/2 top-[-180px] h-[620px] w-[620px] -translate-x-1/2 rounded-full bg-blue-600/[0.09] blur-[160px]" />
-
-          <div className="absolute bottom-[-180px] right-[-120px] h-[520px] w-[520px] rounded-full bg-violet-600/[0.07] blur-[150px]" />
-
-          <div className="absolute left-[-140px] top-1/2 h-[420px] w-[420px] rounded-full bg-cyan-500/[0.05] blur-[140px]" />
-
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
-
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
-
-          <div className="relative flex h-28 w-28 items-center justify-center">
-
-            <div className="absolute inset-0 rounded-full border border-blue-400/10" />
-
-            <div className="absolute inset-2 rounded-full border border-white/[0.05]" />
-
-            <div className="absolute inset-0 animate-[personaOrbit_2.8s_linear_infinite] rounded-full border border-transparent border-t-blue-400/90 border-r-violet-400/30" />
-
-            <div className="absolute h-12 w-12 animate-pulse rounded-full bg-blue-500/[0.08] blur-xl" />
-
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_0_40px_rgba(59,130,246,0.12)]">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-300" />
-            </div>
-
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-xl flex-col items-center justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+            <Sparkles size={22} />
           </div>
 
-          <Eyebrow>
+          <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
             Generating your report
-          </Eyebrow>
+          </p>
 
-          <h1 className="mt-4 text-center text-3xl font-semibold tracking-[-0.03em] text-zinc-100 sm:text-4xl">
+          <h1 className="mt-3 text-center text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl">
             Building your customer picture
           </h1>
 
-          <p className="mt-4 max-w-xl text-center text-sm leading-6 text-zinc-500">
-            Plavtora is turning your product context into a structured ICP
-            and persona. This can take a few moments.
+          <p className="mt-3 max-w-lg text-center text-sm leading-6 text-slate-500">
+            Plavtora is turning your product context into a structured ICP and persona.
           </p>
 
-          <div className="mt-10 w-full max-w-xl">
-
-            <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-
-              <span>
-                Analysis progress
-              </span>
-
+          <div className="mt-9 w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              <span>Analysis progress</span>
               <span>
                 {Math.round(
                   ((stageIndex + 1) /
@@ -726,674 +649,635 @@ export default function PersonaPage() {
                 )}
                 %
               </span>
-
             </div>
 
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-400"
+                className="h-full rounded-full bg-slate-950 transition-all duration-700"
                 style={{
                   width: `${
                     ((stageIndex + 1) /
                       LOADING_STAGES.length) *
                     100
                   }%`,
-                  transition:
-                    "width 0.7s ease",
                 }}
               />
-
             </div>
 
-          </div>
+            <div className="mt-6 space-y-2">
+              {LOADING_STAGES.map(
+                (stage, index) => {
+                  const completed =
+                    index < stageIndex;
+                  const active =
+                    index === stageIndex;
 
-          <div className="mt-8 w-full max-w-xl space-y-2">
-
-            {LOADING_STAGES.map(
-              (stage, index) => {
-
-                const completed =
-                  index < stageIndex;
-
-                const active =
-                  index === stageIndex;
-
-                return (
-                  <div
-                    key={stage}
-                    className={`flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition-all duration-500 ${
-                      active
-                        ? "border-blue-400/20 bg-blue-400/[0.07]"
-                        : completed
-                          ? "border-white/[0.06] bg-white/[0.025]"
-                          : "border-white/[0.04] bg-transparent opacity-40"
-                    }`}
-                  >
-
+                  return (
                     <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs ${
-                        completed
-                          ? "bg-emerald-400/10 text-emerald-300"
-                          : active
-                            ? "bg-blue-400/10 text-blue-300"
-                            : "bg-white/[0.04] text-zinc-600"
+                      key={stage}
+                      className={`flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition ${
+                        active
+                          ? "border-slate-900 bg-slate-950 text-white"
+                          : completed
+                            ? "border-emerald-100 bg-emerald-50"
+                            : "border-slate-200 bg-white"
                       }`}
                     >
-                      {completed ? (
-                        "✓"
-                      ) : active ? (
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-blue-300" />
-                      ) : (
-                        index + 1
-                      )}
-                    </div>
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                          active
+                            ? "bg-white/10 text-white"
+                            : completed
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-slate-100 text-slate-400"
+                        }`}
+                      >
+                        {completed ? (
+                          <CheckCircle2 size={15} />
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
 
-                    <div className="min-w-0">
-
-                      <p
+                      <span
                         className={`text-sm font-medium ${
                           active
-                            ? "text-zinc-100"
-                            : "text-zinc-400"
+                            ? "text-white"
+                            : completed
+                              ? "text-emerald-800"
+                              : "text-slate-500"
                         }`}
                       >
                         {stage}
-                      </p>
+                      </span>
 
+                      {active && (
+                        <Loader2
+                          size={15}
+                          className="ml-auto animate-spin text-white/70"
+                        />
+                      )}
                     </div>
-
-                  </div>
-                );
-              }
-            )}
-
+                  );
+                }
+              )}
+            </div>
           </div>
-
         </div>
-
-        <style jsx>{`
-          @keyframes personaOrbit {
-            from {
-              transform: rotate(0deg);
-            }
-
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}</style>
-
       </main>
     );
   }
 
-  /*
-   * =========================================================
-   * REPORT
-   * =========================================================
-   */
 
   if (result) {
+    const personaName =
+      result.persona?.name || "Your ideal customer";
+
+    const hasPremiumData =
+      Boolean(
+        result.pain_points?.length ||
+        result.goals?.length ||
+        result.motivations?.length ||
+        result.buying_triggers?.length ||
+        result.buying_behaviour ||
+        result.common_objections?.length ||
+        result.marketing_channels?.length ||
+        result.messaging_recommendations?.length ||
+        result.content_ideas?.length
+      );
+
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+        <JsonLd />
 
-        <div className="mx-auto max-w-4xl px-6 py-20">
-
-          <Eyebrow>
-            Your persona report
-          </Eyebrow>
-
-          <h1 className="mt-3 text-4xl font-bold text-zinc-100">
-            Here&apos;s who your customers are
-          </h1>
-
-          {result.error && (
-            <p className="mt-4 text-sm text-red-400">
-              Part of this report may be incomplete:{" "}
-              {result.error}
-            </p>
-          )}
-
-          <div className="mt-10 space-y-14">
-
-            {/* Summary + persona + confidence */}
-            <Card
-              style={cardStyle}
-              className="rounded-2xl"
+        <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
+            <Link
+              href="/persona"
+              className="group inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950"
             >
-              <CardContent className="flex flex-col items-center gap-8 py-8 sm:flex-row sm:items-start">
+              <ArrowLeft
+                size={17}
+                className="transition-transform group-hover:-translate-x-1"
+              />
+              New Persona
+            </Link>
 
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-8 w-8 rounded-lg"
+            />
+
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
+          <div className="mx-auto max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">
+              <Sparkles size={13} />
+              Customer intelligence
+            </div>
+
+            <h1 className="mt-6 text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
+              Here's who you're
+              <span className="block text-slate-400">
+                actually building for.
+              </span>
+            </h1>
+
+            {result.error && (
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                Part of this report may be incomplete:{" "}
+                {result.error}
+              </p>
+            )}
+          </div>
+
+          <section className="mt-10 rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
+              <div className="mx-auto lg:mx-0">
                 <ConfidenceRing
                   score={
                     result.confidence_score
                   }
                 />
+              </div>
 
-                <div className="flex-1 space-y-4 text-center sm:text-left">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Executive summary
+                </p>
 
-                  <div>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  {result.executive_summary}
+                </p>
 
-                    <Eyebrow>
-                      Executive summary
-                    </Eyebrow>
+                <div className="mt-6 border-t border-slate-100 pt-5">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+                      {personaName}
+                    </h2>
 
-                    <p className="mt-2 text-zinc-300">
-                      {result.executive_summary}
-                    </p>
-
-                  </div>
-
-                  <div className="border-t border-zinc-800/60 pt-4">
-
-                    <Eyebrow>
-                      Persona
-                    </Eyebrow>
-
-                    <p className="mt-2 font-semibold text-zinc-100">
-
-                      {result.persona?.name}
-
-                      {result.persona?.age_range
-                        ? ` · ${result.persona.age_range}`
-                        : ""}
-
-                      {result.persona?.occupation
-                        ? ` · ${result.persona.occupation}`
-                        : ""}
-
-                    </p>
-
-                    <p className="mt-1 text-zinc-400">
-                      {result.persona?.description}
-                    </p>
-
-                  </div>
-
-                </div>
-
-              </CardContent>
-            </Card>
-
-            <div>
-
-              <Eyebrow>
-                Ideal customer profile
-              </Eyebrow>
-
-              <p className="mt-3 text-lg leading-relaxed text-zinc-300">
-                {result.ideal_customer_profile}
-              </p>
-
-            </div>
-
-            {/* Premium analysis gate */}
-            {(
-              !result.pain_points?.length &&
-              !result.goals?.length &&
-              !result.motivations?.length &&
-              !result.buying_triggers?.length &&
-              !result.buying_behaviour &&
-              !result.common_objections?.length &&
-              !result.marketing_channels?.length &&
-              !result.messaging_recommendations?.length &&
-              !result.content_ideas?.length
-            ) ? (
-
-              <section className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-b from-blue-500/[0.08] via-white/[0.03] to-white/[0.02] p-6 sm:p-8">
-
-                <div className="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
-
-                <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
-
-                <div className="relative">
-
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-
-                    <div>
-
-                      <div className="flex items-center gap-3">
-
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-lg">
-                          🔒
-                        </div>
-
-                        <div>
-
-                          <Eyebrow>
-                            Premium analysis
-                          </Eyebrow>
-
-                          <h2 className="mt-1 text-2xl font-bold text-zinc-100">
-                            Go deeper than the basic ICP
-                          </h2>
-
-                        </div>
-
-                      </div>
-
-                      <p className="mt-4 max-w-2xl leading-relaxed text-zinc-400">
-                        Your free ICP gives you the core customer picture.
-                        Premium unlocks the deeper analysis you can use to
-                        shape your product, positioning, messaging, and
-                        acquisition strategy.
-                      </p>
-
-                    </div>
-
-                    <span className="w-fit shrink-0 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-300">
-                      Premium
-                    </span>
-
-                  </div>
-
-                  <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-
-                    {[
-                      [
-                        "Pain Points",
-                        "Understand what actually blocks your ideal customer.",
-                      ],
-                      [
-                        "Goals & Motivations",
-                        "See what your customer is trying to achieve and why.",
-                      ],
-                      [
-                        "Buying Triggers",
-                        "Identify the moments that can turn intent into action.",
-                      ],
-                      [
-                        "Objections",
-                        "Prepare for the reasons prospects may hesitate.",
-                      ],
-                      [
-                        "Marketing Channels",
-                        "Know where your ideal customers are most likely to be reached.",
-                      ],
-                      [
-                        "Messaging & Content",
-                        "Turn customer insights into sharper messaging and content ideas.",
-                      ],
-                    ].map(
-                      ([title, description]) => (
-                        <div
-                          key={title}
-                          className="rounded-2xl border border-white/10 bg-black/20 p-5 transition-colors hover:border-blue-500/20"
-                        >
-
-                          <div className="flex items-start gap-3">
-
-                            <span className="mt-0.5 text-sm text-blue-400">
-                              🔒
-                            </span>
-
-                            <div>
-
-                              <h3 className="font-semibold text-zinc-200">
-                                {title}
-                              </h3>
-
-                              <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-                                {description}
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-                      )
+                    {result.persona?.age_range && (
+                      <span className="text-sm text-slate-400">
+                        {result.persona.age_range}
+                      </span>
                     )}
 
+                    {result.persona?.occupation && (
+                      <span className="text-sm text-slate-500">
+                        · {result.persona.occupation}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border border-blue-500/15 bg-blue-500/[0.06] p-5 sm:flex-row sm:p-6">
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {result.persona?.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-                    <div>
+          <section className="mt-6 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Ideal customer profile
+            </p>
 
-                      <p className="font-semibold text-zinc-100">
-                        Ready for the full customer analysis?
-                      </p>
+            <p className="mt-3 text-lg leading-8 text-slate-700">
+              {result.ideal_customer_profile}
+            </p>
+          </section>
 
-                      <p className="mt-1 text-sm text-zinc-500">
-                        Unlock the strategic insights behind this persona.
-                      </p>
-
-                    </div>
-
-                    <Button
-                      asChild
-                      size="lg"
-                      className="h-11 w-full shrink-0 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500 sm:w-auto"
-                    >
-                      <Link href="/billing">
-                        Unlock Premium Analysis →
-                      </Link>
-                    </Button>
-
+          {!hasPremiumData ? (
+            <section className="mt-8 overflow-hidden rounded-[28px] border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50 p-6 shadow-sm sm:p-8">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
+                    <LockIcon />
                   </div>
 
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">
+                      Premium analysis
+                    </p>
+
+                    <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                      Go deeper than the basic ICP.
+                    </h2>
+
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                      Your free result gives you the core customer picture.
+                      Premium unlocks the customer insights you can use for
+                      product decisions, positioning, messaging, and acquisition.
+                    </p>
+                  </div>
                 </div>
 
+                <Link
+                  href="/billing"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
+                >
+                  Unlock Premium
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  [
+                    "Pain points",
+                    "Understand what actually blocks your ideal customer.",
+                  ],
+                  [
+                    "Goals & motivations",
+                    "See what your customer wants and why.",
+                  ],
+                  [
+                    "Buying triggers",
+                    "Identify moments that turn intent into action.",
+                  ],
+                  [
+                    "Objections",
+                    "Prepare for reasons prospects may hesitate.",
+                  ],
+                  [
+                    "Marketing channels",
+                    "Know where this audience is most likely to be reached.",
+                  ],
+                  [
+                    "Messaging & content",
+                    "Turn customer insight into sharper communication.",
+                  ],
+                ].map(([title, description]) => (
+                  <div
+                    key={title}
+                    className="rounded-2xl border border-white bg-white/70 p-5"
+                  >
+                    <p className="font-semibold text-slate-900">
+                      {title}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">
+                      {description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <div className="mt-8 space-y-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <InsightCard
+                  eyebrow="What holds them back"
+                  title="Pain points"
+                  items={result.pain_points}
+                />
+
+                <InsightCard
+                  eyebrow="What they want"
+                  title="Goals"
+                  items={result.goals}
+                />
+
+                <InsightCard
+                  eyebrow="What drives them"
+                  title="Motivations"
+                  items={result.motivations}
+                />
+
+                <InsightCard
+                  eyebrow="What makes them act"
+                  title="Buying triggers"
+                  items={result.buying_triggers}
+                />
+              </div>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Buying behaviour
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {result.buying_behaviour}
+                </p>
               </section>
 
-            ) : (
+              <InsightCard
+                eyebrow="What to prepare for"
+                title="Common objections"
+                items={result.common_objections}
+              />
 
-              <>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-
-                  <InsightCard
-                    eyebrow="What holds them back"
-                    title="Pain points"
-                    items={result.pain_points}
-                  />
-
-                  <InsightCard
-                    eyebrow="What they want"
-                    title="Goals"
-                    items={result.goals}
-                  />
-
-                  <InsightCard
-                    eyebrow="What drives them"
-                    title="Motivations"
-                    items={result.motivations}
-                  />
-
-                  <InsightCard
-                    eyebrow="What makes them act"
-                    title="Buying triggers"
-                    items={result.buying_triggers}
-                  />
-
-                </div>
-
-                <div>
-
-                  <Eyebrow>
-                    Buying behaviour
-                  </Eyebrow>
-
-                  <p className="mt-3 text-zinc-300">
-                    {result.buying_behaviour}
-                  </p>
-
-                </div>
-
+              <div className="grid gap-5 md:grid-cols-2">
                 <InsightCard
-                  eyebrow="What to prepare for"
-                  title="Common objections"
-                  items={result.common_objections}
+                  eyebrow="Where to find them"
+                  title="Marketing channels"
+                  items={result.marketing_channels}
                 />
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <InsightCard
+                  eyebrow="How to talk to them"
+                  title="Messaging recommendations"
+                  items={
+                    result.messaging_recommendations
+                  }
+                />
+              </div>
 
-                  <InsightCard
-                    eyebrow="Where to find them"
-                    title="Marketing channels"
-                    items={result.marketing_channels}
-                  />
+              <InsightCard
+                eyebrow="What to publish"
+                title="Content ideas"
+                items={result.content_ideas}
+              />
+            </div>
+          )}
 
-                  <InsightCard
-                    eyebrow="How to talk to them"
-                    title="Messaging recommendations"
-                    items={
-                      result.messaging_recommendations
-                    }
-                  />
-
+          <section className="mt-8 rounded-[28px] bg-slate-950 p-7 text-white sm:p-9">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-violet-300">
+                  <Target size={15} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                    Next decision
+                  </span>
                 </div>
 
-                <InsightCard
-                  eyebrow="What to publish"
-                  title="Content ideas"
-                  items={result.content_ideas}
-                />
+                <h2 className="mt-3 text-2xl font-bold tracking-tight">
+                  Now validate whether this customer picture is real.
+                </h2>
 
-              </>
-            )}
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
+                  Use the persona as a hypothesis. Compare it against real
+                  interviews, user behavior, and demand before making major decisions.
+                </p>
+              </div>
 
-          </div>
-
-          {/* Next step */}
-          <div
-            className="mt-20 rounded-2xl p-8 text-center sm:text-left"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(255,255,255,0.02))",
-              border:
-                "1px solid rgba(59,130,246,0.15)",
-            }}
-          >
-
-            <Eyebrow>
-              Next step
-            </Eyebrow>
-
-            <p className="mt-3 text-xl font-semibold text-zinc-100">
-              You now know who your customers are.
-            </p>
-
-            <p className="mt-2 max-w-xl text-zinc-400">
-              The next step is validating whether they&apos;ll actually buy.
-              Plavtora helps founders validate ideas, identify launch
-              risks, and prepare products before launch.
-            </p>
-
-            <Button
-              asChild
-              size="lg"
-              className="mt-6 h-11 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500"
-            >
-              <Link href="/dashboard">
-                Continue with Plavtora →
+              <Link
+                href="/dashboard"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
+              >
+                Continue with Plavtora
+                <ArrowRight size={16} />
               </Link>
-            </Button>
-
-          </div>
-
+            </div>
+          </section>
         </div>
-
       </main>
     );
   }
 
-  /*
-   * =========================================================
-   * FORM
-   * =========================================================
-   */
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+      <JsonLd />
 
-      {/* Hero */}
-      <div
-        className="relative overflow-hidden px-6 pb-16 pt-24 text-center"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 50% -10%, rgba(59,130,246,0.18), transparent 60%)",
-        }}
-      >
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3"
+          >
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-9 w-9 rounded-xl"
+            />
 
-        <Eyebrow>
-          Free to try · Sign up to generate
-        </Eyebrow>
+            <div>
+              <p className="text-[17px] font-bold tracking-tight text-slate-950">
+                Plavtora
+              </p>
 
-        <h1 className="mx-auto mt-4 max-w-2xl text-5xl font-bold leading-tight text-zinc-100">
-          Generate Detailed{" "}
-          <span className="text-blue-500">
-            AI User Personas
-          </span>{" "}
-          in Seconds
-        </h1>
+              <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
+                Customer intelligence
+              </p>
+            </div>
+          </Link>
 
-        <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
-          Generate detailed AI user personas for your startup,
-          SaaS, or business. Discover your ideal customers,
-          their goals, pain points, motivations, buying behavior,
-          and marketing opportunities in seconds.
-        </p>
+          <Link
+            href="/dashboard"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Dashboard
+          </Link>
+        </div>
+      </header>
 
-        <Button
-          asChild
-          size="lg"
-          className="mt-8 h-12 rounded-full bg-blue-600 px-8 text-white hover:bg-blue-500"
-        >
-          <a href="#persona-form">
-            Generate ICP
-          </a>
-        </Button>
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+        <div className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-100 blur-[120px]" />
+        <div className="pointer-events-none absolute -left-40 bottom-[-220px] h-[500px] w-[500px] rounded-full bg-blue-100 blur-[130px]" />
 
-      </div>
+        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">
+              <Sparkles size={13} />
+              Free to try
+            </div>
 
-      {/* Form */}
+            <h1 className="mt-6 text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
+              Stop guessing
+              <span className="block text-slate-400">
+                who you're building for.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              Describe your product and Plavtora will turn it into a structured
+              customer hypothesis: who they are, what they want, and why they might buy.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-400">
+              <span>ICP hypothesis</span>
+              <span>Persona profile</span>
+              <span>Confidence score</span>
+              <span>Premium customer intelligence</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div
         id="persona-form"
-        className="mx-auto max-w-2xl px-6 pb-24"
+        className="mx-auto max-w-4xl px-5 py-10 sm:px-6 sm:py-14"
       >
-
         {generationError && (
-          <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/[0.06] p-4 text-sm text-red-300">
-            {generationError}
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+            <ShieldIcon />
+            <span>{generationError}</span>
           </div>
         )}
 
+        <div className="mb-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
+              <Target size={18} />
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                3 inputs
+              </p>
+
+              <h2 className="mt-1 text-lg font-bold text-slate-950">
+                Give the AI enough context to make a useful hypothesis.
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                More specific inputs generally produce a more useful persona.
+                The output should still be validated with real customers.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <form
-          className="space-y-6"
+          className="space-y-4"
           onSubmit={handleSubmit}
         >
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Step 1
+            </p>
 
-          <Card
-            style={cardStyle}
-            className="rounded-2xl"
-          >
-            <CardHeader>
+            <h2 className="mt-2 text-xl font-bold text-slate-950">
+              What are you building?
+            </h2>
 
-              <Eyebrow>
-                Step 1
-              </Eyebrow>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Name the product or idea in plain language.
+            </p>
 
-              <CardTitle className="text-zinc-100">
-                What are you building?
-              </CardTitle>
-
-            </CardHeader>
-
-            <CardContent>
-
+            <div className="mt-5">
               <Input
                 name="what_are_you_building"
                 value={
                   formData.what_are_you_building
                 }
                 onChange={handleChange}
-                placeholder="AI expense tracker"
+                placeholder="e.g. AI expense tracker"
                 required
+                className="h-13 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
               />
+            </div>
+          </section>
 
-            </CardContent>
-          </Card>
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Step 2
+            </p>
 
-          <Card
-            style={cardStyle}
-            className="rounded-2xl"
-          >
-            <CardHeader>
+            <h2 className="mt-2 text-xl font-bold text-slate-950">
+              Describe the product.
+            </h2>
 
-              <Eyebrow>
-                Step 2
-              </Eyebrow>
+            <p className="mt-1.5 text-sm leading-6 text-slate-500">
+              Explain what it does, the problem it solves, and why someone would use it.
+            </p>
 
-              <CardTitle className="text-zinc-100">
-                Describe your product
-              </CardTitle>
-
-              <p className="text-sm text-zinc-500">
-                What it does, the problem it solves, and why someone would
-                use it.
-              </p>
-
-            </CardHeader>
-
-            <CardContent>
-
+            <div className="mt-5">
               <Textarea
                 name="product_description"
                 value={
                   formData.product_description
                 }
                 onChange={handleChange}
-                placeholder="Describe what your product does, the problem it solves and why someone would use it."
-                className="min-h-32"
+                placeholder="Describe the product, problem, target user, and what makes it useful."
+                className="min-h-36 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
                 required
               />
+            </div>
+          </section>
 
-            </CardContent>
-          </Card>
+          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                  Step 3 · Optional
+                </p>
 
-          <Card
-            style={cardStyle}
-            className="rounded-2xl"
-          >
-            <CardHeader>
+                <h2 className="mt-2 text-xl font-bold text-slate-950">
+                  Add context.
+                </h2>
 
-              <Eyebrow>
-                Step 3 · Optional
-              </Eyebrow>
+                <p className="mt-1.5 text-sm leading-6 text-slate-500">
+                  Competitors, pricing, country, stage, unique features, existing customers,
+                  or anything else that could sharpen the result.
+                </p>
+              </div>
 
-              <CardTitle className="text-zinc-100">
-                Additional details
-              </CardTitle>
+              <span className="hidden rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:block">
+                Optional
+              </span>
+            </div>
 
-              <p className="text-sm text-zinc-500">
-                Competitors, pricing, country, stage, unique features,
-                existing customers — anything else.
-              </p>
-
-            </CardHeader>
-
-            <CardContent>
-
+            <div className="mt-5">
               <Textarea
                 name="additional_details"
                 value={
                   formData.additional_details
                 }
                 onChange={handleChange}
-                placeholder="Anything else that might help (optional)"
-                className="min-h-24"
+                placeholder="Anything else that might help..."
+                className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
               />
+            </div>
+          </section>
 
-            </CardContent>
-          </Card>
+          <section className="overflow-hidden rounded-[28px] bg-slate-950 p-6 text-white shadow-xl sm:p-7">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-violet-300">
+                  <Sparkles size={15} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                    Ready to generate
+                  </span>
+                </div>
 
-          <Button
-            type="submit"
-            size="lg"
-            disabled={loading}
-            className="h-12 w-full rounded-full bg-blue-600 text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-80"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight">
+                  Build the customer hypothesis.
+                </h2>
 
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
+                <p className="mt-2 max-w-xl text-sm leading-6 text-white/50">
+                  Plavtora will turn your inputs into an ICP, persona profile,
+                  and customer confidence signal.
+                </p>
+              </div>
 
-                Generating ICP...
-
-              </span>
-            ) : (
-              "Generate ICP"
-            )}
-          </Button>
-
+              <Button
+                type="submit"
+                size="lg"
+                disabled={loading}
+                className="h-13 shrink-0 rounded-xl bg-white px-6 font-bold text-slate-950 hover:bg-slate-100"
+              >
+                {loading ? (
+                  <>
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
+                    />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    Generate ICP
+                    <ArrowRight size={17} />
+                  </>
+                )}
+              </Button>
+            </div>
+          </section>
         </form>
       </div>
-
-      {/* ===========================================================
+/* ===========================================================
           SEO CONTENT — PART 1
-          =========================================================== */}
+          =========================================================== */
 
       <section className="mx-auto max-w-5xl px-6 py-24">
 
@@ -1401,11 +1285,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               What is a User Persona?
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 A user persona is a fictional representation of your ideal customer
@@ -1449,11 +1333,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Why User Personas Matter
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 According to multiple startup studies, one of the biggest reasons new
@@ -1471,52 +1355,52 @@ export default function PersonaPage() {
 
             <div className="mt-10 grid gap-6 md:grid-cols-2">
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Better Product Decisions
                 </h3>
 
-                <p className="mt-4 text-zinc-400">
+                <p className="mt-4 text-slate-600">
                   Build features your target users actually need instead of adding
                   functionality based on assumptions.
                 </p>
 
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Stronger Marketing
                 </h3>
 
-                <p className="mt-4 text-zinc-400">
+                <p className="mt-4 text-slate-600">
                   Write copy that directly addresses customer pain points,
                   motivations, and desired outcomes.
                 </p>
 
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Higher Conversion Rates
                 </h3>
 
-                <p className="mt-4 text-zinc-400">
+                <p className="mt-4 text-slate-600">
                   Landing pages perform better when they communicate with a clearly
                   defined audience.
                 </p>
 
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Faster Customer Validation
                 </h3>
 
-                <p className="mt-4 text-zinc-400">
+                <p className="mt-4 text-slate-600">
                   Know exactly who to interview, where to find them, and which
                   questions to ask during customer discovery.
                 </p>
@@ -1525,7 +1409,7 @@ export default function PersonaPage() {
 
             </div>
 
-            <div className="mt-10 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-10 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 User personas also help align entire teams. Designers create better
@@ -1546,11 +1430,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               AI User Persona Generator vs Manual Persona Creation
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 Traditionally, creating customer personas required interviewing users,
@@ -1570,19 +1454,19 @@ export default function PersonaPage() {
 
             </div>
 
-            <div className="mt-10 overflow-hidden rounded-2xl border border-zinc-800">
+            <div className="mt-10 overflow-hidden rounded-2xl border border-slate-200">
 
               <table className="w-full text-left">
 
-                <thead className="bg-zinc-900">
+                <thead className="bg-slate-50">
 
                   <tr>
 
-                    <th className="p-5 text-white">
+                    <th className="p-5 text-slate-950">
                       Manual Research
                     </th>
 
-                    <th className="p-5 text-white">
+                    <th className="p-5 text-slate-950">
                       AI Persona Generator
                     </th>
 
@@ -1590,9 +1474,9 @@ export default function PersonaPage() {
 
                 </thead>
 
-                <tbody className="text-zinc-400">
+                <tbody className="text-slate-600">
 
-                  <tr className="border-t border-zinc-800">
+                  <tr className="border-t border-slate-200">
 
                     <td className="p-5">
                       Several hours or days
@@ -1604,7 +1488,7 @@ export default function PersonaPage() {
 
                   </tr>
 
-                  <tr className="border-t border-zinc-800">
+                  <tr className="border-t border-slate-200">
 
                     <td className="p-5">
                       Starts from scratch
@@ -1616,7 +1500,7 @@ export default function PersonaPage() {
 
                   </tr>
 
-                  <tr className="border-t border-zinc-800">
+                  <tr className="border-t border-slate-200">
 
                     <td className="p-5">
                       Requires extensive research
@@ -1628,7 +1512,7 @@ export default function PersonaPage() {
 
                   </tr>
 
-                  <tr className="border-t border-zinc-800">
+                  <tr className="border-t border-slate-200">
 
                     <td className="p-5">
                       Manual documentation
@@ -1646,7 +1530,7 @@ export default function PersonaPage() {
 
             </div>
 
-            <p className="mt-8 text-lg leading-8 text-zinc-400">
+            <p className="mt-8 text-lg leading-8 text-slate-600">
               The most effective approach combines both methods: use AI to generate a
               detailed starting point, then validate and improve the persona through
               conversations with real customers. This saves time while keeping your
@@ -1659,11 +1543,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               How Our AI User Persona Generator Works
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 Creating a high-quality customer persona traditionally required interviews,
@@ -1715,18 +1599,18 @@ export default function PersonaPage() {
                 ([number, title, description]) => (
                   <div
                     key={number}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6"
+                    className="rounded-2xl border border-slate-200 bg-white p-6"
                   >
 
                     <div className="text-4xl font-bold text-blue-400">
                       {number}
                     </div>
 
-                    <h3 className="mt-4 text-xl font-semibold text-white">
+                    <h3 className="mt-4 text-xl font-semibold text-slate-950">
                       {title}
                     </h3>
 
-                    <p className="mt-3 text-zinc-400">
+                    <p className="mt-3 text-slate-600">
                       {description}
                     </p>
 
@@ -1740,11 +1624,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Who Should Use This AI User Persona Generator?
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 Understanding your audience is valuable regardless of your industry.
@@ -1777,14 +1661,14 @@ export default function PersonaPage() {
               ].map(([title, description]) => (
                 <div
                   key={title}
-                  className="rounded-xl border border-zinc-800 p-6"
+                  className="rounded-xl border border-slate-200 p-6"
                 >
 
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-slate-950">
                     {title}
                   </h3>
 
-                  <p className="mt-3 text-zinc-400">
+                  <p className="mt-3 text-slate-600">
                     {description}
                   </p>
 
@@ -1797,11 +1681,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Benefits of AI-Generated User Personas
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 AI cannot replace conversations with customers, but it can dramatically
@@ -1826,7 +1710,7 @@ export default function PersonaPage() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="rounded-xl border border-zinc-800 p-5"
+                  className="rounded-xl border border-slate-200 p-5"
                 >
                   ✓ {item}
                 </div>
@@ -1838,11 +1722,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Common Mistakes When Creating User Personas
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 A persona is only useful if it reflects reality. Many founders
@@ -1870,14 +1754,14 @@ export default function PersonaPage() {
               ].map(([title, description]) => (
                 <div
                   key={title}
-                  className="rounded-xl border border-red-900/40 bg-red-950/20 p-6"
+                  className="rounded-xl border border-red-100 bg-red-50 p-6"
                 >
 
-                  <h3 className="font-semibold text-white">
+                  <h3 className="font-semibold text-slate-950">
                     {title}
                   </h3>
 
-                  <p className="mt-3 text-zinc-400">
+                  <p className="mt-3 text-slate-600">
                     {description}
                   </p>
 
@@ -1890,11 +1774,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Example AI-Generated User Persona
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 To better understand what a complete customer persona looks like,
@@ -1906,54 +1790,54 @@ export default function PersonaPage() {
 
             </div>
 
-            <div className="mt-12 rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8">
+            <div className="mt-12 rounded-3xl border border-slate-200 bg-white p-8">
 
               <div className="grid gap-8 md:grid-cols-2">
 
                 <div>
 
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-2xl font-semibold text-slate-950">
                     Sarah Thompson
                   </h3>
 
-                  <p className="mt-3 text-zinc-400">
+                  <p className="mt-3 text-slate-600">
                     Marketing Manager at a B2B SaaS startup
                   </p>
 
                   <div className="mt-8 space-y-4">
 
                     <div>
-                      <h4 className="font-semibold text-white">
+                      <h4 className="font-semibold text-slate-950">
                         Age
                       </h4>
-                      <p className="text-zinc-400">
+                      <p className="text-slate-600">
                         31 years old
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-white">
+                      <h4 className="font-semibold text-slate-950">
                         Location
                       </h4>
-                      <p className="text-zinc-400">
+                      <p className="text-slate-600">
                         Austin, Texas
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-white">
+                      <h4 className="font-semibold text-slate-950">
                         Company Size
                       </h4>
-                      <p className="text-zinc-400">
+                      <p className="text-slate-600">
                         20–50 employees
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-white">
+                      <h4 className="font-semibold text-slate-950">
                         Technical Skills
                       </h4>
-                      <p className="text-zinc-400">
+                      <p className="text-slate-600">
                         Intermediate
                       </p>
                     </div>
@@ -1964,11 +1848,11 @@ export default function PersonaPage() {
 
                 <div>
 
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-2xl font-semibold text-slate-950">
                     Primary Goals
                   </h3>
 
-                  <ul className="mt-5 space-y-3 text-zinc-400">
+                  <ul className="mt-5 space-y-3 text-slate-600">
 
                     <li>• Generate more qualified leads</li>
                     <li>• Improve marketing ROI</li>
@@ -1978,11 +1862,11 @@ export default function PersonaPage() {
 
                   </ul>
 
-                  <h3 className="mt-10 text-2xl font-semibold text-white">
+                  <h3 className="mt-10 text-2xl font-semibold text-slate-950">
                     Biggest Pain Points
                   </h3>
 
-                  <ul className="mt-5 space-y-3 text-zinc-400">
+                  <ul className="mt-5 space-y-3 text-slate-600">
 
                     <li>• Small marketing budget</li>
                     <li>• Limited internal resources</li>
@@ -2000,11 +1884,11 @@ export default function PersonaPage() {
 
                 <div>
 
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-slate-950">
                     Buying Behaviour
                   </h3>
 
-                  <p className="mt-4 text-zinc-400">
+                  <p className="mt-4 text-slate-600">
                     Sarah researches extensively before purchasing software. She
                     compares competitors, reads customer reviews, watches YouTube
                     demonstrations, and usually signs up for a free trial before
@@ -2015,11 +1899,11 @@ export default function PersonaPage() {
 
                 <div>
 
-                  <h3 className="text-xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-slate-950">
                     Preferred Channels
                   </h3>
 
-                  <p className="mt-4 text-zinc-400">
+                  <p className="mt-4 text-slate-600">
                     LinkedIn, Reddit, Product Hunt, YouTube, newsletters, founder
                     communities, and Google Search.
                   </p>
@@ -2028,13 +1912,13 @@ export default function PersonaPage() {
 
               </div>
 
-              <div className="mt-10 rounded-2xl bg-zinc-950 p-6">
+              <div className="mt-10 rounded-2xl bg-slate-950 p-6">
 
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Messaging That Resonates
                 </h3>
 
-                <p className="mt-4 text-zinc-400 italic">
+                <p className="mt-4 text-slate-600 italic">
                   "Save time without sacrificing quality. Launch campaigns faster
                   while giving your team more time to focus on growth."
                 </p>
@@ -2047,11 +1931,11 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               How to Validate Your AI-Generated Persona
             </h2>
 
-            <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+            <div className="mt-8 space-y-6 text-lg leading-8 text-slate-600">
 
               <p>
                 AI is excellent at generating structured customer profiles, but the
@@ -2087,7 +1971,7 @@ export default function PersonaPage() {
 
           <section>
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Best Practices for Creating User Personas
             </h2>
 
@@ -2113,14 +1997,14 @@ export default function PersonaPage() {
               ].map(([title, description]) => (
                 <div
                   key={title}
-                  className="rounded-xl border border-zinc-800 p-6"
+                  className="rounded-xl border border-slate-200 p-6"
                 >
 
-                  <h3 className="font-semibold text-white">
+                  <h3 className="font-semibold text-slate-950">
                     {title}
                   </h3>
 
-                  <p className="mt-3 text-zinc-400">
+                  <p className="mt-3 text-slate-600">
                     {description}
                   </p>
 
@@ -2131,13 +2015,13 @@ export default function PersonaPage() {
 
           </section>
 
-          <section className="mt-24 rounded-3xl border border-blue-900/40 bg-gradient-to-r from-blue-950/30 to-indigo-950/30 p-10">
+          <section className="mt-24 rounded-3xl border border-violet-100 bg-gradient-to-r from-violet-50 to-blue-50 p-10">
 
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-slate-950">
               Build Better Products with Plavtora
             </h2>
 
-            <div className="mt-6 space-y-6 text-lg leading-8 text-zinc-300">
+            <div className="mt-6 space-y-6 text-lg leading-8 text-slate-700">
 
               <p>
                 A great user persona is only the beginning. Successful startups
@@ -2159,7 +2043,7 @@ export default function PersonaPage() {
 
           <section className="mt-24">
 
-            <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-slate-950">
               Frequently Asked Questions
             </h2>
 
@@ -2217,11 +2101,11 @@ export default function PersonaPage() {
               ].map(([question, answer]) => (
                 <div key={question}>
 
-                  <h3 className="text-2xl font-semibold text-white">
+                  <h3 className="text-2xl font-semibold text-slate-950">
                     {question}
                   </h3>
 
-                  <p className="mt-3 text-lg leading-8 text-zinc-400">
+                  <p className="mt-3 text-lg leading-8 text-slate-600">
                     {answer}
                   </p>
 

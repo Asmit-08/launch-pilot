@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Lock } from "lucide-react";
 import { ReactNode } from "react";
 
 interface ActionCardProps {
@@ -12,6 +12,7 @@ interface ActionCardProps {
   icon: ReactNode;
   disabled?: boolean;
   badge?: string;
+  premium?: boolean;
 }
 
 export default function ActionCard({
@@ -21,6 +22,7 @@ export default function ActionCard({
   icon,
   disabled = false,
   badge,
+  premium = false,
 }: ActionCardProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function ActionCard({
     router.push(href);
   };
 
-  const content = (
+  return (
     <div
       onClick={disabled ? undefined : handleNavigate}
       role={disabled ? undefined : "button"}
@@ -49,104 +51,84 @@ export default function ActionCard({
       }}
       aria-disabled={disabled || loading}
       className={`
-        group relative overflow-hidden rounded-3xl border
-        border-white/10 bg-white/5 p-6
-        backdrop-blur-xl
-        transition-all duration-300
+        group relative overflow-hidden rounded-2xl border
+        bg-white p-6 shadow-sm ring-1 ring-slate-100
+        transition-all duration-200
 
         ${
           disabled
             ? "cursor-not-allowed opacity-60"
             : loading
-              ? "cursor-wait border-blue-500/30 bg-white/[0.07] opacity-80"
-              : "cursor-pointer hover:-translate-y-1 hover:border-blue-500/40 hover:bg-white/[0.07] hover:shadow-2xl"
+              ? "cursor-wait border-blue-200"
+              : "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
         }
       `}
     >
-      {/* Glow */}
-      <div
-        className={`
-          absolute right-0 top-0 h-32 w-32
-          translate-x-10 -translate-y-10
-          rounded-full bg-blue-500/10 blur-3xl
-          transition-all duration-500
-          ${
-            !disabled && !loading
-              ? "group-hover:bg-blue-500/20"
-              : ""
-          }
-        `}
-      />
-
-      <div className="relative flex h-full flex-col">
-        {/* Icon */}
+      <div className="flex items-start justify-between">
         <div
           className={`
-            mb-6 flex h-14 w-14 items-center justify-center
-            rounded-2xl bg-gradient-to-br
-            from-blue-500 to-violet-600 text-white shadow-lg
-            transition-transform duration-300
+            flex h-12 w-12 items-center justify-center rounded-xl
             ${
-              loading
-                ? "scale-95"
-                : "group-hover:scale-[1.03]"
+              disabled
+                ? "bg-slate-100 text-slate-400"
+                : "bg-slate-950 text-white"
             }
           `}
         >
           {loading ? (
-            <Loader2
-              size={24}
-              className="animate-spin"
-            />
+            <Loader2 size={21} className="animate-spin" />
           ) : (
             icon
           )}
         </div>
 
-        {/* Badge */}
-        {badge && (
-          <span className="mb-3 w-fit rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300">
-            {badge}
+        {premium && (
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+            Premium
           </span>
         )}
 
-        {/* Title */}
-        <h3 className="text-xl font-semibold text-white">
-          {title}
-        </h3>
-
-        {/* Description */}
-        <p className="mt-3 flex-1 leading-7 text-gray-400">
-          {description}
-        </p>
-
-        {/* Bottom */}
-        <div className="mt-8 flex items-center justify-between">
-          <span
-            className={`text-sm font-medium ${
-              loading
-                ? "text-blue-300"
-                : "text-blue-400"
-            }`}
-          >
-            {loading ? "Opening..." : "Open"}
+        {badge && !premium && (
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            {badge}
           </span>
+        )}
+      </div>
 
-          {loading ? (
-            <Loader2
-              size={18}
-              className="animate-spin text-blue-300"
-            />
-          ) : (
-            <ArrowRight
-              className="transition-transform duration-300 group-hover:translate-x-1"
-              size={18}
-            />
-          )}
-        </div>
+      <h3 className="mt-6 text-lg font-bold text-slate-950">
+        {title}
+      </h3>
+
+      <p className="mt-2 min-h-[56px] text-sm leading-6 text-slate-500">
+        {description}
+      </p>
+
+      <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
+        <span
+          className={`text-sm font-semibold ${
+            disabled ? "text-slate-400" : "text-slate-900"
+          }`}
+        >
+          {loading
+            ? "Opening..."
+            : disabled
+              ? "Coming soon"
+              : premium
+                ? "Unlock"
+                : "Open"}
+        </span>
+
+        {disabled ? (
+          <Lock size={16} className="text-slate-400" />
+        ) : loading ? (
+          <Loader2 size={17} className="animate-spin text-blue-600" />
+        ) : (
+          <ArrowRight
+            size={17}
+            className="text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-900"
+          />
+        )}
       </div>
     </div>
   );
-
-  return content;
 }

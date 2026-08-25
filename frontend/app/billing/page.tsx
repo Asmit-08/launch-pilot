@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Check,
+  ShieldCheck,
+  Sparkles,
+  Loader2,
+  Zap,
+} from "lucide-react";
+
 import { supabase } from "@/lib/supabase";
 
 const freeFeatures = [
@@ -58,21 +67,29 @@ export default function BillingPage() {
         const apiBaseUrl =
           "https://launch-pilot-backend.onrender.com";
 
-        const response = await fetch(`${apiBaseUrl}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        const response = await fetch(
+          `${apiBaseUrl}/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
 
           if (mounted) {
-            setIsPremium(data?.subscription === "premium");
+            setIsPremium(
+              data?.subscription === "premium"
+            );
           }
         }
       } catch (err) {
-        console.error("Failed to load billing state:", err);
+        console.error(
+          "Failed to load billing state:",
+          err
+        );
       } finally {
         if (mounted) {
           setLoading(false);
@@ -121,7 +138,8 @@ export default function BillingPage() {
 
       if (!response.ok) {
         throw new Error(
-          data?.detail || "Unable to start Premium checkout."
+          data?.detail ||
+            "Unable to start Premium checkout."
         );
       }
 
@@ -133,7 +151,10 @@ export default function BillingPage() {
 
       window.location.href = data.checkout_url;
     } catch (err) {
-      console.error("Upgrade flow failed:", err);
+      console.error(
+        "Upgrade flow failed:",
+        err
+      );
 
       setError(
         err instanceof Error
@@ -146,355 +167,446 @@ export default function BillingPage() {
   }
 
   if (loading) {
-    return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] text-white">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-violet-600/[0.06] blur-[150px]" />
-        </div>
-
-        <div className="relative flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-violet-400" />
-
-          <p className="text-sm text-zinc-500">
-            Loading your plan...
-          </p>
-        </div>
-      </main>
-    );
+    return <BillingLoader />;
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[-15%] top-[-15%] h-[700px] w-[700px] rounded-full bg-blue-600/[0.07] blur-[160px]" />
+    <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+      {/* Background */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-[-180px] top-[-180px] h-[550px] w-[550px] rounded-full bg-violet-100/60 blur-[140px]" />
 
-        <div className="absolute right-[-15%] top-[5%] h-[700px] w-[700px] rounded-full bg-violet-600/[0.08] blur-[170px]" />
-
-        <div className="absolute bottom-[-20%] left-[25%] h-[600px] w-[600px] rounded-full bg-fuchsia-500/[0.04] blur-[160px]" />
-
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:56px_56px]" />
+        <div className="absolute right-[-180px] top-[5%] h-[600px] w-[600px] rounded-full bg-blue-100/50 blur-[150px]" />
       </div>
 
-      <header className="relative z-10 border-b border-white/[0.06] bg-black/30 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
           <button
-            onClick={() => router.push("/")}
+            type="button"
+            onClick={() => router.push("/dashboard")}
             className="flex items-center gap-3"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-violet-400/15 bg-violet-400/[0.06] text-violet-300">
-              P
-            </div>
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-9 w-9 rounded-xl"
+            />
 
-            <span className="text-lg font-semibold tracking-tight">
-              Plavtora
-            </span>
+            <div className="text-left">
+              <p className="text-[17px] font-bold tracking-tight text-slate-950">
+                Plavtora
+              </p>
+
+              <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
+                Startup decision intelligence
+              </p>
+            </div>
           </button>
 
           <button
+            type="button"
             onClick={() => router.push("/dashboard")}
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-white"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           >
             Back to Dashboard
           </button>
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/[0.07] px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-violet-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
+      <div className="relative z-10 mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20">
+        {/* Hero */}
+        <section className="mx-auto max-w-3xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">
+            <Sparkles size={13} />
             Plavtora Premium
           </div>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">
-            Make better startup decisions
-            <span className="block text-zinc-500">
-              with deeper intelligence.
+          <h1 className="mt-6 text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
+            Get more than a signal.
+            <span className="block text-slate-400">
+              Get a deeper diagnosis.
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500 sm:text-lg">
-            Premium gives you significantly more analysis capacity and
-            unlocks deeper intelligence so you can move from basic signals
-            to sharper diagnosis, stronger recommendations, and clearer
-            next moves.
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            Free gives you a real starting point. Premium gives you
+            significantly more analysis capacity and deeper intelligence
+            when you're ready to keep working on the problem.
           </p>
-        </div>
+        </section>
 
+        {/* Existing premium state */}
         {isPremium && (
-          <div className="mx-auto mt-10 flex max-w-xl items-center justify-center gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.05] px-5 py-4 text-center text-sm text-emerald-300">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/[0.1] text-xs">
-              ✓
+          <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-center text-sm font-medium text-emerald-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white">
+              <Check size={15} />
             </span>
 
-            You already have Plavtora Premium access.
+            You already have active Plavtora Premium access.
           </div>
         )}
 
-        <div className="mx-auto mt-14 grid max-w-5xl gap-5 lg:grid-cols-2">
-          {/* =====================================================
-              FREE
-          ===================================================== */}
-
-          <section className="relative rounded-[30px] border border-white/[0.08] bg-white/[0.02] p-7 sm:p-9">
-            <div className="flex items-start justify-between gap-5">
+        {/* Pricing */}
+        <section className="mx-auto mt-12 grid max-w-5xl gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          {/* Free */}
+          <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Free
                 </p>
 
-                <h2 className="mt-3 text-2xl font-semibold">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
                   Get the signal
                 </h2>
               </div>
 
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 $0
               </span>
             </div>
 
             <div className="mt-8 flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight">
+              <span className="text-5xl font-bold tracking-[-0.05em]">
                 $0
               </span>
 
-              <span className="text-sm text-zinc-600">
-                / forever
+              <span className="text-sm text-slate-400">
+                forever
               </span>
             </div>
 
-            <p className="mt-4 max-w-md text-sm leading-6 text-zinc-500">
-              Start with genuinely useful analysis and understand where your
-              startup stands without paying anything.
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              A genuinely useful starting plan. Understand your startup,
+              test Plavtora, and see whether deeper analysis is worth it.
             </p>
 
-            <div className="my-8 h-px bg-white/[0.06]" />
-
-            <div>
-              <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">
-                Monthly usage
+            <div className="mt-8 border-t border-slate-100 pt-7">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Included
               </p>
 
-              <div className="space-y-4">
+              <div className="mt-5 space-y-3">
                 {freeFeatures.map((feature) => (
-                  <div
+                  <FeatureItem
                     key={feature}
-                    className="flex items-start gap-3 text-sm text-zinc-400"
-                  >
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[10px] text-zinc-500">
-                      ✓
-                    </span>
-
-                    <span>{feature}</span>
-                  </div>
+                    text={feature}
+                    premium={false}
+                  />
                 ))}
               </div>
             </div>
 
             <button
+              type="button"
               onClick={() => router.push("/dashboard")}
-              className="mt-10 h-12 w-full rounded-xl border border-white/10 bg-white/[0.02] text-sm font-semibold text-zinc-300 transition hover:bg-white/[0.05] hover:text-white"
+              className="mt-9 h-12 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
             >
               Continue with Free
             </button>
-          </section>
+          </div>
 
-          {/* =====================================================
-              PREMIUM
-          ===================================================== */}
+          {/* Premium */}
+          <div className="relative">
+            <div className="absolute -inset-px rounded-[29px] bg-gradient-to-br from-violet-300 via-blue-200 to-transparent" />
 
-          <section className="relative">
-            <div className="absolute -inset-[1px] rounded-[31px] bg-gradient-to-br from-violet-400/45 via-blue-400/15 to-transparent blur-[1px]" />
-
-            <div className="relative h-full overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#09090d] p-7 shadow-[0_30px_120px_rgba(139,92,246,0.14)] sm:p-9">
-              <div className="pointer-events-none absolute right-[-100px] top-[-120px] h-[350px] w-[350px] rounded-full bg-violet-500/[0.08] blur-[100px]" />
+            <div className="relative h-full overflow-hidden rounded-[28px] border border-violet-200 bg-white p-7 shadow-[0_25px_80px_rgba(99,102,241,0.12)] sm:p-8">
+              <div className="absolute right-[-100px] top-[-100px] h-72 w-72 rounded-full bg-violet-100/80 blur-3xl" />
 
               <div className="relative">
-                <div className="flex items-start justify-between gap-5">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/[0.08] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-violet-300">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
+                    <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-violet-700">
+                      <Zap size={12} />
                       For serious builders
                     </div>
 
-                    <h2 className="mt-4 text-2xl font-semibold">
+                    <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-950">
                       Plavtora Premium
                     </h2>
                   </div>
 
-                  <span className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1.5 text-[10px] font-medium text-emerald-300">
-                    Higher limits
+                  <span className="hidden rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 sm:block">
+                    Best value
                   </span>
                 </div>
 
                 <div className="mt-8 flex items-end gap-2">
-                  <span className="text-5xl font-semibold tracking-tight">
+                  <span className="text-5xl font-bold tracking-[-0.05em] text-slate-950">
                     $8.99
                   </span>
 
-                  <span className="pb-1 text-sm text-zinc-500">
+                  <span className="pb-1 text-sm text-slate-400">
                     / month
                   </span>
                 </div>
 
-                <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
-                  Go beyond surface-level answers. Get substantially more
-                  usage plus the deeper analysis, explanations, and
-                  recommendations needed to make stronger startup decisions.
+                <p className="mt-4 max-w-lg text-sm leading-6 text-slate-600">
+                  More capacity and deeper intelligence for founders who
+                  want to repeatedly analyze, challenge, and improve their
+                  startup.
                 </p>
 
-                <div className="my-8 h-px bg-white/[0.07]" />
+                {/* Main value strip */}
+                <div className="mt-7 grid gap-2 sm:grid-cols-3">
+                  <ValueBlock
+                    value="20"
+                    label="Launch audits"
+                  />
 
-                <div>
-                  <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300">
-                    Monthly usage
+                  <ValueBlock
+                    value="100"
+                    label="AI messages"
+                  />
+
+                  <ValueBlock
+                    value="20"
+                    label="Landing analyses"
+                  />
+                </div>
+
+                <div className="mt-7 border-t border-slate-100 pt-7">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                    Everything you get
                   </p>
 
-                  <div className="space-y-4">
+                  <div className="mt-5 space-y-3">
                     {premiumFeatures.map((feature) => (
-                      <div
+                      <FeatureItem
                         key={feature}
-                        className="flex items-start gap-3 text-sm text-zinc-300"
-                      >
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/[0.1] text-[10px] text-violet-300">
-                          ✓
-                        </span>
-
-                        <span>{feature}</span>
-                      </div>
+                        text={feature}
+                        premium
+                      />
                     ))}
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleUpgrade}
-                  disabled={isPremium || checkoutLoading}
-                  className="mt-10 h-13 w-full rounded-xl bg-white px-6 text-sm font-semibold text-black shadow-[0_0_45px_rgba(139,92,246,0.15)] transition hover:-translate-y-0.5 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={
+                    isPremium || checkoutLoading
+                  }
+                  className="mt-9 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 text-sm font-bold text-white shadow-[0_12px_30px_rgba(15,23,42,0.15)] transition hover:-translate-y-0.5 hover:bg-violet-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isPremium
-                    ? "Premium Active"
-                    : checkoutLoading
-                      ? "Preparing checkout..."
-                      : "Upgrade to Premium"}
+                  {isPremium ? (
+                    "Premium Active"
+                  ) : checkoutLoading ? (
+                    <>
+                      <Loader2
+                        size={17}
+                        className="animate-spin"
+                      />
+                      Preparing checkout...
+                    </>
+                  ) : (
+                    <>
+                      Upgrade to Premium
+                      <ArrowRight size={17} />
+                    </>
+                  )}
                 </button>
 
                 {error && (
-                  <p className="mt-4 rounded-xl border border-amber-400/15 bg-amber-400/[0.05] px-4 py-3 text-center text-xs leading-5 text-amber-300">
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs leading-5 text-red-600">
                     {error}
-                  </p>
+                  </div>
                 )}
 
-                <p className="mt-4 text-center text-[10px] text-zinc-700">
-                  Monthly subscription · Usage limits reset each month.
-                </p>
+                <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                  <ShieldCheck size={13} />
+                  Monthly subscription · Limits reset monthly
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
-
-        {/* =====================================================
-            COMPARISON / POSITIONING
-        ===================================================== */}
-
-        <section className="mx-auto mt-16 max-w-5xl rounded-[28px] border border-white/[0.07] bg-white/[0.018] p-7 sm:p-9">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                Free
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Get real startup analysis with defined monthly limits. Enough
-                to understand your product, test the workflow, and decide
-                whether deeper analysis is useful.
-              </p>
-            </div>
-
-            <div className="hidden h-auto w-px bg-white/[0.06] md:block" />
-
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300">
-                Premium
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Get substantially higher monthly limits plus deeper ICP,
-                conversion, risk, recommendation, and AI decision-support
-                capabilities.
-              </p>
-            </div>
-
-            <div className="hidden h-auto w-px bg-white/[0.06] md:block" />
-
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                Philosophy
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-zinc-400">
-                Free gives real value. Premium gives more capacity and more
-                depth—not artificial censorship. Both plans have defined
-                usage limits.
-              </p>
             </div>
           </div>
         </section>
 
-        {/* =====================================================
-            LIMIT SUMMARY
-        ===================================================== */}
-
-        <section className="mx-auto mt-8 max-w-5xl">
-          <div className="rounded-[28px] border border-white/[0.07] bg-white/[0.018] p-7 sm:p-9">
+        {/* Decision section */}
+        <section className="mx-auto mt-12 max-w-5xl">
+          <div className="rounded-[26px] border border-slate-200 bg-white p-7 shadow-sm sm:p-9">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                Monthly usage at a glance
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                The difference
               </p>
 
-              <h3 className="mt-3 text-xl font-semibold">
-                More room to analyze, iterate, and decide
+              <h3 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
+                Free helps you diagnose.
+                Premium helps you keep going.
+              </h3>
+
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                Premium isn't about hiding the useful part behind a paywall.
+                It gives you substantially more room to run the workflow
+                repeatedly and access deeper decision support.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <DecisionCard
+                number="01"
+                title="Test"
+                description="Use the free plan to understand your startup and see whether Plavtora finds useful problems."
+              />
+
+              <DecisionCard
+                number="02"
+                title="Go deeper"
+                description="Premium gives you much higher limits and deeper analysis when you need more than a first pass."
+              />
+
+              <DecisionCard
+                number="03"
+                title="Iterate"
+                description="Keep auditing, questioning assumptions, and improving instead of stopping after a single pass."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Comparison */}
+        <section className="mx-auto mt-8 max-w-5xl">
+          <div className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-7 py-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Monthly limits
+              </p>
+
+              <h3 className="mt-2 text-xl font-bold text-slate-950">
+                More room to analyze, iterate, and decide.
               </h3>
             </div>
 
-            <div className="mt-8 overflow-hidden rounded-2xl border border-white/[0.06]">
-              <div className="grid grid-cols-3 border-b border-white/[0.06] bg-white/[0.025] px-5 py-4 text-xs font-medium uppercase tracking-[0.12em] text-zinc-500">
-                <span>Capability</span>
-                <span className="text-center">Free</span>
-                <span className="text-center text-violet-300">
-                  Premium
-                </span>
-              </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[560px]">
+                <div className="grid grid-cols-3 border-b border-slate-100 bg-slate-50 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                  <span>Capability</span>
 
-              <div className="divide-y divide-white/[0.06]">
-                <LimitRow
-                  label="Launch Audits"
-                  free="3 / month"
-                  premium="20 / month"
-                />
+                  <span className="text-center">
+                    Free
+                  </span>
 
-                <LimitRow
-                  label="AI Co-Founder messages"
-                  free="3 / month"
-                  premium="100 / month"
-                />
+                  <span className="text-center text-violet-600">
+                    Premium
+                  </span>
+                </div>
 
-                <LimitRow
-                  label="ICP / Persona analyses"
-                  free="2 / month"
-                  premium="20 / month"
-                />
+                <div className="divide-y divide-slate-100">
+                  <LimitRow
+                    label="Launch Audits"
+                    free="3 / month"
+                    premium="20 / month"
+                  />
 
-                <LimitRow
-                  label="Landing Page Analyses"
-                  free="2 / month"
-                  premium="20 / month"
-                />
+                  <LimitRow
+                    label="AI Co-Founder messages"
+                    free="3 / month"
+                    premium="100 / month"
+                  />
+
+                  <LimitRow
+                    label="ICP / Persona analyses"
+                    free="2 / month"
+                    premium="20 / month"
+                  />
+
+                  <LimitRow
+                    label="Landing Page Analyses"
+                    free="2 / month"
+                    premium="20 / month"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Bottom trust */}
+        <div className="mx-auto mt-8 flex max-w-2xl items-center justify-center gap-2 text-center text-xs text-slate-400">
+          <ShieldCheck size={15} />
+          Secure checkout · Cancel according to your subscription terms
+        </div>
       </div>
     </main>
+  );
+}
+
+function FeatureItem({
+  text,
+  premium,
+}: {
+  text: string;
+  premium: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+          premium
+            ? "bg-violet-50 text-violet-700"
+            : "bg-slate-100 text-slate-500"
+        }`}
+      >
+        <Check size={12} strokeWidth={3} />
+      </span>
+
+      <span
+        className={`text-sm leading-6 ${
+          premium
+            ? "text-slate-700"
+            : "text-slate-600"
+        }`}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
+
+function ValueBlock({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+      <p className="text-2xl font-bold tracking-tight text-slate-950">
+        {value}
+      </p>
+
+      <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-700">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function DecisionCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <span className="text-[10px] font-bold tracking-[0.16em] text-violet-600">
+        {number}
+      </span>
+
+      <h4 className="mt-4 font-bold text-slate-950">
+        {title}
+      </h4>
+
+      <p className="mt-2 text-sm leading-6 text-slate-500">
+        {description}
+      </p>
+    </div>
   );
 }
 
@@ -508,18 +620,37 @@ function LimitRow({
   premium: string;
 }) {
   return (
-    <div className="grid grid-cols-3 items-center px-5 py-4 text-sm">
-      <span className="text-zinc-400">
+    <div className="grid grid-cols-3 items-center px-6 py-4 text-sm">
+      <span className="font-medium text-slate-600">
         {label}
       </span>
 
-      <span className="text-center text-zinc-500">
+      <span className="text-center text-slate-400">
         {free}
       </span>
 
-      <span className="text-center font-medium text-violet-300">
+      <span className="text-center font-bold text-violet-700">
         {premium}
       </span>
     </div>
+  );
+}
+
+function BillingLoader() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950">
+          <Loader2
+            size={20}
+            className="animate-spin text-white"
+          />
+        </div>
+
+        <p className="text-sm font-medium text-slate-500">
+          Loading your plan...
+        </p>
+      </div>
+    </main>
   );
 }

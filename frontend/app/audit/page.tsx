@@ -1,27 +1,70 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  ArrowRight,
+  Check,
+  ChevronRight,
+  CircleHelp,
+  Loader2,
+  LockKeyhole,
+  Sparkles,
+  Target,
+  TriangleAlert,
+  WalletCards,
+  Wrench,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+
+interface FormData {
+  product_name: string;
+  one_line_pitch: string;
+  description: string;
+
+  target_audience: string;
+  competitors: string;
+  unique_value_proposition: string;
+
+  beta_users: number;
+  feedback_collected: boolean;
+
+  mvp_completed: boolean;
+  critical_bugs: boolean;
+
+  landing_page: boolean;
+  demo_video: boolean;
+  social_media_presence: boolean;
+
+  waitlist: boolean;
+  launch_channels: string;
+
+  budget: number;
+  currency: string;
+  pricing_model: string;
+}
+
+interface SectionProps {
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}
 
 function AuditStage({
-  icon,
+  number,
   title,
   active,
   complete,
 }: {
-  icon: string;
+  number: string;
   title: string;
   active: boolean;
   complete: boolean;
@@ -29,61 +72,53 @@ function AuditStage({
   return (
     <div
       className={`
-        group flex items-center gap-4 rounded-xl px-4 py-3
-        transition-all duration-700
+        flex items-center gap-3 rounded-xl border px-3.5 py-3
+        transition-all duration-300
         ${
           active
-            ? "bg-white/[0.07] shadow-[0_0_30px_rgba(139,92,246,0.08)]"
+            ? "border-slate-900 bg-slate-900 text-white shadow-sm"
             : complete
-              ? "opacity-60"
-              : "opacity-25"
+              ? "border-emerald-100 bg-emerald-50"
+              : "border-slate-200 bg-white"
         }
       `}
     >
       <div
         className={`
-          flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
-          text-sm transition-all duration-700
+          flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold
           ${
             active
-              ? "bg-violet-500/15 ring-1 ring-violet-400/20"
+              ? "bg-white/10 text-white"
               : complete
-                ? "bg-emerald-500/10"
-                : "bg-white/[0.03]"
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-slate-100 text-slate-400"
           }
         `}
       >
-        {complete ? "✓" : icon}
+        {complete ? <Check size={15} /> : number}
       </div>
 
-      <div className="flex-1">
-        <p
-          className={`
-            text-sm font-medium transition-colors duration-500
-            ${
-              active
-                ? "text-white"
-                : complete
-                  ? "text-zinc-400"
-                  : "text-zinc-600"
-            }
-          `}
-        >
-          {title}
-        </p>
-      </div>
+      <p
+        className={`flex-1 text-sm font-medium ${
+          active
+            ? "text-white"
+            : complete
+              ? "text-emerald-800"
+              : "text-slate-500"
+        }`}
+      >
+        {title}
+      </p>
 
       {active && (
         <div className="flex gap-1">
-          <span className="h-1 w-1 animate-pulse rounded-full bg-violet-400" />
-
+          <span className="h-1 w-1 animate-pulse rounded-full bg-white" />
           <span
-            className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
+            className="h-1 w-1 animate-pulse rounded-full bg-white"
             style={{ animationDelay: "150ms" }}
           />
-
           <span
-            className="h-1 w-1 animate-pulse rounded-full bg-violet-400"
+            className="h-1 w-1 animate-pulse rounded-full bg-white"
             style={{ animationDelay: "300ms" }}
           />
         </div>
@@ -92,6 +127,139 @@ function AuditStage({
   );
 }
 
+function Section({
+  eyebrow,
+  title,
+  description,
+  icon,
+  children,
+}: SectionProps) {
+  return (
+    <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-6 py-5 sm:px-7">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+            {icon}
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              {eyebrow}
+            </p>
+
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-950">
+              {title}
+            </h2>
+
+            <p className="mt-1.5 text-sm leading-6 text-slate-500">
+              {description}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-5 px-6 py-6 sm:px-7 sm:py-7">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <Label className="text-sm font-semibold text-slate-800">
+          {label}
+        </Label>
+
+        {hint && (
+          <span className="text-[10px] text-slate-400">
+            {hint}
+          </span>
+        )}
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+function ToggleField({
+  checked,
+  onChange,
+  title,
+  description,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  title: string;
+  description: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition ${
+        checked
+          ? "border-blue-200 bg-blue-50"
+          : "border-slate-200 bg-slate-50 hover:bg-white"
+      }`}
+    >
+      <span
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+          checked
+            ? "border-blue-600 bg-blue-600 text-white"
+            : "border-slate-300 bg-white text-transparent"
+        }`}
+      >
+        <Check size={12} strokeWidth={3} />
+      </span>
+
+      <span>
+        <span className="block text-sm font-semibold text-slate-800">
+          {title}
+        </span>
+
+        <span className="mt-1 block text-xs leading-5 text-slate-500">
+          {description}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+const loadingStages = [
+  {
+    title: "Understanding your startup",
+    description: "Mapping the product, market, and core promise.",
+  },
+  {
+    title: "Evaluating validation",
+    description: "Checking evidence, traction, and customer signals.",
+  },
+  {
+    title: "Assessing launch readiness",
+    description: "Looking for gaps that could slow the launch.",
+  },
+  {
+    title: "Stress-testing risks",
+    description: "Surfacing business, product, and distribution risks.",
+  },
+  {
+    title: "Synthesizing your audit",
+    description: "Turning the analysis into priorities and next moves.",
+  },
+];
+
 export default function AuditPage() {
   const router = useRouter();
 
@@ -99,9 +267,6 @@ export default function AuditPage() {
   const [loadingStage, setLoadingStage] = useState(0);
   const [error, setError] = useState("");
 
-  /*
-   * Usage limit state
-   */
   const [limitReached, setLimitReached] = useState(false);
   const [limitInfo, setLimitInfo] = useState<{
     plan: string;
@@ -110,7 +275,7 @@ export default function AuditPage() {
     limit: number;
   } | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     product_name: "",
     one_line_pitch: "",
     description: "",
@@ -137,29 +302,6 @@ export default function AuditPage() {
     pricing_model: "",
   });
 
-  const loadingStages = [
-    {
-      icon: "🧠",
-      title: "Understanding your startup",
-    },
-    {
-      icon: "📊",
-      title: "Evaluating validation",
-    },
-    {
-      icon: "🚀",
-      title: "Assessing launch readiness",
-    },
-    {
-      icon: "⚠️",
-      title: "Stress-testing risks",
-    },
-    {
-      icon: "✦",
-      title: "Synthesizing your audit",
-    },
-  ];
-
   useEffect(() => {
     if (!loading) {
       setLoadingStage(0);
@@ -173,12 +315,29 @@ export default function AuditPage() {
       setTimeout(() => setLoadingStage(4), 5000),
     ];
 
-    return () => {
-      timers.forEach(clearTimeout);
-    };
+    return () => timers.forEach(clearTimeout);
   }, [loading]);
 
-  const handleChange = (
+  const completion = useMemo(() => {
+    const checks = [
+      Boolean(formData.product_name.trim()),
+      Boolean(formData.one_line_pitch.trim()),
+      Boolean(formData.description.trim()),
+      Boolean(formData.target_audience.trim()),
+      Boolean(formData.unique_value_proposition.trim()),
+      formData.beta_users > 0,
+      formData.feedback_collected,
+      formData.mvp_completed,
+      Boolean(formData.pricing_model.trim()),
+      Boolean(formData.launch_channels.trim()),
+    ];
+
+    const completed = checks.filter(Boolean).length;
+
+    return Math.round((completed / checks.length) * 100);
+  }, [formData]);
+
+  const handleTextChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
@@ -186,11 +345,16 @@ export default function AuditPage() {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        type === "checkbox"
-          ? (e.target as HTMLInputElement).checked
-          : type === "number"
-            ? Number(value)
-            : value,
+        type === "number"
+          ? Number(value)
+          : value,
+    }));
+  };
+
+  const toggleField = (name: keyof FormData) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: !prev[name],
     }));
   };
 
@@ -201,9 +365,6 @@ export default function AuditPage() {
 
     if (loading) return;
 
-    /*
-     * Reset previous states
-     */
     setLoading(true);
     setLoadingStage(0);
     setError("");
@@ -211,9 +372,6 @@ export default function AuditPage() {
     setLimitInfo(null);
 
     try {
-      /*
-       * Prepare payload
-       */
       const payload = {
         ...formData,
 
@@ -228,9 +386,6 @@ export default function AuditPage() {
           .filter(Boolean),
       };
 
-      /*
-       * Authentication
-       */
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -240,9 +395,6 @@ export default function AuditPage() {
         return;
       }
 
-      /*
-       * Backend URL
-       */
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       if (!apiUrl) {
@@ -251,28 +403,14 @@ export default function AuditPage() {
         );
       }
 
-      /*
-       * ONE backend request.
-       *
-       * The backend checks the usage limit BEFORE
-       * generating the audit.
-       */
       const response = await fetch(`${apiUrl}/audit`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-
         body: JSON.stringify(payload),
       });
-
-      /*
-       * ----------------------------------------------------
-       * USAGE LIMIT HANDLING
-       * ----------------------------------------------------
-       */
 
       if (response.status === 429) {
         let errorData: any = null;
@@ -280,7 +418,7 @@ export default function AuditPage() {
         try {
           errorData = await response.json();
         } catch {
-          // Ignore malformed error response.
+          // Keep fallback.
         }
 
         const detail = errorData?.detail;
@@ -300,7 +438,6 @@ export default function AuditPage() {
           });
 
           setLoading(false);
-
           return;
         }
 
@@ -309,23 +446,23 @@ export default function AuditPage() {
         );
       }
 
-      /*
-       * ----------------------------------------------------
-       * OTHER BACKEND ERRORS
-       * ----------------------------------------------------
-       */
-
       if (!response.ok) {
-        let errorMessage = "Failed to generate audit.";
+        let errorMessage =
+          "Failed to generate audit.";
 
         try {
           const errorData = await response.json();
 
           if (errorData?.detail) {
-            if (typeof errorData.detail === "string") {
-              errorMessage = errorData.detail;
+            if (
+              typeof errorData.detail ===
+              "string"
+            ) {
+              errorMessage =
+                errorData.detail;
             } else if (
-              typeof errorData.detail === "object" &&
+              typeof errorData.detail ===
+                "object" &&
               errorData.detail.error
             ) {
               errorMessage =
@@ -336,17 +473,11 @@ export default function AuditPage() {
             errorMessage = errorData.error;
           }
         } catch {
-          // Keep default error message.
+          // Keep default.
         }
 
         throw new Error(errorMessage);
       }
-
-      /*
-       * ----------------------------------------------------
-       * SUCCESS
-       * ----------------------------------------------------
-       */
 
       const result = await response.json();
 
@@ -356,22 +487,11 @@ export default function AuditPage() {
         );
       }
 
-      /*
-       * Backend persists the audit.
-       *
-       * Report page retrieves:
-       *
-       * /projects/{project_id}/audits/{audit_id}
-       */
-
       router.push(
         `/projects/${result.project_id}/audits/${result.audit_id}`
       );
     } catch (error) {
-      console.error(
-        "Audit generation error:",
-        error
-      );
+      console.error("Audit generation error:", error);
 
       setError(
         error instanceof Error
@@ -383,68 +503,52 @@ export default function AuditPage() {
     }
   };
 
-  /*
-   * ----------------------------------------------------
-   * USAGE LIMIT SCREEN
-   * ----------------------------------------------------
-   */
-
   if (limitReached) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 text-white">
-        {/* Ambient background */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.08] blur-[150px]" />
-
-          <div className="absolute left-[10%] top-[20%] h-40 w-40 rounded-full bg-blue-500/[0.04] blur-[80px]" />
-
-          <div className="absolute bottom-[10%] right-[15%] h-48 w-48 rounded-full bg-violet-500/[0.04] blur-[90px]" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-lg">
-          <div className="rounded-3xl border border-violet-400/20 bg-white/[0.035] p-8 shadow-2xl backdrop-blur-xl">
-            {/* Icon */}
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10">
-              <span className="text-3xl">✦</span>
+      <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 text-slate-950 sm:px-6">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-xl items-center justify-center">
+          <div className="w-full rounded-[30px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-9">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <LockKeyhole size={25} />
             </div>
 
-            {/* Heading */}
             <div className="mt-6 text-center">
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-violet-300">
-                Free Plan Limit Reached
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                Monthly limit reached
               </p>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-tight">
-                You've used all your audits
+              <h1 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
+                You've used all your audits.
               </h1>
 
-              <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-zinc-400">
-                You've reached your monthly Launch Audit
-                limit. Upgrade to Premium to continue
-                pressure-testing your startup.
+              <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-500">
+                Your current plan has no audit capacity left this month.
+                Upgrade to continue pressure-testing your startup.
               </p>
             </div>
 
-            {/* Usage */}
             {limitInfo && (
-              <div className="mt-7 rounded-2xl border border-white/[0.08] bg-black/20 p-5">
+              <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">
+                  <span className="text-sm font-medium text-slate-600">
                     Launch Audits
                   </span>
 
-                  <span className="text-sm font-semibold text-white">
+                  <span className="text-sm font-bold text-slate-950">
                     {limitInfo.used}/{limitInfo.limit}
                   </span>
                 </div>
 
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-blue-500"
+                    className="h-full rounded-full bg-violet-600"
                     style={{
                       width: `${Math.min(
                         (limitInfo.used /
-                          Math.max(limitInfo.limit, 1)) *
+                          Math.max(
+                            limitInfo.limit,
+                            1
+                          )) *
                           100,
                         100
                       )}%`,
@@ -452,51 +556,45 @@ export default function AuditPage() {
                   />
                 </div>
 
-                <p className="mt-3 text-xs text-zinc-600">
-                  Your {limitInfo.plan} plan limit has been
-                  reached.
+                <p className="mt-3 text-xs text-slate-400">
+                  {limitInfo.plan} plan
                 </p>
               </div>
             )}
 
-            {/* Premium benefits */}
-            <div className="mt-6 rounded-2xl border border-violet-400/10 bg-violet-500/[0.04] p-5">
-              <p className="text-sm font-semibold text-violet-200">
-                Premium gives you more room to validate.
+            <div className="mt-6 rounded-2xl border border-violet-100 bg-violet-50 p-5">
+              <p className="font-semibold text-slate-900">
+                Premium gives you room to keep iterating.
               </p>
 
-              <div className="mt-4 space-y-3 text-sm text-zinc-400">
-                <div className="flex items-center gap-3">
-                  <span className="text-emerald-400">✓</span>
-                  <span>
-                    Up to 20 Launch Audits per month
-                  </span>
-                </div>
+              <div className="mt-4 space-y-3 text-sm text-slate-600">
+                {[
+                  "20 Launch Audits per month",
+                  "100 AI Co-Founder messages per month",
+                  "20 ICP / Persona analyses",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-violet-600">
+                      <Check size={11} />
+                    </span>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-emerald-400">✓</span>
-                  <span>
-                    More AI analysis and conversations
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-emerald-400">✓</span>
-                  <span>
-                    Keep pressure-testing before you build
-                  </span>
-                </div>
+                    {item}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* CTA */}
             <div className="mt-7 flex flex-col gap-3">
               <Button
                 type="button"
                 onClick={() => router.push("/billing")}
-                className="h-12 w-full rounded-xl bg-white font-semibold text-black transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                className="h-12 rounded-xl bg-slate-950 font-semibold text-white hover:bg-violet-600"
               >
-                Upgrade to Premium →
+                Upgrade to Premium
+                <ArrowRight size={16} />
               </Button>
 
               <Button
@@ -506,85 +604,63 @@ export default function AuditPage() {
                   setLimitReached(false);
                   setLimitInfo(null);
                 }}
-                className="h-12 w-full rounded-xl border-white/10 bg-white/[0.03] text-zinc-300 hover:bg-white/[0.07] hover:text-white"
+                className="h-12 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               >
                 Back to Audit
               </Button>
             </div>
           </div>
-
-          <p className="mt-5 text-center text-xs text-zinc-700">
-            Your usage resets at the beginning of the next
-            billing period.
-          </p>
         </div>
       </main>
     );
   }
 
-  /*
-   * ----------------------------------------------------
-   * PREMIUM AUDIT LOADING SCREEN
-   * ----------------------------------------------------
-   */
-
   if (loading) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
-        {/* Ambient background */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.06] blur-[120px]" />
+      <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 text-slate-950 sm:px-6">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-lg items-center justify-center">
+          <div className="w-full rounded-[30px] border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-9">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+              <Sparkles size={23} />
+            </div>
 
-          <div className="absolute left-[20%] top-[20%] h-40 w-40 rounded-full bg-blue-500/[0.03] blur-[80px]" />
-
-          <div className="absolute bottom-[15%] right-[20%] h-40 w-40 rounded-full bg-violet-500/[0.03] blur-[80px]" />
-        </div>
-
-        {/* Main card */}
-        <div className="relative z-10 w-full max-w-lg px-6">
-          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.025] p-8 shadow-2xl backdrop-blur-xl">
-            {/* Brand */}
-            <div className="flex flex-col items-center text-center">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 animate-ping rounded-2xl bg-violet-500/10" />
-
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.05] shadow-[0_0_40px_rgba(139,92,246,0.12)]">
-                  <span className="text-2xl">
-                    ✦
-                  </span>
-                </div>
-              </div>
-
-              <h1 className="text-2xl font-semibold tracking-tight">
+            <div className="mt-6 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
                 Plavtora is thinking
+              </p>
+
+              <h1 className="mt-3 text-2xl font-bold tracking-tight">
+                Building your startup diagnosis
               </h1>
 
-              <p className="mt-2 max-w-sm text-sm leading-6 text-zinc-500">
-                Pressure-testing your startup from multiple angles.
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                One comprehensive analysis across product, validation,
+                launch readiness, and risk.
               </p>
             </div>
 
-            {/* Current activity */}
-            <div className="mt-8 rounded-2xl border border-violet-400/[0.08] bg-violet-400/[0.025] px-5 py-4">
+            <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center gap-3">
                 <div className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-50" />
-
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-violet-400" />
+                  <span className="absolute h-full w-full animate-ping rounded-full bg-violet-500 opacity-40" />
+                  <span className="relative h-2.5 w-2.5 rounded-full bg-violet-500" />
                 </div>
 
-                <span className="text-sm text-zinc-300">
+                <span className="text-sm font-medium text-slate-700">
                   {loadingStages[loadingStage].title}
                 </span>
               </div>
+
+              <p className="mt-2 pl-5 text-xs leading-5 text-slate-500">
+                {loadingStages[loadingStage].description}
+              </p>
             </div>
 
-            {/* Analysis stages */}
-            <div className="mt-6 space-y-1">
+            <div className="mt-5 space-y-2">
               {loadingStages.map((stage, index) => (
                 <AuditStage
                   key={stage.title}
-                  icon={stage.icon}
+                  number={`0${index + 1}`}
                   title={stage.title}
                   active={index === loadingStage}
                   complete={index < loadingStage}
@@ -592,473 +668,441 @@ export default function AuditPage() {
               ))}
             </div>
 
-            {/* Footer */}
-            <div className="mt-7 flex items-center justify-between border-t border-white/[0.06] pt-5">
-              <span className="text-xs text-zinc-600">
-                One comprehensive AI analysis
-              </span>
-
-              <span className="text-xs text-zinc-600">
-                Please wait
-              </span>
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
+              <Loader2 size={13} className="animate-spin" />
+              Generating your report
             </div>
           </div>
-
-          <p className="mt-5 text-center text-xs text-zinc-700">
-            Your audit is being generated. This may take a moment.
-          </p>
         </div>
       </main>
     );
   }
 
-  /*
-   * ----------------------------------------------------
-   * AUDIT FORM
-   * ----------------------------------------------------
-   */
-
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <h1 className="text-5xl font-bold">
-          Plavtora Launch Audit
-        </h1>
+    <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+      {/* Top bar */}
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#f7f8fc]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-3"
+          >
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-9 w-9 rounded-xl"
+            />
 
-        <p className="mt-3 text-zinc-400">
-          Tell Plavtora about your startup.
-        </p>
+            <div className="text-left">
+              <p className="text-[17px] font-bold tracking-tight text-slate-950">
+                Plavtora
+              </p>
 
-        {/* Error */}
+              <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
+                Launch Audit
+              </p>
+            </div>
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Autosave ready
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+              className="rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            >
+              Exit
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
+        {/* Intro */}
+        <div className="grid gap-8 lg:grid-cols-[1fr_280px] lg:items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">
+              <Sparkles size={13} />
+              Launch intelligence
+            </div>
+
+            <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
+              Put your startup
+              <span className="block text-slate-400">
+                under pressure.
+              </span>
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              Give Plavtora the context behind your startup. It will turn
+              those inputs into one comprehensive assessment of your product,
+              validation, launch readiness, and risks.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                Audit progress
+              </p>
+
+              <span className="text-sm font-bold text-slate-950">
+                {completion}%
+              </span>
+            </div>
+
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-slate-950 transition-all duration-300"
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-slate-500">
+              More context produces a sharper diagnosis. Focus on the
+              information that will change a decision.
+            </p>
+
+            <div className="mt-5 flex items-start gap-2 text-xs text-slate-500">
+              <CircleHelp
+                size={14}
+                className="mt-0.5 shrink-0 text-slate-400"
+              />
+              Estimated completion: 2–3 minutes
+            </div>
+          </div>
+        </div>
+
         {error && (
-          <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400">
-            {error}
+          <div className="mt-7 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+            <TriangleAlert
+              size={18}
+              className="mt-0.5 shrink-0"
+            />
+            <span>{error}</span>
           </div>
         )}
 
-        {/* Info */}
-        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-          <p className="font-medium">
-            Estimated completion time: 2–3 minutes
-          </p>
-
-          <p className="mt-2 text-sm text-zinc-500">
-            Plavtora will evaluate your product,
-            validation, launch readiness, and business
-            risks in one comprehensive audit.
-          </p>
-        </div>
-
         <form
-          className="mt-8 space-y-8"
+          className="mt-10 grid gap-5"
           onSubmit={handleSubmit}
         >
-          {/* Product */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="01 / Product"
+            title="What are you building?"
+            description="Start with the core promise. This is the foundation of the audit."
+            icon={<Wrench size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                🚀 Product
-              </CardTitle>
-
-              <p className="text-sm text-zinc-500">
-                Tell us what you're building.
-              </p>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <div>
-                <Label>
-                  Product Name
-                </Label>
-
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Product name">
                 <Input
                   name="product_name"
                   value={formData.product_name}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
+                  placeholder="e.g. Plavtora"
                   required
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
                 />
-              </div>
+              </Field>
 
-              <div>
-                <Label>
-                  One Line Pitch
-                </Label>
-
+              <Field
+                label="One-line pitch"
+                hint="Keep it specific"
+              >
                 <Input
                   name="one_line_pitch"
                   value={formData.one_line_pitch}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
+                  placeholder="What does it help customers accomplish?"
                   required
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
                 />
-              </div>
+              </Field>
+            </div>
 
-              <div>
-                <Label>
-                  Description
-                </Label>
+            <Field label="Product description">
+              <Textarea
+                name="description"
+                value={formData.description}
+                onChange={handleTextChange}
+                placeholder="Explain what the product does, how it works, and what problem it solves."
+                required
+                className="min-h-32 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              />
+            </Field>
+          </Section>
 
-                <Textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Market */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="02 / Market"
+            title="Who is this for?"
+            description="Help Plavtora distinguish your intended customer from a broad market."
+            icon={<Target size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                🎯 Market
-              </CardTitle>
+            <Field label="Target audience">
+              <Input
+                name="target_audience"
+                value={formData.target_audience}
+                onChange={handleTextChange}
+                placeholder="e.g. SaaS founders with 0–5 person teams"
+                required
+                className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              />
+            </Field>
 
-              <p className="text-sm text-zinc-500">
-                Describe your audience and competitors.
-              </p>
-            </CardHeader>
+            <Field
+              label="Competitors"
+              hint="Comma separated"
+            >
+              <Textarea
+                name="competitors"
+                value={formData.competitors}
+                onChange={handleTextChange}
+                placeholder="e.g. Competitor A, Competitor B, Competitor C"
+                className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              />
+            </Field>
 
-            <CardContent className="space-y-4">
-              <div>
-                <Label>
-                  Target Audience
-                </Label>
+            <Field label="Unique value proposition">
+              <Textarea
+                name="unique_value_proposition"
+                value={formData.unique_value_proposition}
+                onChange={handleTextChange}
+                placeholder="What makes this materially different or better?"
+                className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              />
+            </Field>
+          </Section>
 
-                <Input
-                  name="target_audience"
-                  value={formData.target_audience}
-                  onChange={handleChange}
-                  placeholder="SaaS Founders, Indie Hackers"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label>
-                  Competitors
-                </Label>
-
-                <Textarea
-                  name="competitors"
-                  value={formData.competitors}
-                  onChange={handleChange}
-                  placeholder="Product Hunt, Indie Hackers, StartupBolt"
-                />
-              </div>
-
-              <div>
-                <Label>
-                  Unique Value Proposition
-                </Label>
-
-                <Textarea
-                  name="unique_value_proposition"
-                  value={formData.unique_value_proposition}
-                  onChange={handleChange}
-                  placeholder="What makes your product different?"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Validation */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="03 / Validation"
+            title="How much evidence do you have?"
+            description="Validation changes the quality of the diagnosis. Don't inflate the numbers."
+            icon={<Sparkles size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                📈 Validation
-              </CardTitle>
-
-              <p className="text-sm text-zinc-500">
-                Show evidence that users want it.
-              </p>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              <div>
-                <Label>
-                  Beta Users
-                </Label>
-
+            <div className="max-w-sm">
+              <Field label="Beta users">
                 <Input
                   type="number"
                   name="beta_users"
                   value={formData.beta_users}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   min={0}
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
                 />
-              </div>
+              </Field>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="feedback_collected"
-                  checked={
-                    formData.feedback_collected
-                  }
-                  onChange={handleChange}
-                />
+            <ToggleField
+              checked={formData.feedback_collected}
+              onChange={() =>
+                toggleField("feedback_collected")
+              }
+              title="I've collected user feedback"
+              description="Interviews, usage feedback, objections, feature requests, or other direct evidence."
+            />
+          </Section>
 
-                <Label>
-                  Feedback Collected
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Product Status */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="04 / Product status"
+            title="How ready is the product?"
+            description="Be direct. Weaknesses are useful only when they are visible."
+            icon={<Wrench size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                🛠 Product Status
-              </CardTitle>
-            </CardHeader>
+            <div className="grid gap-3 md:grid-cols-2">
+              <ToggleField
+                checked={formData.mvp_completed}
+                onChange={() =>
+                  toggleField("mvp_completed")
+                }
+                title="MVP is completed"
+                description="The core product is usable end-to-end."
+              />
 
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="mvp_completed"
-                  checked={
-                    formData.mvp_completed
-                  }
-                  onChange={handleChange}
-                />
+              <ToggleField
+                checked={formData.critical_bugs}
+                onChange={() =>
+                  toggleField("critical_bugs")
+                }
+                title="Critical bugs are present"
+                description="Important issues currently block or materially disrupt the core experience."
+              />
+            </div>
+          </Section>
 
-                <Label>
-                  MVP Completed
-                </Label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="critical_bugs"
-                  checked={
-                    formData.critical_bugs
-                  }
-                  onChange={handleChange}
-                />
-
-                <Label>
-                  Critical Bugs Present
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Marketing */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="05 / Marketing"
+            title="Could people discover and understand it?"
+            description="Launch readiness depends on more than having a working product."
+            icon={<ArrowRight size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                📢 Marketing
-              </CardTitle>
-            </CardHeader>
+            <div className="grid gap-3 md:grid-cols-3">
+              <ToggleField
+                checked={formData.landing_page}
+                onChange={() =>
+                  toggleField("landing_page")
+                }
+                title="Landing page ready"
+                description="A live page communicates the offer."
+              />
 
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="landing_page"
-                  checked={
-                    formData.landing_page
-                  }
-                  onChange={handleChange}
-                />
+              <ToggleField
+                checked={formData.demo_video}
+                onChange={() =>
+                  toggleField("demo_video")
+                }
+                title="Demo video ready"
+                description="A clear product demonstration exists."
+              />
 
-                <Label>
-                  Landing Page Ready
-                </Label>
-              </div>
+              <ToggleField
+                checked={
+                  formData.social_media_presence
+                }
+                onChange={() =>
+                  toggleField(
+                    "social_media_presence"
+                  )
+                }
+                title="Social presence"
+                description="You have channels to distribute the launch."
+              />
+            </div>
+          </Section>
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="demo_video"
-                  checked={
-                    formData.demo_video
-                  }
-                  onChange={handleChange}
-                />
-
-                <Label>
-                  Demo Video Ready
-                </Label>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="social_media_presence"
-                  checked={
-                    formData.social_media_presence
-                  }
-                  onChange={handleChange}
-                />
-
-                <Label>
-                  Social Media Presence
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Distribution */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="06 / Distribution"
+            title="How will you reach the market?"
+            description="A product without a credible acquisition path is a launch risk."
+            icon={<ChevronRight size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                🌍 Distribution
-              </CardTitle>
-            </CardHeader>
+            <ToggleField
+              checked={formData.waitlist}
+              onChange={() => toggleField("waitlist")}
+              title="Waitlist created"
+              description="You already have a place to capture interested prospects."
+            />
 
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="waitlist"
-                  checked={
-                    formData.waitlist
-                  }
-                  onChange={handleChange}
-                />
+            <Field
+              label="Launch channels"
+              hint="Comma separated"
+            >
+              <Textarea
+                name="launch_channels"
+                value={formData.launch_channels}
+                onChange={handleTextChange}
+                placeholder="e.g. Product Hunt, LinkedIn, Reddit"
+                className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+              />
+            </Field>
+          </Section>
 
-                <Label>
-                  Waitlist Created
-                </Label>
-              </div>
-
-              <div>
-                <Label>
-                  Launch Channels
-                </Label>
-
-                <Textarea
-                  name="launch_channels"
-                  value={
-                    formData.launch_channels
-                  }
-                  onChange={handleChange}
-                  placeholder="Product Hunt, LinkedIn, Reddit"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Business */}
-          <Card
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border:
-                "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-            }}
+          <Section
+            eyebrow="07 / Business"
+            title="What is the business model?"
+            description="Budget, pricing, and monetization shape the risk profile of the launch."
+            icon={<WalletCards size={19} />}
           >
-            <CardHeader>
-              <CardTitle>
-                💰 Business
-              </CardTitle>
-
-              <p className="text-sm text-zinc-500">
-                Revenue, pricing, and financial planning.
-              </p>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <div>
-                <Label>
-                  Budget
-                </Label>
-
+            <div className="grid gap-5 md:grid-cols-3">
+              <Field label="Budget">
                 <Input
                   type="number"
                   name="budget"
                   value={formData.budget}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   min={0}
                   placeholder="500"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
                 />
-              </div>
+              </Field>
 
-              <div>
-                <Label>
-                  Currency
-                </Label>
-
+              <Field label="Currency">
                 <Input
                   name="currency"
                   value={formData.currency}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   placeholder="USD"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
                 />
-              </div>
+              </Field>
 
-              <div>
-                <Label>
-                  Pricing Model
-                </Label>
-
+              <Field label="Pricing model">
                 <Input
                   name="pricing_model"
                   value={formData.pricing_model}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                   placeholder="Freemium"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
                 />
-              </div>
-            </CardContent>
-          </Card>
+              </Field>
+            </div>
+          </Section>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            size="lg"
-            className="mt-8 w-full"
-            disabled={loading}
-          >
-            🚀 Run Launch Audit
-          </Button>
+          {/* Final CTA */}
+          <section className="mt-2 overflow-hidden rounded-[30px] bg-slate-950 p-7 text-white shadow-xl shadow-slate-900/10 sm:p-9">
+            <div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <div className="flex items-center gap-2 text-violet-300">
+                  <Sparkles size={16} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                    Ready for the diagnosis?
+                  </span>
+                </div>
+
+                <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+                  Run your startup through Plavtora.
+                </h2>
+
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
+                  One comprehensive audit. Four angles of analysis. A clearer
+                  picture of what deserves your attention next.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/40">
+                  <span>Product</span>
+                  <span>Validation</span>
+                  <span>Launch readiness</span>
+                  <span>Risk</span>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                disabled={loading}
+                className="h-13 rounded-xl bg-white px-7 font-bold text-slate-950 hover:bg-slate-100"
+              >
+                {loading ? (
+                  <>
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
+                    />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    Run Launch Audit
+                    <ArrowRight size={17} />
+                  </>
+                )}
+              </Button>
+            </div>
+          </section>
         </form>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center text-[10px] uppercase tracking-[0.14em] text-slate-400">
+          <span>One comprehensive AI analysis</span>
+          <span className="hidden h-3 w-px bg-slate-200 sm:block" />
+          <span>Your audit is saved automatically</span>
+          <span className="hidden h-3 w-px bg-slate-200 sm:block" />
+          <span>Results open in your project workspace</span>
+        </div>
       </div>
     </main>
   );

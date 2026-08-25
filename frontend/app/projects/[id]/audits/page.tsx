@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  Clock,
+  Clock3,
   Loader2,
-  ShieldAlert,
+  TrendingUp,
+  Sparkles,
+  Target,
 } from "lucide-react";
 
 import {
@@ -40,6 +42,85 @@ interface Audit {
   } | null;
 }
 
+function ScoreBadge({
+  score,
+  latest,
+}: {
+  score: number;
+  latest?: boolean;
+}) {
+  const tone =
+    score >= 80
+      ? "emerald"
+      : score >= 60
+        ? "amber"
+        : "rose";
+
+  const classes = {
+    emerald: {
+      wrap: "border-emerald-200 bg-emerald-50",
+      score: "text-emerald-700",
+      sub: "text-emerald-600",
+    },
+    amber: {
+      wrap: "border-amber-200 bg-amber-50",
+      score: "text-amber-700",
+      sub: "text-amber-600",
+    },
+    rose: {
+      wrap: "border-rose-200 bg-rose-50",
+      score: "text-rose-700",
+      sub: "text-rose-600",
+    },
+  }[tone];
+
+  return (
+    <div
+      className={`relative flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border ${classes.wrap}`}
+    >
+      {latest && (
+        <span className="absolute -right-2 -top-2 rounded-full bg-slate-950 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white">
+          Latest
+        </span>
+      )}
+
+      <span
+        className={`text-xl font-bold leading-none ${classes.score}`}
+      >
+        {score}
+      </span>
+
+      <span
+        className={`mt-1 text-[9px] font-semibold uppercase tracking-wider ${classes.sub}`}
+      >
+        / 100
+      </span>
+    </div>
+  );
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: string;
+}) {
+  if (status === "completed") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+        <CheckCircle2 size={12} />
+        Completed
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+      <Clock3 size={12} />
+      {status}
+    </span>
+  );
+}
+
 export default function ProjectAuditsPage() {
   const params = useParams();
   const router = useRouter();
@@ -50,8 +131,11 @@ export default function ProjectAuditsPage() {
   const [audits, setAudits] = useState<Audit[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [navigatingTo, setNavigatingTo] =
+    useState<string | null>(null);
 
   useEffect(() => {
     async function loadAudits() {
@@ -59,15 +143,19 @@ export default function ProjectAuditsPage() {
         setLoading(true);
         setError(null);
 
-        const [workspace, auditData] = await Promise.all([
-          getProjectById(projectId),
-          getProjectAudits(projectId),
-        ]);
+        const [workspace, auditData] =
+          await Promise.all([
+            getProjectById(projectId),
+            getProjectAudits(projectId),
+          ]);
 
         setProject(workspace.project);
         setAudits(auditData);
       } catch (error) {
-        console.error("Failed to load audits:", error);
+        console.error(
+          "Failed to load audits:",
+          error
+        );
 
         setError(
           error instanceof Error
@@ -84,77 +172,60 @@ export default function ProjectAuditsPage() {
     }
   }, [projectId]);
 
+  const completedAudits = useMemo(
+    () =>
+      audits.filter(
+        (audit) =>
+          audit.session.status ===
+          "completed"
+      ),
+    [audits]
+  );
+
+  const scores = useMemo(
+    () =>
+      completedAudits
+        .map(
+          (audit) =>
+            audit.result?.overall_score
+        )
+        .filter(
+          (score): score is number =>
+            typeof score === "number"
+        ),
+    [completedAudits]
+  );
+
+  const latestScore = scores[0] ?? null;
+
+  const firstScore =
+    scores.length > 0
+      ? scores[scores.length - 1]
+      : null;
+
+  const scoreChange =
+    latestScore !== null &&
+    firstScore !== null
+      ? latestScore - firstScore
+      : null;
+
   if (loading) {
-    return (
-      <main className="relative min-h-screen overflow-hidden bg-[#020617] text-white">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-[-12%] top-[-20%] h-[560px] w-[560px] rounded-full bg-blue-600/[0.07] blur-[150px]" />
-          <div className="absolute right-[-10%] top-[10%] h-[500px] w-[500px] rounded-full bg-violet-600/[0.06] blur-[140px]" />
-          <div className="absolute bottom-[-20%] left-[20%] h-[500px] w-[500px] rounded-full bg-fuchsia-500/[0.04] blur-[150px]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px]" />
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-400/15 bg-violet-400/[0.06]">
-              <span className="text-sm font-semibold text-violet-200">P</span>
-            </div>
-            <div className="h-4 w-28 animate-pulse rounded-md bg-white/[0.06]" />
-          </div>
-
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <div className="relative flex h-24 w-24 items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
-              <div className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-blue-400/80 border-r-violet-400/30" />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-                <Loader2 size={22} className="animate-spin text-blue-300" />
-              </div>
-            </div>
-
-            <p className="mt-8 text-[10px] font-medium uppercase tracking-[0.25em] text-blue-300/80">
-              Project workspace
-            </p>
-
-            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
-              Loading your audit history
-            </h1>
-
-            <p className="mt-4 max-w-md text-center text-sm leading-6 text-gray-500">
-              Fetching your previous audits and project history.
-            </p>
-
-            <div className="mt-9 w-full max-w-2xl space-y-3">
-              {[1, 2, 3].map((item) => (
-                <div
-                  key={item}
-                  className="animate-pulse rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6"
-                >
-                  <div className="flex items-center gap-5">
-                    <div className="h-16 w-16 rounded-2xl bg-white/[0.06]" />
-                    <div className="flex-1 space-y-3">
-                      <div className="h-4 w-40 rounded bg-white/[0.06]" />
-                      <div className="h-3 w-56 rounded bg-white/[0.04]" />
-                    </div>
-                    <div className="h-5 w-5 rounded bg-white/[0.04]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
-    );
+    return <AuditHistoryLoader />;
   }
 
   if (error || !project) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#020617] px-6 text-white">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold">
-            Unable to load audits
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-6">
+        <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-xl shadow-slate-900/5">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+            <TrendingUp size={24} />
+          </div>
+
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-950">
+            Unable to load audit history
           </h1>
 
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-sm leading-6 text-slate-500">
             {error || "Project not found."}
           </p>
 
@@ -163,14 +234,22 @@ export default function ProjectAuditsPage() {
             disabled={!!navigatingTo}
             onClick={() => {
               setNavigatingTo("project");
-              router.push(`/projects/${projectId}`);
+              router.push(
+                `/projects/${projectId}`
+              );
             }}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-80"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
           >
             {navigatingTo === "project" && (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
             )}
-            {navigatingTo === "project" ? "Opening project..." : "Back to Project"}
+
+            {navigatingTo === "project"
+              ? "Opening project..."
+              : "Back to Project"}
           </button>
         </div>
       </main>
@@ -178,26 +257,29 @@ export default function ProjectAuditsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white">
-
+    <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
       {/* Header */}
-      <header className="border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-6 py-5">
-
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
               setNavigatingTo("project");
-              router.push(`/projects/${projectId}`);
+              router.push(
+                `/projects/${projectId}`
+              );
             }}
-            className="group flex items-center gap-2 text-sm text-gray-400 transition hover:text-white disabled:cursor-wait disabled:opacity-70"
+            className="group flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950 disabled:cursor-wait disabled:opacity-70"
           >
             {navigatingTo === "project" ? (
-              <Loader2 size={17} className="animate-spin text-blue-300" />
+              <Loader2
+                size={17}
+                className="animate-spin text-blue-600"
+              />
             ) : (
               <ArrowLeft
-                size={18}
+                size={17}
                 className="transition-transform group-hover:-translate-x-1"
               />
             )}
@@ -207,275 +289,467 @@ export default function ProjectAuditsPage() {
               : `Back to ${project.name}`}
           </button>
 
-        </div>
-      </header>
-
-      {/* Main */}
-      <section className="mx-auto max-w-7xl px-6 py-10">
-
-        {/* Page Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-
-          <div>
-            <p className="text-sm text-blue-400">
-              {project.name}
-            </p>
-
-            <h1 className="mt-2 text-3xl font-bold">
-              Audit History
-            </h1>
-
-            <p className="mt-2 max-w-2xl text-gray-400">
-              Review previous launch audits and track how your
-              project has evolved over time.
-            </p>
+          <div className="hidden items-center gap-2 sm:flex">
+            <img
+              src="/icon.png"
+              alt="Plavtora"
+              className="h-8 w-8 rounded-lg"
+            />
+            <span className="text-sm font-bold tracking-tight text-slate-900">
+              Plavtora
+            </span>
           </div>
 
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo("project");
-              router.push(`/projects/${projectId}`);
+              setNavigatingTo("new-audit");
+              router.push("/audit");
             }}
-            className="
-              inline-flex
-              items-center
-              gap-2
-              rounded-xl
-              border border-white/10
-              bg-white/5
-              px-4
-              py-2.5
-              text-sm
-              font-medium
-              transition
-              hover:bg-white/10
-              disabled:cursor-wait
-              disabled:opacity-70
-            "
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
           >
-            {navigatingTo === "project" && (
-              <Loader2 size={15} className="animate-spin" />
+            {navigatingTo === "new-audit" && (
+              <Loader2
+                size={14}
+                className="animate-spin"
+              />
             )}
-            {navigatingTo === "project" ? "Opening project..." : "Project Overview"}
+
+            New Audit
+            <ArrowRight size={14} />
           </button>
-
         </div>
+      </header>
 
-        {/* Audit List */}
-        <div className="mt-10">
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-8">
+        {/* Page intro */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-violet-700">
+              <Sparkles size={12} />
+              Startup history
+            </div>
 
-          {audits.length === 0 ? (
+            <p className="mt-5 text-sm font-semibold text-blue-600">
+              {project.name}
+            </p>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center">
+            <h1 className="mt-2 text-4xl font-bold leading-tight tracking-[-0.04em] text-slate-950 sm:text-5xl">
+              Audit history
+            </h1>
 
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
-                <Clock
-                  size={24}
-                  className="text-gray-400"
-                />
-              </div>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+              Revisit previous diagnoses, compare your scores, and see whether
+              your startup is actually improving over time.
+            </p>
+          </div>
 
-              <h2 className="mt-5 text-xl font-semibold">
-                No audits yet
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-md text-gray-400">
-                Run your first audit to start building your
-                project's audit history.
+          {audits.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                Total audits
               </p>
 
+              <p className="mt-1 text-2xl font-bold text-slate-950">
+                {audits.length}
+              </p>
             </div>
-
-          ) : (
-
-            <div className="space-y-4">
-
-              {audits.map((audit, index) => {
-
-                const score =
-                  audit.result?.overall_score ?? 0;
-
-                const isLatest = index === 0;
-                const auditLoading =
-                  navigatingTo === `audit:${audit.session.id}`;
-
-                return (
-                  <button
-                    key={audit.session.id}
-                    type="button"
-                    disabled={!!navigatingTo}
-                    onClick={() => {
-                      setNavigatingTo(
-                        `audit:${audit.session.id}`
-                      );
-                      router.push(
-                        `/projects/${projectId}/audits/${audit.session.id}`
-                      );
-                    }}
-                    className="
-                      group
-                      flex
-                      w-full
-                      items-center
-                      justify-between
-                      rounded-3xl
-                      border
-                      border-white/10
-                      bg-white/5
-                      p-6
-                      text-left
-                      backdrop-blur-xl
-                      transition-all
-                      hover:border-blue-500/30
-                      hover:bg-white/[0.07]
-                      disabled:cursor-wait
-                      disabled:opacity-80
-                    "
-                  >
-
-                    <div className="flex items-center gap-5">
-
-                      {/* Score */}
-                      <div className="
-                        flex
-                        h-16
-                        w-16
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-2xl
-                        border
-                        border-blue-500/20
-                        bg-blue-500/10
-                      ">
-                        <div className="text-center">
-                          <p className="text-xl font-bold text-white">
-                            {score}
-                          </p>
-
-                          <p className="text-[10px] text-gray-500">
-                            /100
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Info */}
-                      <div>
-
-                        <div className="flex flex-wrap items-center gap-3">
-
-                          <h2 className="font-semibold text-white">
-                            Launch Audit
-                          </h2>
-
-                          {isLatest && (
-                            <span className="
-                              rounded-full
-                              border
-                              border-blue-500/20
-                              bg-blue-500/10
-                              px-2.5
-                              py-1
-                              text-[10px]
-                              font-medium
-                              text-blue-300
-                            ">
-                              Latest
-                            </span>
-                          )}
-
-                        </div>
-
-                        <p className="mt-1 text-sm text-gray-400">
-                          {formatDate(
-                            audit.result?.created_at ||
-                            audit.session.created_at
-                          )}
-                        </p>
-
-                        <div className="mt-3 flex items-center gap-2">
-
-                          {auditLoading ? (
-                            <>
-                              <Loader2
-                                size={15}
-                                className="animate-spin text-blue-300"
-                              />
-
-                              <span className="text-xs text-blue-300">
-                                Opening audit...
-                              </span>
-                            </>
-                          ) : audit.session.status === "completed" ? (
-                            <>
-                              <CheckCircle2
-                                size={15}
-                                className="text-green-400"
-                              />
-
-                              <span className="text-xs text-green-400">
-                                Completed
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Clock
-                                size={15}
-                                className="text-yellow-400"
-                              />
-
-                              <span className="text-xs text-yellow-400">
-                                {audit.session.status}
-                              </span>
-                            </>
-                          )}
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                    {auditLoading ? (
-                      <Loader2
-                        size={20}
-                        className="shrink-0 animate-spin text-blue-300"
-                      />
-                    ) : (
-                      <ArrowRight
-                        size={20}
-                        className="
-                          shrink-0
-                          text-gray-500
-                          transition-transform
-                          group-hover:translate-x-1
-                          group-hover:text-white
-                        "
-                      />
-                    )}
-
-                  </button>
-                );
-              })}
-
-            </div>
-
           )}
-
         </div>
 
-      </section>
+        {/* Snapshot */}
+        {audits.length > 0 && (
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <SnapshotCard
+              icon={<Target size={18} />}
+              label="Latest score"
+              value={
+                latestScore !== null
+                  ? `${latestScore}/100`
+                  : "—"
+              }
+              detail={
+                latestScore !== null
+                  ? latestScore >= 80
+                    ? "Strong position"
+                    : latestScore >= 60
+                      ? "Needs attention"
+                      : "High risk"
+                  : "No completed audit"
+              }
+            />
 
+            <SnapshotCard
+              icon={<CheckCircle2 size={18} />}
+              label="Completed audits"
+              value={`${completedAudits.length}`}
+              detail={
+                completedAudits.length === 1
+                  ? "One completed diagnosis"
+                  : "Completed diagnoses"
+              }
+            />
+
+            <SnapshotCard
+              icon={<TrendingUp size={18} />}
+              label="Score movement"
+              value={
+                scoreChange === null
+                  ? "—"
+                  : scoreChange > 0
+                    ? `+${scoreChange}`
+                    : `${scoreChange}`
+              }
+              detail={
+                scoreChange === null
+                  ? "Run another audit to compare"
+                  : scoreChange > 0
+                    ? "Improved since your first audit"
+                    : scoreChange < 0
+                      ? "Dropped since your first audit"
+                      : "No change since your first audit"
+              }
+              positive={
+                scoreChange !== null &&
+                scoreChange > 0
+              }
+            />
+          </div>
+        )}
+
+        {/* History */}
+        <div className="mt-10">
+          {audits.length === 0 ? (
+            <EmptyState
+              onRunAudit={() => {
+                setNavigatingTo("new-audit");
+                router.push("/audit");
+              }}
+              loading={navigatingTo === "new-audit"}
+            />
+          ) : (
+            <div>
+              <div className="mb-5 flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Your diagnoses
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                    Previous audits
+                  </h2>
+                </div>
+
+                <span className="hidden text-xs text-slate-400 sm:block">
+                  Newest first
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {audits.map(
+                  (audit, index) => {
+                    const score =
+                      audit.result
+                        ?.overall_score ?? 0;
+
+                    const isLatest =
+                      index === 0;
+
+                    const auditLoading =
+                      navigatingTo ===
+                      `audit:${audit.session.id}`;
+
+                    return (
+                      <button
+                        key={
+                          audit.session.id
+                        }
+                        type="button"
+                        disabled={
+                          !!navigatingTo
+                        }
+                        onClick={() => {
+                          setNavigatingTo(
+                            `audit:${audit.session.id}`
+                          );
+
+                          router.push(
+                            `/projects/${projectId}/audits/${audit.session.id}`
+                          );
+                        }}
+                        className="group flex w-full items-center justify-between gap-5 rounded-[24px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md disabled:cursor-wait disabled:opacity-80 sm:p-6"
+                      >
+                        <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+                          <ScoreBadge
+                            score={score}
+                            latest={isLatest}
+                          />
+
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2.5">
+                              <h3 className="font-bold text-slate-950">
+                                {formatAuditType(
+                                  audit.session
+                                    .audit_type
+                                )}
+                              </h3>
+
+                              <StatusBadge
+                                status={
+                                  audit.session
+                                    .status
+                                }
+                              />
+                            </div>
+
+                            <p className="mt-1 text-sm text-slate-500">
+                              {formatDate(
+                                audit.result
+                                  ?.created_at ||
+                                  audit.session
+                                    .created_at
+                              )}
+                            </p>
+
+                            <p className="mt-2 text-xs text-slate-400">
+                              {audit.result
+                                ? getScoreLabel(
+                                    score
+                                  )
+                                : "Audit result unavailable"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {auditLoading ? (
+                          <Loader2
+                            size={19}
+                            className="shrink-0 animate-spin text-blue-600"
+                          />
+                        ) : (
+                          <ArrowRight
+                            size={19}
+                            className="shrink-0 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-slate-900"
+                          />
+                        )}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom action */}
+        {audits.length > 0 && (
+          <div className="mt-8 overflow-hidden rounded-[26px] border border-violet-100 bg-gradient-to-r from-violet-50 to-blue-50 p-6 sm:p-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-violet-700">
+                  <Sparkles size={16} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.17em]">
+                    Keep iterating
+                  </span>
+                </div>
+
+                <h2 className="mt-2 text-xl font-bold text-slate-950">
+                  Another audit gives you a new baseline.
+                </h2>
+
+                <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
+                  Use another audit after making meaningful changes to see
+                  whether your startup is actually getting stronger.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={!!navigatingTo}
+                onClick={() => {
+                  setNavigatingTo(
+                    "new-audit"
+                  );
+                  router.push("/audit");
+                }}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600 disabled:cursor-wait disabled:opacity-70"
+              >
+                {navigatingTo ===
+                  "new-audit" && (
+                  <Loader2
+                    size={15}
+                    className="animate-spin"
+                  />
+                )}
+                Run another audit
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
     </main>
   );
 }
 
+function SnapshotCard({
+  icon,
+  label,
+  value,
+  detail,
+  positive = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  detail: string;
+  positive?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+          {icon}
+        </div>
+
+        {positive && (
+          <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-emerald-700">
+            Improving
+          </span>
+        )}
+      </div>
+
+      <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+        {value}
+      </p>
+
+      <p className="mt-1 text-xs leading-5 text-slate-500">
+        {detail}
+      </p>
+    </div>
+  );
+}
+
+function EmptyState({
+  onRunAudit,
+  loading,
+}: {
+  onRunAudit: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm sm:p-14">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+        <Sparkles size={24} />
+      </div>
+
+      <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+        Start your history
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+        No audits yet.
+      </h2>
+
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+        Run your first audit to establish a baseline for this startup.
+      </p>
+
+      <button
+        type="button"
+        disabled={loading}
+        onClick={onRunAudit}
+        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
+      >
+        {loading && (
+          <Loader2
+            size={15}
+            className="animate-spin"
+          />
+        )}
+        Run first audit
+        <ArrowRight size={15} />
+      </button>
+    </div>
+  );
+}
+
+function getScoreLabel(score: number) {
+  if (score >= 80) {
+    return "Strong startup position";
+  }
+
+  if (score >= 60) {
+    return "Needs attention before scaling";
+  }
+
+  return "Significant weaknesses to address";
+}
+
+function formatAuditType(
+  auditType: string
+) {
+  if (!auditType) {
+    return "Launch Audit";
+  }
+
+  return auditType
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleString("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return new Date(date).toLocaleString(
+    "en-IN",
+    {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }
+  );
+}
+
+function AuditHistoryLoader() {
+  return (
+    <main className="min-h-screen bg-[#f7f8fc] px-5 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 animate-pulse rounded-xl bg-slate-200" />
+
+            <div>
+              <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+              <div className="mt-2 h-2 w-32 animate-pulse rounded bg-slate-100" />
+            </div>
+          </div>
+
+          <div className="h-10 w-28 animate-pulse rounded-xl bg-slate-200" />
+        </div>
+
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200"
+            />
+          ))}
+        </div>
+
+        <div className="mt-8 space-y-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-28 animate-pulse rounded-[24px] bg-white ring-1 ring-slate-200"
+            />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
 }
