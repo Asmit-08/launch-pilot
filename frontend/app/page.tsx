@@ -7,66 +7,84 @@ import Link from "next/link";
 import AnimatedSection from "@/components/AnimatedSection";
 import Image from "next/image";
 
-const tools = [
+const auditFindings = [
   {
-    number: "01",
-    eyebrow: "UNDERSTAND",
-    title: "Know who you're building for.",
-    description:
-      "Build a sharper ICP and persona from what you actually know about your product, customers, and market.",
-    accent: "from-blue-500/20 to-cyan-500/5",
-    icon: "◎",
+    label: "ICP",
+    score: "6.2",
+    status: "Needs refinement",
+    tone: "amber",
   },
   {
-    number: "02",
-    eyebrow: "CHALLENGE",
-    title: "Pressure-test your positioning.",
-    description:
-      "Analyze your landing page, messaging, CTA, trust signals, and conversion clarity before the market does.",
-    accent: "from-violet-500/20 to-fuchsia-500/5",
-    icon: "◈",
+    label: "Positioning",
+    score: "8.1",
+    status: "Strong",
+    tone: "emerald",
   },
   {
-    number: "03",
-    eyebrow: "ASSESS",
-    title: "See what's actually risky.",
-    description:
-      "Surface product, validation, launch, competitive, and business risks that are easy to miss when you're too close to the idea.",
-    accent: "from-amber-500/20 to-orange-500/5",
-    icon: "△",
+    label: "Validation",
+    score: "5.7",
+    status: "Weak evidence",
+    tone: "rose",
   },
   {
-    number: "04",
-    eyebrow: "DECIDE",
-    title: "Know what deserves attention.",
-    description:
-      "Turn scattered findings into clear priorities, stronger decisions, and concrete next moves.",
-    accent: "from-emerald-500/20 to-teal-500/5",
-    icon: "→",
+    label: "Launch readiness",
+    score: "7.4",
+    status: "Almost ready",
+    tone: "blue",
   },
 ];
 
-const dashboardCards = [
+const capabilities = [
   {
-    label: "Overall readiness",
-    value: "68",
-    suffix: "/100",
-    change: "+12",
-    color: "blue",
+    number: "01",
+    title: "Product",
+    headline: "Find the weak assumptions inside the product.",
+    description:
+      "Pressure-test what you're building, who it serves, the problem it solves, and whether the product logic actually holds together.",
   },
   {
-    label: "Top risk",
-    value: "ICP",
-    suffix: "",
-    change: "Needs work",
-    color: "violet",
+    number: "02",
+    title: "Validation",
+    headline: "Separate evidence from founder optimism.",
+    description:
+      "See where your validation is convincing, where it is thin, and which assumptions still need real-world evidence.",
   },
   {
-    label: "Next move",
-    value: "02",
-    suffix: "",
-    change: "Priority",
-    color: "emerald",
+    number: "03",
+    title: "Launch readiness",
+    headline: "Know what is missing before you launch.",
+    description:
+      "Evaluate positioning, audience, acquisition, messaging, and operational gaps before they become expensive problems.",
+  },
+  {
+    number: "04",
+    title: "Risk",
+    headline: "See the risks you are too close to notice.",
+    description:
+      "Surface competitive, distribution, monetization, product, and execution risks and turn them into priorities.",
+  },
+];
+
+const workflow = [
+  {
+    number: "01",
+    title: "Tell Plavtora what you're building",
+    text: "Give it the product, target customer, traction, positioning, budget, and assumptions that matter.",
+  },
+  {
+    number: "02",
+    title: "Let it challenge the idea",
+    text: "Plavtora examines the startup from multiple decision-making angles instead of simply agreeing with you.",
+  },
+  {
+    number: "03",
+    title: "Get the problems ranked",
+    text: "See the biggest weaknesses, risks, and evidence gaps instead of another wall of generic AI advice.",
+  },
+  {
+    number: "04",
+    title: "Act on the next move",
+    text: "Turn the analysis into a smaller set of concrete decisions worth making next.",
   },
 ];
 
@@ -75,39 +93,29 @@ const founderInsights = [
     quote:
       "Founders don't need more content. They need help researching, challenging assumptions, and making better decisions.",
     role: "SaaS Founder",
-    label: "Founder research insight",
   },
   {
     quote:
       "The real problem isn't knowing what to do. It's knowing which thing is actually worth doing next.",
     role: "Indie Hacker",
-    label: "Founder research insight",
   },
   {
     quote:
       "Validation matters when it changes a decision, not simply because you completed a few interviews.",
     role: "SaaS Founder",
-    label: "Founder research insight",
-  },
-  {
-    quote:
-      "Customer acquisition and distribution become major bottlenecks long before founders run out of things to build.",
-    role: "Solo Founder",
-    label: "Founder research insight",
-  },
-  {
-    quote:
-      "Founders often need help deciding what not to build as much as they need help deciding what to build.",
-    role: "Product Founder",
-    label: "Founder research insight",
-  },
-  {
-    quote:
-      "Strong founder decisions come from clearer evidence, not from having an AI agree with you.",
-    role: "Indie SaaS Founder",
-    label: "Founder research insight",
   },
 ];
+
+function ToneDot({ tone }: { tone: string }) {
+  const styles: Record<string, string> = {
+    amber: "bg-amber-500",
+    emerald: "bg-emerald-500",
+    rose: "bg-rose-500",
+    blue: "bg-blue-500",
+  };
+
+  return <span className={`h-2 w-2 rounded-full ${styles[tone] ?? styles.blue}`} />;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -116,7 +124,6 @@ export default function Home() {
 
   const navigateWithLoading = (href: string) => {
     if (navigatingTo) return;
-
     setNavigatingTo(href);
     router.push(href);
   };
@@ -128,1561 +135,834 @@ export default function Home() {
   };
 
   const nextInsight = () => {
-    setActiveInsight(
-      (current) => (current + 1) % founderInsights.length
-    );
+    setActiveInsight((current) => (current + 1) % founderInsights.length);
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050505] text-white selection:bg-violet-500/30">
-
-      {/* Ambient background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-[-20%] top-[-18%] h-[700px] w-[700px] rounded-full bg-blue-600/10 blur-[150px]" />
-
-        <div className="absolute right-[-15%] top-[8%] h-[650px] w-[650px] rounded-full bg-violet-600/10 blur-[150px]" />
-
-        <div className="absolute left-[25%] top-[30%] h-[500px] w-[500px] rounded-full bg-cyan-500/[0.04] blur-[150px]" />
-
-        <div className="absolute bottom-[-20%] right-[10%] h-[700px] w-[700px] rounded-full bg-fuchsia-500/[0.04] blur-[180px]" />
-
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_82%)]" />
+    <main className="min-h-screen overflow-hidden bg-[#f7f7f5] text-[#111113] selection:bg-violet-200">
+      {/* Background system */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-[-10%] top-[-15%] h-[650px] w-[650px] rounded-full bg-violet-200/35 blur-[130px]" />
+        <div className="absolute right-[-12%] top-[8%] h-[600px] w-[600px] rounded-full bg-blue-200/30 blur-[130px]" />
+        <div className="absolute left-[35%] top-[42%] h-[500px] w-[500px] rounded-full bg-amber-100/35 blur-[130px]" />
       </div>
 
-      {/* Navigation progress */}
       {navigatingTo && (
-        <div className="fixed left-0 right-0 top-0 z-[70] h-0.5 overflow-hidden bg-white/[0.04]">
-          <div className="h-full w-1/3 animate-[routeProgress_1.1s_ease-in-out_infinite] bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400" />
+        <div className="fixed left-0 right-0 top-0 z-[80] h-0.5 overflow-hidden bg-black/5">
+          <div className="h-full w-1/3 animate-[routeProgress_1.1s_ease-in-out_infinite] bg-[#111113]" />
         </div>
       )}
 
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/[0.06] bg-black/55 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-
-          <Link href="/" className="flex items-center gap-3">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-black/[0.07] bg-[#f7f7f5]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/icon.png"
               alt="Plavtora"
-              width={38}
-              height={38}
+              width={34}
+              height={34}
               priority
-              className="rounded-xl"
+              className="rounded-[10px]"
             />
-
-            <span className="text-lg font-semibold tracking-tight">
+            <span className="text-[17px] font-semibold tracking-[-0.02em]">
               Plavtora
             </span>
           </Link>
 
-          <div className="hidden items-center gap-2 md:flex">
-
-            <a
-              href="#product"
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
+          <div className="hidden items-center gap-1 md:flex">
+            <a href="#product" className="nav-link">Product</a>
+            <a href="#capabilities" className="nav-link">Capabilities</a>
+            <a href="#pricing" className="nav-link">Pricing</a>
+            <a href="#how-it-works" className="nav-link">How it works</a>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => navigateWithLoading("/auth")}
+              disabled={!!navigatingTo}
+              className="ml-2 rounded-lg bg-[#111113] px-4 text-white hover:bg-black"
             >
-              Product
-            </a>
-
-            <a
-              href="#features"
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
-            >
-              Features
-            </a>
-
-            <a
-              href="#pricing"
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
-            >
-              Pricing
-            </a>
-
-            <a
-              href="#how-it-works"
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.04] hover:text-white"
-            >
-              How it works
-            </a>
-
-            {/* FIX: generic CTA goes to /auth */}
-            <Button asChild className="ml-2">
-              <Link href="/auth">Try Plavtora</Link>
+              Run an audit
             </Button>
           </div>
 
-          <div className="md:hidden">
-            {/* FIX: generic CTA goes to /auth */}
-            <Button asChild size="sm">
-              <Link href="/auth">Try it</Link>
-            </Button>
-          </div>
-
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => navigateWithLoading("/auth")}
+            disabled={!!navigatingTo}
+            className="rounded-lg bg-[#111113] px-4 text-white hover:bg-black md:hidden"
+          >
+            Try it
+          </Button>
         </div>
       </nav>
 
       {/* Hero */}
       <AnimatedSection>
-        <section className="relative z-10 px-6 pb-20 pt-36 sm:pt-44 lg:px-8">
+        <section className="relative px-5 pb-20 pt-32 sm:px-6 sm:pt-36 lg:px-8 lg:pb-28 lg:pt-40">
           <div className="mx-auto max-w-7xl">
-
-            <div className="grid items-center gap-16 lg:grid-cols-[1fr_0.95fr] lg:gap-20">
-
-              <div className="max-w-3xl">
-
-                <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-4 py-2 text-xs font-medium tracking-wide text-violet-300">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
-                  BUILT FOR FOUNDERS
+            <div className="grid items-center gap-14 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+              <div className="max-w-2xl">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/70 px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-600 shadow-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+                  Startup intelligence for founders
                 </div>
 
-                <h1 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-7xl xl:text-[82px]">
-                  Your startup
-                  <span className="block bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
-                    needs a second opinion.
+                <h1 className="text-[clamp(3.1rem,6vw,5.7rem)] font-semibold leading-[0.96] tracking-[-0.055em]">
+                  Find what's wrong with your startup
+                  <span className="block text-zinc-400">
+                    before the market does.
                   </span>
                 </h1>
 
-                <p className="mt-8 max-w-2xl text-lg leading-8 text-zinc-400 sm:text-xl">
-                  Plavtora challenges your assumptions, analyzes your product,
-                  and helps you figure out what actually deserves your
+                <p className="mt-7 max-w-xl text-[17px] leading-7 text-zinc-600 sm:text-lg">
+                  Plavtora stress-tests your product, validation, positioning,
+                  launch readiness, and risks — then tells you what deserves
                   attention next.
                 </p>
 
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button
                     type="button"
                     size="lg"
                     disabled={!!navigatingTo}
                     onClick={() => navigateWithLoading("/auth")}
-                    className="h-13 rounded-xl px-7 text-sm font-semibold shadow-[0_0_40px_rgba(139,92,246,0.18)] disabled:cursor-wait disabled:opacity-90"
+                    className="h-12 rounded-xl bg-[#111113] px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(17,17,19,0.16)] hover:-translate-y-0.5 hover:bg-black"
                   >
-                    {navigatingTo === "/auth" ? (
-                      <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-                        Starting Plavtora...
-                      </span>
-                    ) : (
-                      "Run your startup through Plavtora"
-                    )}
+                    {navigatingTo === "/auth" ? "Opening Plavtora..." : "Run my startup audit"}
+                    <span className="ml-1">→</span>
                   </Button>
 
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="h-13 rounded-xl border-white/10 bg-white/[0.02] px-7 text-sm font-semibold text-zinc-200 hover:bg-white/[0.06]"
+                  <a
+                    href="#product"
+                    className="inline-flex h-12 items-center justify-center rounded-xl border border-black/[0.09] bg-white/65 px-6 text-sm font-semibold text-zinc-700 transition hover:bg-white"
                   >
-                    <a href="#product">See how it works</a>
-                  </Button>
-
+                    See what you get
+                  </a>
                 </div>
 
-                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-zinc-500">
-                  <span>Launch analysis</span>
-                  <span className="h-1 w-1 rounded-full bg-zinc-700" />
-                  <span>ICP & persona</span>
-                  <span className="h-1 w-1 rounded-full bg-zinc-700" />
-                  <span>Landing pages</span>
-                  <span className="h-1 w-1 rounded-full bg-zinc-700" />
+                <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-zinc-500">
+                  <span>Product analysis</span>
+                  <span className="h-1 w-1 rounded-full bg-zinc-300" />
+                  <span>Validation</span>
+                  <span className="h-1 w-1 rounded-full bg-zinc-300" />
+                  <span>Launch readiness</span>
+                  <span className="h-1 w-1 rounded-full bg-zinc-300" />
                   <span>Risk analysis</span>
                 </div>
-
               </div>
 
-              {/* Hero product panel */}
+              {/* Real-product-style hero preview */}
               <div className="relative">
+                <div className="absolute -inset-8 rounded-[40px] bg-violet-200/30 blur-3xl" />
 
-                <div className="absolute -inset-8 rounded-[40px] bg-gradient-to-br from-blue-500/10 via-violet-500/[0.08] to-transparent blur-3xl" />
-
-                <div className="relative rounded-[28px] border border-white/10 bg-[#0a0a0d]/95 p-3 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
-
-                  <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-
+                <div className="relative overflow-hidden rounded-[28px] border border-black/[0.09] bg-[#101014] p-2 shadow-[0_35px_100px_rgba(17,17,19,0.18)]">
+                  <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-red-400/70" />
-                      <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
-                      <span className="h-2 w-2 rounded-full bg-green-400/70" />
+                      <span className="h-2 w-2 rounded-full bg-white/25" />
+                      <span className="h-2 w-2 rounded-full bg-white/15" />
+                      <span className="h-2 w-2 rounded-full bg-white/10" />
                     </div>
-
-                    <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-1 text-[10px] text-zinc-500">
-                      plavtora.com/workspace
+                    <div className="rounded-md border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[9px] text-white/40">
+                      plavtora / audit
                     </div>
-
-                    <div className="w-10" />
-
+                    <span className="w-8" />
                   </div>
 
-                  <div className="p-5 sm:p-6">
-
+                  <div className="p-5 sm:p-7">
                     <div className="flex items-start justify-between gap-4">
-
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                          Startup overview
+                        <p className="text-[9px] uppercase tracking-[0.2em] text-white/35">
+                          Startup readiness
                         </p>
-
-                        <h3 className="mt-2 text-xl font-semibold">
-                          Your next moves
-                        </h3>
+                        <div className="mt-2 flex items-end gap-2">
+                          <span className="text-5xl font-semibold tracking-[-0.05em] text-white">
+                            68
+                          </span>
+                          <span className="pb-1 text-sm text-white/35">/100</span>
+                        </div>
                       </div>
 
-                      <div className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-2 text-right">
-
-                        <p className="text-[9px] uppercase tracking-wider text-emerald-400/70">
-                          Status
-                        </p>
-
-                        <p className="mt-0.5 text-xs font-medium text-emerald-300">
+                      <div className="rounded-xl border border-amber-300/15 bg-amber-300/[0.07] px-3 py-2">
+                        <p className="text-[9px] uppercase tracking-[0.16em] text-amber-200/60">
                           Review
                         </p>
-
+                        <p className="mt-1 text-xs font-medium text-amber-200">
+                          3 issues
+                        </p>
                       </div>
-
                     </div>
 
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                      <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-violet-400 to-blue-400" />
+                    </div>
 
-                      {dashboardCards.map((card, index) => (
+                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                      {auditFindings.map((finding) => (
                         <div
-                          key={card.label}
-                          className={`animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 ${
-                            index === 1 ? "[animation-delay:700ms]" : ""
-                          } ${
-                            index === 2 ? "[animation-delay:1400ms]" : ""
-                          }`}
+                          key={finding.label}
+                          className="rounded-2xl border border-white/[0.07] bg-white/[0.035] p-4"
                         >
-
-                          <p className="text-[10px] text-zinc-500">
-                            {card.label}
-                          </p>
-
-                          <div className="mt-3 flex items-baseline gap-1">
-                            <span className="text-2xl font-semibold">
-                              {card.value}
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-[10px] uppercase tracking-[0.14em] text-white/35">
+                              {finding.label}
                             </span>
-
-                            {card.suffix && (
-                              <span className="text-xs text-zinc-600">
-                                {card.suffix}
-                              </span>
-                            )}
+                            <span className="flex items-center gap-1.5 text-[10px] text-white/45">
+                              <ToneDot tone={finding.tone} />
+                              {finding.score}
+                            </span>
                           </div>
-
-                          <p
-                            className={`mt-2 text-[10px] ${
-                              card.color === "emerald"
-                                ? "text-emerald-400"
-                                : card.color === "violet"
-                                  ? "text-violet-400"
-                                  : "text-blue-400"
-                            }`}
-                          >
-                            {card.change}
+                          <p className="mt-3 text-sm font-medium text-white/80">
+                            {finding.status}
                           </p>
-
                         </div>
                       ))}
-
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-
-                      <div className="flex items-center justify-between">
-
-                        <div>
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
-                            Priority
-                          </p>
-
-                          <p className="mt-1 text-sm font-medium">
-                            Tighten ICP before increasing acquisition.
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg border border-violet-400/15 bg-violet-400/[0.07] px-2.5 py-1.5 text-[10px] text-violet-300">
-                          High impact
-                        </div>
-
-                      </div>
-
-                      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-                        <div className="h-full w-[72%] animate-[loadbar_2s_ease-out_forwards] rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
-                      </div>
-
+                    <div className="mt-3 rounded-2xl border border-violet-300/10 bg-violet-300/[0.05] p-4">
+                      <p className="text-[9px] uppercase tracking-[0.18em] text-violet-200/60">
+                        Highest-impact finding
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-white/75">
+                        Your ICP is broad enough to make acquisition expensive.
+                        Narrow the target before scaling traffic.
+                      </p>
                     </div>
-
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-
-                      <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.04] p-4">
-
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-blue-300/70">
-                          Landing page
-                        </p>
-
-                        <div className="mt-2 flex items-end justify-between">
-
-                          <span className="text-2xl font-semibold">
-                            74
-                          </span>
-
-                          <span className="text-xs text-blue-300">
-                            Good foundation
-                          </span>
-
-                        </div>
-
-                      </div>
-
-                      <div className="rounded-2xl border border-amber-400/10 bg-amber-400/[0.04] p-4">
-
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-amber-300/70">
-                          Risk
-                        </p>
-
-                        <div className="mt-2 flex items-end justify-between">
-
-                          <span className="text-2xl font-semibold">
-                            3
-                          </span>
-
-                          <span className="text-xs text-amber-300">
-                            Needs review
-                          </span>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
                   </div>
-
                 </div>
 
-                <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-white/10 bg-[#0c0c10]/95 px-4 py-3 shadow-2xl sm:block">
-
-                  <div className="flex items-center gap-3">
-
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
-                      ✦
-                    </div>
-
-                    <div>
-
-                      <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-600">
-                        AI challenge
-                      </p>
-
-                      <p className="mt-1 text-xs font-medium">
-                        Your assumption may be weak.
-                      </p>
-
-                    </div>
-
-                  </div>
-
+                <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-black/[0.08] bg-white px-4 py-3 shadow-[0_15px_45px_rgba(0,0,0,0.12)] sm:block">
+                  <p className="text-[9px] uppercase tracking-[0.17em] text-zinc-400">
+                    Plavtora challenge
+                  </p>
+                  <p className="mt-1.5 text-xs font-semibold text-zinc-800">
+                    Don't scale what isn't proven.
+                  </p>
                 </div>
-
               </div>
-
             </div>
 
-            <div className="mt-24 flex justify-center">
-
-              <a
-                href="#product"
-                className="group flex flex-col items-center gap-3 text-zinc-600 transition hover:text-zinc-400"
-              >
-                <span className="text-[10px] uppercase tracking-[0.22em]">
-                  Explore
-                </span>
-
-                <span className="flex h-10 w-7 items-start justify-center rounded-full border border-white/10 p-1">
-                  <span className="h-2 w-1 animate-bounce rounded-full bg-zinc-500" />
-                </span>
-              </a>
-
+            <div className="mt-16 grid grid-cols-2 gap-3 border-y border-black/[0.07] py-5 text-center sm:grid-cols-4">
+              {[
+                ["01", "Product"],
+                ["02", "Validation"],
+                ["03", "Launch"],
+                ["04", "Risk"],
+              ].map(([number, label]) => (
+                <div key={number} className="border-r border-black/[0.06] last:border-0">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400">
+                    {number}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-zinc-700">{label}</p>
+                </div>
+              ))}
             </div>
-
           </div>
         </section>
       </AnimatedSection>
 
-      {/* Thesis */}
+      {/* Problem */}
       <AnimatedSection>
-        <section className="relative z-10 border-y border-white/[0.06] bg-white/[0.015] px-6 py-24 lg:px-8">
-
+        <section className="border-y border-black/[0.07] bg-white/45 px-5 py-24 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-5xl text-center">
-
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
-              The problem
-            </p>
-
-            <h2 className="mt-6 text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
+            <p className="section-kicker">The problem</p>
+            <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl lg:text-6xl">
               Founders don't lack things to do.
-              <span className="block text-zinc-500">
+              <span className="block text-zinc-400">
                 They lack confidence about what deserves doing.
               </span>
             </h2>
-
-            <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-zinc-400">
-              More features, more content, more dashboards, more AI-generated
-              tasks won't solve that. The hard part is knowing which
-              assumptions are strong, which are weak, and what to do next.
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-600">
+              More features, more content, and more AI-generated tasks don't
+              solve that. The hard part is knowing which assumptions are weak
+              and which decision is worth making next.
             </p>
-
           </div>
-
         </section>
       </AnimatedSection>
 
       {/* Product */}
       <AnimatedSection>
-        <section id="product" className="relative z-10 px-6 py-28 lg:px-8">
-
+        <section id="product" className="px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
           <div className="mx-auto max-w-7xl">
+            <div className="max-w-3xl">
+              <p className="section-kicker">What you actually get</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+                An audit that gives you
+                <span className="block text-zinc-400">something to act on.</span>
+              </h2>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-600">
+                Instead of another generic AI report, Plavtora turns your
+                startup context into scores, findings, risks, and prioritized
+                next moves.
+              </p>
+            </div>
 
-            <div className="grid items-end gap-8 lg:grid-cols-[1fr_0.7fr]">
+            <div className="mt-14 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+              <div className="overflow-hidden rounded-[30px] border border-black/[0.08] bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.06)] sm:p-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+                      Audit overview
+                    </p>
+                    <h3 className="mt-2 text-xl font-semibold tracking-tight">
+                      The picture before the decision
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-[10px] font-medium text-zinc-500">
+                    Example output
+                  </span>
+                </div>
 
-              <div className="max-w-3xl">
+                <div className="mt-7 grid gap-3 sm:grid-cols-4">
+                  {[
+                    ["Product", "8.0", "Strong"],
+                    ["Validation", "5.7", "Weak"],
+                    ["Launch", "7.4", "Near ready"],
+                    ["Risk", "6", "Review"],
+                  ].map(([label, value, status]) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl border border-black/[0.07] bg-[#fafafa] p-4"
+                    >
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                        {label}
+                      </p>
+                      <p className="mt-3 text-2xl font-semibold tracking-tight">
+                        {value}
+                      </p>
+                      <p className="mt-1 text-[10px] text-zinc-500">{status}</p>
+                    </div>
+                  ))}
+                </div>
 
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-blue-300">
-                  One founder workspace
+                <div className="mt-3 rounded-2xl bg-[#111113] p-5 text-white">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.18em] text-white/40">
+                        Priority recommendation
+                      </p>
+                      <p className="mt-2 max-w-xl text-sm leading-6 text-white/80">
+                        Tighten the ICP and collect stronger customer evidence
+                        before increasing acquisition spend.
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-[9px] uppercase tracking-[0.12em] text-white/55">
+                      High impact
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[30px] border border-black/[0.08] bg-[#111113] p-6 text-white shadow-[0_20px_70px_rgba(0,0,0,0.12)] sm:p-8">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300">
+                  The point
+                </p>
+                <p className="mt-6 text-6xl font-semibold tracking-[-0.06em]">
+                  01
+                </p>
+                <h3 className="mt-4 text-2xl font-semibold">
+                  Clear next move.
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-white/50">
+                  The output isn't supposed to impress you. It is supposed to
+                  change what you do next.
                 </p>
 
-                <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                  Your startup's intelligence layer.
-                </h2>
-
-              </div>
-
-              <p className="max-w-xl text-base leading-7 text-zinc-500 lg:justify-self-end">
-                Bring the important pieces of your startup into one place and
-                use AI to examine them from multiple angles—not just generate
-                more output.
-              </p>
-
-            </div>
-
-            <div className="mt-14 grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
-
-              <div className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.025] p-7 transition duration-500 hover:-translate-y-1 hover:border-white/15">
-
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.08] via-transparent to-transparent opacity-70" />
-
-                <div className="relative">
-
-                  <div className="flex items-center justify-between gap-4">
-
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-blue-300">
-                        Startup command center
-                      </p>
-
-                      <h3 className="mt-3 text-2xl font-semibold">
-                        See the whole picture.
-                      </h3>
-                    </div>
-
-                    <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-zinc-500">
-                      Live analysis
-                    </div>
-
-                  </div>
-
-                  <div className="mt-8 grid gap-3 sm:grid-cols-2">
-
-                    {[
-                      ["Product", "Strong differentiation"],
-                      ["Customer", "ICP needs refinement"],
-                      ["Positioning", "Clear but broad"],
-                      ["Risk", "Acquisition is weak"],
-                    ].map(([label, value], index) => (
-                      <div
-                        key={label}
-                        className="rounded-2xl border border-white/[0.07] bg-black/20 p-4 transition duration-300 group-hover:border-white/10"
-                      >
-
-                        <div className="flex items-center justify-between">
-
-                          <span className="text-xs text-zinc-500">
-                            {label}
-                          </span>
-
-                          <span className="text-[10px] text-zinc-700">
-                            0{index + 1}
-                          </span>
-
-                        </div>
-
-                        <p className="mt-3 text-sm font-medium text-zinc-200">
-                          {value}
-                        </p>
-
-                      </div>
-                    ))}
-
-                  </div>
-
-                  <div className="mt-4 rounded-2xl border border-violet-400/10 bg-violet-400/[0.035] p-5">
-
-                    <div className="flex items-start gap-4">
-
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
-                        ✦
-                      </div>
-
-                      <div>
-
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-violet-300/70">
-                          Plavtora challenge
-                        </p>
-
-                        <p className="mt-2 text-sm leading-6 text-zinc-300">
-                          You are focusing on feature depth before proving
-                          the acquisition channel.
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.025] p-7">
-
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.08] to-transparent" />
-
-                <div className="relative">
-
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300">
-                    Next best action
-                  </p>
-
-                  <div className="mt-5 text-6xl font-semibold tracking-tight">
-                    02
-                  </div>
-
-                  <p className="mt-3 text-lg font-medium">
-                    Customer conversations
-                  </p>
-
-                  <p className="mt-3 text-sm leading-6 text-zinc-500">
-                    Gather stronger evidence before investing further in
-                    acquisition.
-                  </p>
-
-                  <div className="mt-8 space-y-3">
-
-                    {[
-                      "Talk to 5 target users",
-                      "Compare objections",
-                      "Update ICP assumptions",
-                    ].map((item, index) => (
+                <div className="mt-8 space-y-2">
+                  {["Evidence gaps", "Critical risks", "Weak assumptions"].map(
+                    (item) => (
                       <div
                         key={item}
-                        className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-black/20 p-3"
+                        className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.035] p-3"
                       >
-
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/10 text-[10px] text-zinc-500">
-                          {index + 1}
-                        </span>
-
-                        <span className="text-xs text-zinc-400">
-                          {item}
-                        </span>
-
+                        <span className="h-1.5 w-1.5 rounded-full bg-violet-300" />
+                        <span className="text-xs text-white/65">{item}</span>
                       </div>
-                    ))}
-
-                  </div>
-
+                    )
+                  )}
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </section>
       </AnimatedSection>
 
-      {/* Features */}
+      {/* Capabilities */}
       <AnimatedSection>
-        <section id="features" className="relative z-10 px-6 py-28 lg:px-8">
-
+        <section id="capabilities" className="border-y border-black/[0.07] bg-white/50 px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
           <div className="mx-auto max-w-7xl">
-
             <div className="max-w-3xl">
-
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-emerald-300">
-                Built for the hard parts
-              </p>
-
-              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                Not another AI that
-                <span className="block text-zinc-500">
-                  tells you what you want to hear.
+              <p className="section-kicker">Four angles</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                Don't ask AI to agree with you.
+                <span className="block text-zinc-400">
+                  Ask it to pressure-test you.
                 </span>
               </h2>
-
             </div>
 
-            <div className="mt-14 grid gap-4 md:grid-cols-2">
-
-              {tools.map((tool) => (
+            <div className="mt-14 grid gap-px overflow-hidden rounded-[30px] border border-black/[0.08] bg-black/[0.08] md:grid-cols-2">
+              {capabilities.map((capability) => (
                 <div
-                  key={tool.number}
-                  className={`group relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br ${tool.accent} p-7 transition duration-500 hover:-translate-y-1 hover:border-white/15`}
+                  key={capability.number}
+                  className="group bg-[#f7f7f5] p-7 transition hover:bg-white sm:p-9"
                 >
-
-                  <div className="absolute right-[-30px] top-[-30px] text-[180px] font-semibold leading-none text-white/[0.02] transition duration-700 group-hover:text-white/[0.04]">
-                    {tool.number}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-zinc-400">
+                      {capability.number}
+                    </span>
+                    <span className="h-2 w-2 rounded-full bg-zinc-300 transition group-hover:bg-violet-500" />
                   </div>
 
-                  <div className="relative">
-
-                    <div className="flex items-start justify-between">
-
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-lg text-zinc-300">
-                        {tool.icon}
-                      </span>
-
-                      <span className="text-[10px] tracking-[0.2em] text-zinc-600">
-                        {tool.number}
-                      </span>
-
-                    </div>
-
-                    <p className="mt-8 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-                      {tool.eyebrow}
-                    </p>
-
-                    <h3 className="mt-3 max-w-lg text-2xl font-semibold tracking-tight">
-                      {tool.title}
-                    </h3>
-
-                    <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-500">
-                      {tool.description}
-                    </p>
-
-                    <div className="mt-7 flex items-center gap-2 text-xs font-medium text-zinc-400 transition group-hover:text-white">
-                      Explore capability
-                      <span className="transition duration-300 group-hover:translate-x-1">
-                        →
-                      </span>
-                    </div>
-
-                  </div>
-
+                  <p className="mt-12 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                    {capability.title}
+                  </p>
+                  <h3 className="mt-3 max-w-md text-2xl font-semibold tracking-tight">
+                    {capability.headline}
+                  </h3>
+                  <p className="mt-4 max-w-lg text-sm leading-7 text-zinc-600">
+                    {capability.description}
+                  </p>
                 </div>
               ))}
-
             </div>
-
           </div>
-
         </section>
       </AnimatedSection>
 
-      {/* Founder research insights */}
+      {/* Founder research */}
       <AnimatedSection>
-        <section className="relative z-10 overflow-hidden px-6 py-28 lg:px-8">
-
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.04] blur-[140px]" />
-
-          <div className="relative mx-auto max-w-7xl">
-
-            <div className="mx-auto max-w-3xl text-center">
-
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
-                Built from founder conversations
-              </p>
-
-              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                The problems founders keep running into.
+        <section className="px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <p className="section-kicker">Founder research</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                Built around the problems founders actually describe.
               </h2>
-
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500">
-                Plavtora is shaped around recurring problems founders describe:
-                uncertainty, weak validation, unclear ICPs, positioning drift,
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-600">
+                Uncertainty, weak validation, unclear ICPs, positioning drift,
                 acquisition difficulty, and deciding what deserves attention.
               </p>
-
             </div>
 
-            <div className="mt-16">
-
-              <div className="flex items-center justify-center gap-3">
-
+            <div className="mt-12 rounded-[30px] border border-black/[0.08] bg-white p-7 shadow-[0_20px_70px_rgba(0,0,0,0.05)] sm:p-10">
+              <div className="flex items-center justify-between">
                 <button
                   onClick={previousInsight}
                   aria-label="Previous founder insight"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.08] text-zinc-500 transition hover:bg-zinc-50 hover:text-black"
                 >
                   ←
                 </button>
 
-                <div className="flex items-center gap-2">
-
-                  {founderInsights.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setActiveInsight(index)}
-                      aria-label={`Show insight ${index + 1}`}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        index === activeInsight
-                          ? "w-8 bg-violet-400"
-                          : "w-1.5 bg-zinc-700 hover:bg-zinc-500"
-                      }`}
-                    />
-                  ))}
-
-                </div>
+                <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-400">
+                  {String(activeInsight + 1).padStart(2, "0")} /{" "}
+                  {String(founderInsights.length).padStart(2, "0")}
+                </span>
 
                 <button
                   onClick={nextInsight}
                   aria-label="Next founder insight"
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.08] text-zinc-500 transition hover:bg-zinc-50 hover:text-black"
                 >
                   →
                 </button>
-
               </div>
 
-              <div className="mx-auto mt-10 flex max-w-5xl items-center justify-center">
-
-                <div className="grid w-full gap-4 md:grid-cols-3">
-
-                  {[1, 0, 2].map((offset) => {
-
-                    const index =
-                      (activeInsight + offset) % founderInsights.length;
-
-                    const insight = founderInsights[index];
-                    const isActive = offset === 0;
-
-                    return (
-                      <button
-                        key={`${index}-${offset}`}
-                        onClick={() => setActiveInsight(index)}
-                        className={`group relative text-left transition-all duration-500 ${
-                          isActive
-                            ? "z-20 scale-[1.03] md:-translate-y-3"
-                            : "scale-100 opacity-60 hover:opacity-90"
-                        }`}
-                      >
-
-                        <div
-                          className={`absolute -inset-px rounded-[26px] transition-all duration-500 ${
-                            isActive
-                              ? "bg-gradient-to-br from-violet-400/40 via-blue-400/15 to-transparent opacity-100 blur-[1px]"
-                              : "bg-white/5 opacity-0"
-                          }`}
-                        />
-
-                        <div
-                          className={`relative h-full rounded-[26px] border bg-[#0a0a0d]/95 p-7 transition-all duration-500 ${
-                            isActive
-                              ? "border-violet-400/25 shadow-[0_20px_80px_rgba(139,92,246,0.12)]"
-                              : "border-white/[0.07]"
-                          }`}
-                        >
-
-                          <div className="flex items-center justify-between">
-
-                            <div
-                              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-500 ${
-                                isActive
-                                  ? "border-violet-400/20 bg-violet-400/[0.08] text-violet-300"
-                                  : "border-white/10 bg-white/[0.03] text-zinc-500"
-                              }`}
-                            >
-                              “
-                            </div>
-
-                            <span className="text-[9px] uppercase tracking-[0.2em] text-zinc-600">
-                              Insight {String(index + 1).padStart(2, "0")}
-                            </span>
-
-                          </div>
-
-                          <p
-                            className={`mt-7 leading-7 transition-all duration-500 ${
-                              isActive
-                                ? "text-lg text-zinc-200"
-                                : "text-sm text-zinc-500"
-                            }`}
-                          >
-                            “{insight.quote}”
-                          </p>
-
-                          <div className="mt-8 border-t border-white/[0.06] pt-5">
-
-                            <p
-                              className={`text-xs font-medium transition-all duration-500 ${
-                                isActive
-                                  ? "text-zinc-200"
-                                  : "text-zinc-400"
-                              }`}
-                            >
-                              {insight.role}
-                            </p>
-
-                            <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-zinc-600">
-                              {insight.label}
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                      </button>
-                    );
-                  })}
-
+              <div className="mx-auto mt-12 max-w-3xl text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-xl text-violet-500">
+                  “
                 </div>
-
+                <blockquote className="mt-7 text-2xl font-medium leading-9 tracking-[-0.025em] text-zinc-800 sm:text-3xl">
+                  “{founderInsights[activeInsight].quote}”
+                </blockquote>
+                <p className="mt-7 text-xs font-medium text-zinc-500">
+                  {founderInsights[activeInsight].role}
+                </p>
+                <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-zinc-400">
+                  Anonymized founder research
+                </p>
               </div>
 
-              <p className="mt-8 text-center text-[10px] text-zinc-700">
-                Anonymized founder research · Statements are presented as
-                research insights, not customer testimonials.
-              </p>
-
+              <div className="mt-10 flex justify-center gap-2">
+                {founderInsights.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveInsight(index)}
+                    aria-label={`Show founder insight ${index + 1}`}
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === activeInsight
+                        ? "w-8 bg-zinc-900"
+                        : "w-1.5 bg-zinc-300"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-
           </div>
-
         </section>
       </AnimatedSection>
 
       {/* Pricing */}
       <AnimatedSection>
-        <section
-          id="pricing"
-          className="relative z-10 overflow-hidden px-6 py-28 lg:px-8"
-        >
-
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/[0.035] blur-[150px]" />
-
-          <div className="relative mx-auto max-w-6xl">
-
+        <section id="pricing" className="border-y border-black/[0.07] bg-white/50 px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-3xl text-center">
-
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
-                Simple pricing
-              </p>
-
-              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                Start free.
-                <span className="block text-zinc-500">
-                  Upgrade when you need more room to think.
+              <p className="section-kicker">Pricing</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                Find out what's wrong for free.
+                <span className="block text-zinc-400">
+                  Pay when you need more depth.
                 </span>
               </h2>
-
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-500">
-                Every plan has defined monthly limits. Free gives you enough
-                usage to evaluate Plavtora; Premium gives you substantially
-                more capacity across audits, chat, ICP/personas, and landing
-                page analysis.
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-600">
+                Start with enough usage to understand the workflow. Premium
+                gives serious builders more room to repeatedly audit, question,
+                and improve their startup.
               </p>
-
             </div>
 
-            <div className="mx-auto mt-14 grid max-w-5xl gap-5 md:grid-cols-2">
-
+            <div className="mt-14 grid gap-5 md:grid-cols-2">
               {/* Free */}
-              <div className="relative rounded-[30px] border border-white/[0.08] bg-white/[0.02] p-7 sm:p-8">
+              <div className="rounded-[30px] border border-black/[0.08] bg-[#f7f7f5] p-7 sm:p-9">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                  Free
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold">Find the problem</h3>
 
-                <div className="flex items-start justify-between gap-4">
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
-                      Free
-                    </p>
-
-                    <h3 className="mt-3 text-2xl font-semibold">
-                      Explore Plavtora
-                    </h3>
-                  </div>
-
-                  <div className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-                    FREE
-                  </div>
-
+                <div className="mt-7 flex items-end gap-2">
+                  <span className="text-5xl font-semibold tracking-[-0.05em]">$0</span>
+                  <span className="pb-1 text-sm text-zinc-400">forever</span>
                 </div>
 
-                <div className="mt-8 flex items-baseline gap-2">
-
-                  <span className="text-5xl font-semibold tracking-tight">
-                    $0
-                  </span>
-
-                  <span className="text-sm text-zinc-600">
-                    forever
-                  </span>
-
-                </div>
-
-                <p className="mt-4 text-sm leading-6 text-zinc-500">
-                  A real starting plan with enough monthly usage to test the
-                  core workflow without committing to Premium.
+                <p className="mt-4 text-sm leading-6 text-zinc-600">
+                  Enough monthly usage to evaluate the core Plavtora workflow.
                 </p>
 
-                <div className="mt-7 h-px bg-white/[0.06]" />
-
-                <div className="mt-7">
-
-                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">
-                    Monthly usage limits
-                  </p>
-
-                  <div className="mt-4 space-y-3">
-
-                    {[
-                      ["Launch audits", "3 / month"],
-                      ["AI Co-Founder chat", "3 messages / month"],
-                      ["ICP / Persona analyses", "2 / month"],
-                      ["Landing page analyses", "2 / month"],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.015] px-4 py-3"
-                      >
-
-                        <span className="text-sm text-zinc-400">
-                          {label}
-                        </span>
-
-                        <span className="shrink-0 text-sm font-medium text-zinc-200">
-                          {value}
-                        </span>
-
-                      </div>
-                    ))}
-
-                  </div>
-
+                <div className="mt-7 space-y-2">
+                  {[
+                    ["Launch audits", "3 / month"],
+                    ["AI Co-Founder chat", "3 messages / month"],
+                    ["ICP / Persona analyses", "2 / month"],
+                    ["Landing page analyses", "2 / month"],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between rounded-xl border border-black/[0.07] bg-white/70 px-4 py-3"
+                    >
+                      <span className="text-sm text-zinc-600">{label}</span>
+                      <span className="text-sm font-semibold text-zinc-800">{value}</span>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="mt-7 h-px bg-white/[0.06]" />
-
-                <div className="mt-7 space-y-3">
-
+                <div className="mt-7 space-y-3 border-t border-black/[0.07] pt-7">
                   {[
                     "Overall audit scores and core findings",
-                    "Executive summaries and first-pass insights",
-                    "Basic product, validation, launch, and risk analysis",
+                    "Executive summaries",
+                    "Product, validation, launch, and risk analysis",
                     "Basic ICP / persona generation",
                     "Basic landing page analysis",
                   ].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-start gap-3 text-sm text-zinc-400"
-                    >
-
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[10px] text-zinc-500">
+                    <div key={item} className="flex gap-3 text-sm text-zinc-600">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px]">
                         ✓
                       </span>
-
-                      <span>{item}</span>
-
+                      {item}
                     </div>
                   ))}
-
                 </div>
 
-                {/* FIX: generic CTA goes to /auth */}
                 <Button
                   type="button"
                   variant="outline"
                   size="lg"
                   disabled={!!navigatingTo}
                   onClick={() => navigateWithLoading("/auth")}
-                  className="mt-9 h-12 w-full rounded-xl border-white/10 bg-white/[0.02] text-sm font-semibold hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
+                  className="mt-8 h-12 w-full rounded-xl border-black/[0.09] bg-white font-semibold text-zinc-900 hover:bg-zinc-50"
                 >
-                  {navigatingTo === "/auth" ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                      Opening Plavtora...
-                    </span>
-                  ) : (
-                    "Start Free"
-                  )}
+                  {navigatingTo === "/auth" ? "Opening Plavtora..." : "Start free"}
                 </Button>
-
-                <p className="mt-3 text-center text-[10px] text-zinc-700">
-                  Limits reset monthly
-                </p>
-
               </div>
 
               {/* Premium */}
-              <div className="relative">
-
-                <div className="absolute -inset-[1px] rounded-[31px] bg-gradient-to-br from-violet-400/40 via-blue-400/15 to-transparent opacity-90 blur-[1px]" />
-
-                <div className="relative overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#0a0a0e] p-7 shadow-[0_25px_100px_rgba(139,92,246,0.12)] sm:p-8">
-
-                  <div className="absolute right-[-100px] top-[-100px] h-[300px] w-[300px] rounded-full bg-violet-500/[0.08] blur-[80px]" />
-
-                  <div className="relative">
-
-                    <div className="flex items-start justify-between gap-4">
-
-                      <div>
-
-                        <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/[0.08] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-violet-300">
-                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
-                          Best for serious builders
-                        </div>
-
-                        <h3 className="mt-4 text-2xl font-semibold">
-                          Plavtora Premium
-                        </h3>
-
-                      </div>
-
-                      <div className="rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-1 text-[10px] font-medium text-emerald-300">
-                        Higher limits
-                      </div>
-
-                    </div>
-
-                    <div className="mt-8 flex items-end gap-2">
-
-                      <span className="text-5xl font-semibold tracking-tight">
-                        $8.99
-                      </span>
-
-                      <span className="pb-1 text-sm text-zinc-500">
-                        / month
-                      </span>
-
-                    </div>
-
-                    <div className="mt-3">
-                      <span className="rounded-full bg-violet-400/[0.08] px-2.5 py-1 text-[10px] font-medium text-violet-300">
-                        Monthly subscription
-                      </span>
-                    </div>
-
-                    <p className="mt-5 text-sm leading-6 text-zinc-400">
-                      More room to use the core Plavtora workflow repeatedly:
-                      deeper validation, more strategic conversations, more
-                      personas, and more landing page analyses.
-                    </p>
-
-                    <div className="mt-7 h-px bg-white/[0.07]" />
-
-                    <div className="mt-7">
-
-                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300/70">
-                        Monthly usage limits
-                      </p>
-
-                      <div className="mt-4 space-y-3">
-
-                        {[
-                          ["Launch audits", "20 / month"],
-                          ["AI Co-Founder chat", "100 messages / month"],
-                          ["ICP / Persona analyses", "20 / month"],
-                          ["Landing page analyses", "20 / month"],
-                        ].map(([label, value]) => (
-                          <div
-                            key={label}
-                            className="flex items-center justify-between gap-4 rounded-xl border border-violet-400/[0.09] bg-violet-400/[0.025] px-4 py-3"
-                          >
-
-                            <span className="text-sm text-zinc-300">
-                              {label}
-                            </span>
-
-                            <span className="shrink-0 text-sm font-semibold text-white">
-                              {value}
-                            </span>
-
-                          </div>
-                        ))}
-
-                      </div>
-
-                    </div>
-
-                    <div className="mt-7 h-px bg-white/[0.07]" />
-
-                    <div className="mt-7 space-y-3">
-
-                      {[
-                        "Everything in Free",
-                        "20 launch audits per month",
-                        "100 AI Co-Founder chat messages per month",
-                        "20 ICP / Persona analyses per month",
-                        "20 landing page analyses per month",
-                        "Full landing page analysis including ICP alignment",
-                        "Deeper Persona / ICP insights",
-                        "Prioritized recommendations and strategic guidance",
-                      ].map((item, index) => (
-                        <div
-                          key={item}
-                          className={`flex items-start gap-3 text-sm ${
-                            index === 0
-                              ? "text-zinc-300"
-                              : "text-zinc-400"
-                          }`}
-                        >
-
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/[0.1] text-[10px] text-violet-300">
-                            ✓
-                          </span>
-
-                          <span>{item}</span>
-
-                        </div>
-                      ))}
-
-                    </div>
-
-                    <Button
-                      type="button"
-                      size="lg"
-                      disabled={!!navigatingTo}
-                      onClick={() => navigateWithLoading("/billing")}
-                      className="mt-9 h-12 w-full rounded-xl bg-white text-sm font-semibold text-black shadow-[0_0_40px_rgba(139,92,246,0.14)] transition hover:-translate-y-0.5 hover:bg-zinc-100 disabled:cursor-wait disabled:opacity-90"
-                    >
-                      {navigatingTo === "/billing" ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" />
-                          Opening Premium...
-                        </span>
-                      ) : (
-                        "Upgrade to Premium"
-                      )}
-                    </Button>
-
-                    <p className="mt-3 text-center text-[10px] text-zinc-700">
-                      Limits reset monthly
-                    </p>
-
-                  </div>
-
+              <div className="relative rounded-[30px] bg-[#111113] p-7 text-white shadow-[0_25px_80px_rgba(17,17,19,0.18)] sm:p-9">
+                <div className="absolute right-7 top-7 rounded-full bg-white/10 px-3 py-1.5 text-[9px] font-medium uppercase tracking-[0.14em] text-white/65">
+                  For serious builders
                 </div>
 
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300">
+                  Premium
+                </p>
+                <h3 className="mt-3 text-2xl font-semibold">Keep improving</h3>
+
+                <div className="mt-7 flex items-end gap-2">
+                  <span className="text-5xl font-semibold tracking-[-0.05em]">$8.99</span>
+                  <span className="pb-1 text-sm text-white/40">/ month</span>
+                </div>
+
+                <p className="mt-4 max-w-lg text-sm leading-6 text-white/50">
+                  More room to repeatedly audit, validate, generate personas,
+                  analyze landing pages, and challenge strategic decisions.
+                </p>
+
+                <div className="mt-7 space-y-2">
+                  {[
+                    ["Launch audits", "20 / month"],
+                    ["AI Co-Founder chat", "100 messages / month"],
+                    ["ICP / Persona analyses", "20 / month"],
+                    ["Landing page analyses", "20 / month"],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3"
+                    >
+                      <span className="text-sm text-white/60">{label}</span>
+                      <span className="text-sm font-semibold text-white">{value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-7 space-y-3 border-t border-white/[0.08] pt-7">
+                  {[
+                    "Everything in Free",
+                    "Full landing page analysis including ICP alignment",
+                    "Deeper Persona / ICP insights",
+                    "Prioritized recommendations",
+                    "Strategic guidance through AI Co-Founder chat",
+                  ].map((item) => (
+                    <div key={item} className="flex gap-3 text-sm text-white/65">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-400/10 text-[10px] text-violet-300">
+                        ✓
+                      </span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  size="lg"
+                  disabled={!!navigatingTo}
+                  onClick={() => navigateWithLoading("/billing")}
+                  className="mt-8 h-12 w-full rounded-xl bg-white font-semibold text-black hover:bg-zinc-100"
+                >
+                  {navigatingTo === "/billing" ? "Opening Premium..." : "Unlock Premium"}
+                </Button>
               </div>
-
             </div>
-
-            <div className="mx-auto mt-8 max-w-5xl text-center text-[10px] uppercase tracking-[0.16em] text-zinc-700">
-
-              <span>
-                Free: 3 audits · 3 chat messages · 2 personas · 2 landing page
-                analyses
-              </span>
-
-              <span className="mx-3 text-zinc-800">•</span>
-
-              <span>
-                Premium: 20 audits · 100 chat messages · 20 personas · 20
-                landing page analyses
-              </span>
-
-              <p className="mt-3 normal-case tracking-normal text-zinc-700">
-                All usage limits reset at the start of each month.
-              </p>
-
-            </div>
-
           </div>
-
         </section>
       </AnimatedSection>
 
       {/* How it works */}
       <AnimatedSection>
-        <section
-          id="how-it-works"
-          className="relative z-10 border-y border-white/[0.06] bg-white/[0.012] px-6 py-28 lg:px-8"
-        >
-
+        <section id="how-it-works" className="px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
           <div className="mx-auto max-w-7xl">
-
-            <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
-
-              <div>
-
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-amber-300">
-                  The workflow
-                </p>
-
-                <h2 className="mt-5 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                  From uncertainty
-                  <span className="block text-zinc-500">
-                    to a clearer next move.
-                  </span>
-                </h2>
-
-                <p className="mt-6 max-w-md text-base leading-7 text-zinc-500">
-                  Plavtora is built around the founder's actual problem:
-                  deciding what deserves attention when the information is
-                  incomplete.
-                </p>
-
-              </div>
-
-              <div className="space-y-3">
-
-                {[
-                  {
-                    number: "01",
-                    title: "Bring the evidence",
-                    text: "Your product, audience, landing page, competitors, traction, pricing, and assumptions.",
-                  },
-                  {
-                    number: "02",
-                    title: "Challenge the assumptions",
-                    text: "Plavtora examines the weak points and highlights where your reasoning is unsupported.",
-                  },
-                  {
-                    number: "03",
-                    title: "See what matters",
-                    text: "Separate important problems from noise and distinguish current state from suggestions.",
-                  },
-                  {
-                    number: "04",
-                    title: "Act on the next move",
-                    text: "Leave with clearer priorities instead of another pile of AI-generated tasks.",
-                  },
-                ].map((step, index) => (
-                  <div
-                    key={step.number}
-                    className="group flex gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 transition duration-300 hover:border-white/[0.13] hover:bg-white/[0.03]"
-                  >
-
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-xs text-zinc-500 transition group-hover:border-violet-400/20 group-hover:text-violet-300">
-                      {step.number}
-                    </div>
-
-                    <div>
-
-                      <h3 className="text-sm font-semibold">
-                        {step.title}
-                      </h3>
-
-                      <p className="mt-2 text-sm leading-6 text-zinc-500">
-                        {step.text}
-                      </p>
-
-                    </div>
-
-                    {index < 3 && (
-                      <div className="ml-auto hidden self-center text-zinc-700 sm:block">
-                        ↓
-                      </div>
-                    )}
-
-                  </div>
-                ))}
-
-              </div>
-
+            <div className="max-w-3xl">
+              <p className="section-kicker">How it works</p>
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                From uncertainty
+                <span className="block text-zinc-400">to a clearer next move.</span>
+              </h2>
             </div>
 
+            <div className="mt-14 grid gap-3 md:grid-cols-2">
+              {workflow.map((step) => (
+                <div
+                  key={step.number}
+                  className="group rounded-[24px] border border-black/[0.08] bg-white/60 p-6 transition hover:-translate-y-0.5 hover:bg-white sm:p-7"
+                >
+                  <div className="flex items-start gap-5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-xs font-medium text-zinc-500">
+                      {step.number}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-semibold tracking-tight">
+                        {step.title}
+                      </h3>
+                      <p className="mt-2 text-sm leading-7 text-zinc-600">
+                        {step.text}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-
         </section>
       </AnimatedSection>
 
-      {/* Landing Page Analyzer */}
+      {/* Landing page analyzer */}
       <AnimatedSection>
-        <section className="relative z-10 px-6 py-28 lg:px-8">
+        <section className="px-5 py-8 sm:px-6 lg:px-8 lg:py-16">
+          <div className="mx-auto max-w-7xl overflow-hidden rounded-[34px] bg-[#111113] p-7 text-white shadow-[0_30px_100px_rgba(17,17,19,0.16)] sm:p-10 lg:p-14">
+            <div className="grid items-center gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-blue-300">
+                  Free landing page analyzer
+                </p>
+                <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                  Put your landing page
+                  <span className="block text-white/35">under a microscope.</span>
+                </h2>
+                <p className="mt-5 max-w-xl text-base leading-7 text-white/50">
+                  See how clearly your page communicates value, positioning,
+                  messaging, trust, and conversion intent before you spend more
+                  on traffic.
+                </p>
 
-          <div className="mx-auto max-w-7xl">
-
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0a0d] p-7 sm:p-10 lg:p-12">
-
-              <div className="absolute right-[-120px] top-[-140px] h-[500px] w-[500px] rounded-full bg-blue-600/[0.08] blur-[120px]" />
-
-              <div className="absolute bottom-[-180px] left-[-100px] h-[500px] w-[500px] rounded-full bg-violet-600/[0.08] blur-[120px]" />
-
-              <div className="relative grid items-center gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-
-                <div>
-
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-300">
-                    Free tool
-                  </p>
-
-                  <h2 className="mt-4 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-                    Put your landing page
-                    <span className="block text-zinc-500">
-                      under a microscope.
-                    </span>
-                  </h2>
-
-                  <p className="mt-6 max-w-xl text-base leading-7 text-zinc-500">
-                    See how clearly your page communicates value, positioning,
-                    messaging, and conversion intent before spending more on
-                    traffic.
-                  </p>
-
-                  <div className="mt-8">
-
-                    <Button
-                      type="button"
-                      size="lg"
-                      disabled={!!navigatingTo}
-                      onClick={() =>
-                        navigateWithLoading("/landing_page_analyzer")
-                      }
-                      className="rounded-xl px-6 disabled:cursor-wait disabled:opacity-90"
-                    >
-                      {navigatingTo === "/landing_page_analyzer" ? (
-                        <span className="flex items-center gap-2">
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-                          Opening Analyzer...
-                        </span>
-                      ) : (
-                        "Analyze a landing page"
-                      )}
-                    </Button>
-
-                  </div>
-
-                </div>
-
-                <div className="rounded-[26px] border border-white/[0.08] bg-black/30 p-4">
-
-                  <div className="rounded-[22px] border border-white/[0.06] bg-[#0c0c10] p-5">
-
-                    <div className="flex items-center justify-between">
-
-                      <div>
-
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">
-                          AI landing page analysis
-                        </p>
-
-                        <p className="mt-2 text-sm font-medium">
-                          yourproduct.com
-                        </p>
-
-                      </div>
-
-                      <div className="rounded-full border border-emerald-400/10 bg-emerald-400/[0.06] px-3 py-1 text-[10px] text-emerald-300">
-                        74/100
-                      </div>
-
-                    </div>
-
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
-
-                      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">
-                          Messaging
-                        </p>
-                        <p className="mt-3 text-2xl font-semibold">
-                          8.1
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">
-                          Clarity
-                        </p>
-                        <p className="mt-3 text-2xl font-semibold">
-                          7.6
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
-                        <p className="text-[10px] text-zinc-600">
-                          CTA
-                        </p>
-                        <p className="mt-3 text-2xl font-semibold">
-                          6.9
-                        </p>
-                      </div>
-
-                    </div>
-
-                    <div className="mt-3 rounded-2xl border border-violet-400/10 bg-violet-400/[0.035] p-4">
-
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-violet-300/70">
-                        Challenge
-                      </p>
-
-                      <p className="mt-2 text-sm leading-6 text-zinc-300">
-                        Your headline explains what the product does, but not
-                        why the target customer should care now.
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
+                <Button
+                  type="button"
+                  size="lg"
+                  disabled={!!navigatingTo}
+                  onClick={() => navigateWithLoading("/landing_page_analyzer")}
+                  className="mt-8 rounded-xl bg-white px-6 font-semibold text-black hover:bg-zinc-100"
+                >
+                  {navigatingTo === "/landing_page_analyzer"
+                    ? "Opening Analyzer..."
+                    : "Analyze my landing page"}
+                </Button>
               </div>
 
+              <div className="rounded-[26px] border border-white/[0.09] bg-white/[0.035] p-4">
+                <div className="rounded-[22px] border border-white/[0.07] bg-[#0b0b0e] p-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.18em] text-white/35">
+                        AI landing page analysis
+                      </p>
+                      <p className="mt-2 text-sm font-medium">yourproduct.com</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-400/10 px-3 py-1.5 text-[10px] font-medium text-emerald-300">
+                      74 / 100
+                    </span>
+                  </div>
+
+                  <div className="mt-6 grid gap-2 sm:grid-cols-3">
+                    {[
+                      ["Messaging", "8.1"],
+                      ["Clarity", "7.6"],
+                      ["CTA", "6.9"],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-2xl border border-white/[0.07] bg-white/[0.035] p-4"
+                      >
+                        <p className="text-[9px] uppercase tracking-[0.14em] text-white/30">
+                          {label}
+                        </p>
+                        <p className="mt-3 text-2xl font-semibold">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 rounded-2xl border border-violet-300/10 bg-violet-300/[0.05] p-4">
+                    <p className="text-[9px] uppercase tracking-[0.16em] text-violet-200/60">
+                      Challenge
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      Your headline explains what the product does, but not why
+                      the target customer should care now.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-
           </div>
-
         </section>
       </AnimatedSection>
 
       {/* Final CTA */}
       <AnimatedSection>
-        <section className="relative z-10 px-6 pb-28 pt-16 lg:px-8">
-
-          <div className="mx-auto max-w-5xl text-center">
-
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-violet-300">
-              Build with more certainty
-            </p>
-
-            <h2 className="mt-5 text-5xl font-semibold tracking-[-0.045em] sm:text-6xl">
-              Stop guessing what matters.
+        <section className="px-5 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-32">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="section-kicker">Build with more certainty</p>
+            <h2 className="mt-5 text-5xl font-semibold tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+              Find the weakness
+              <span className="block text-zinc-400">before it gets expensive.</span>
             </h2>
-
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-500">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
               Put your startup through a second opinion before the market does.
             </p>
 
-            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button
+              type="button"
+              size="lg"
+              disabled={!!navigatingTo}
+              onClick={() => navigateWithLoading("/auth")}
+              className="mt-9 h-13 rounded-xl bg-[#111113] px-7 font-semibold text-white shadow-[0_15px_40px_rgba(17,17,19,0.15)] hover:-translate-y-0.5 hover:bg-black"
+            >
+              {navigatingTo === "/auth" ? "Opening Plavtora..." : "Run my startup audit"}
+              <span className="ml-1">→</span>
+            </Button>
 
-              {/* FIX: generic CTA goes to /auth */}
-              <Button
-                type="button"
-                size="lg"
-                disabled={!!navigatingTo}
-                onClick={() => navigateWithLoading("/auth")}
-                className="rounded-xl px-7 shadow-[0_0_40px_rgba(139,92,246,0.16)] disabled:cursor-wait disabled:opacity-90"
-              >
-                {navigatingTo === "/auth" ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white" />
-                    Starting Plavtora...
-                  </span>
-                ) : (
-                  "Start with Plavtora"
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                disabled={!!navigatingTo}
-                onClick={() =>
-                  navigateWithLoading("/landing_page_analyzer")
-                }
-                className="rounded-xl border-white/10 bg-white/[0.02] px-7 hover:bg-white/[0.05] disabled:cursor-wait disabled:opacity-90"
-              >
-                {navigatingTo === "/landing_page_analyzer" ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                    Opening Analyzer...
-                  </span>
-                ) : (
-                  "Analyze a landing page"
-                )}
-              </Button>
-
-            </div>
-
+            <p className="mt-4 text-xs text-zinc-400">
+              Start free · No credit card required
+            </p>
           </div>
-
         </section>
       </AnimatedSection>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/[0.06] px-6 py-8 lg:px-8">
-
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
-
+      <footer className="border-t border-black/[0.07] px-5 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-
             <Image
               src="/icon.png"
               alt="Plavtora"
               width={24}
               height={24}
-              className="rounded-lg opacity-80"
+              className="rounded-lg opacity-75"
             />
-
             <span>© 2026 Plavtora</span>
-
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:justify-end">
-
-            <span>
-              Built for founders who want sharper decisions.
-            </span>
-
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-zinc-300"
-            >
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span>Built for founders who want sharper decisions.</span>
+            <Link href="/privacy" className="transition hover:text-zinc-900">
               Privacy Policy
             </Link>
-
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-zinc-300"
-            >
+            <Link href="/terms" className="transition hover:text-zinc-900">
               Terms of Service
             </Link>
-
           </div>
-
         </div>
-
       </footer>
 
       <style jsx>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-
-          50% {
-            transform: translateY(-6px);
-          }
+        .nav-link {
+          border-radius: 8px;
+          padding: 8px 12px;
+          font-size: 13px;
+          color: rgb(113 113 122);
+          transition: all 180ms ease;
         }
 
-        @keyframes loadbar {
-          from {
-            width: 0%;
-          }
+        .nav-link:hover {
+          background: rgba(0, 0, 0, 0.035);
+          color: rgb(24 24 27);
+        }
 
-          to {
-            width: 72%;
-          }
+        .section-kicker {
+          font-size: 10px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: rgb(124 58 237);
         }
 
         @keyframes routeProgress {
           0% {
             transform: translateX(-100%);
           }
-
           100% {
             transform: translateX(320%);
           }
         }
       `}</style>
-
     </main>
   );
 }
