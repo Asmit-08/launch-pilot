@@ -346,69 +346,51 @@ export default function AuditPage() {
   const projectId = params.id as string;
   const auditId = params.auditId as string;
 
-  const [audit, setAudit] =
-    useState<AuditData | null>(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  const [navigatingTo, setNavigatingTo] =
-    useState<string | null>(null);
-
-  const [isPremium, setIsPremium] =
-    useState(false);
+  const [audit, setAudit] = useState<AuditData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadAudit() {
       try {
         setLoading(true);
         setError(null);
 
-        const [auditData, currentUser] =
-          await Promise.all([
-            getProjectAudit(
-              projectId,
-              auditId
-            ),
-            getCurrentUser(),
-          ]);
+        const [auditData, currentUser] = await Promise.all([
+          getProjectAudit(projectId, auditId),
+          getCurrentUser(),
+        ]);
+
+        if (cancelled) return;
 
         setAudit(auditData);
-
-        const subscription =
-          currentUser?.subscription;
-
+        const subscription = currentUser?.subscription;
         setIsPremium(
           subscription === "premium" ||
           subscription === "super_premium"
         );
-      } catch (error) {
-        console.error(
-          "Failed to load audit:",
-          error
-        );
-
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Failed to load audit:", err);
         setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load audit."
+          err instanceof Error ? err.message : "Failed to load audit."
         );
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    if (projectId && auditId) {
-      loadAudit();
-    }
+    if (projectId && auditId) loadAudit();
+
+    return () => { cancelled = true; };
   }, [projectId, auditId]);
 
-  if (loading) {
-    return <AuditReportLoader />;
-  }
+  // All hooks are above these returns. Do not add hooks below.
+  if (loading) return <AuditReportLoader />;
 
   if (error || !audit) {
     return (
@@ -417,33 +399,24 @@ export default function AuditPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
             <ShieldAlert size={24} />
           </div>
-
           <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-950">
             Unable to load audit
           </h1>
-
           <p className="mt-2 text-sm leading-6 text-slate-500">
             {error || "Audit not found."}
           </p>
-
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
               setNavigatingTo("history");
-              router.push(
-                `/projects/${projectId}/audits`
-              );
+              router.push(`/projects/${projectId}/audits`);
             }}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
           >
             {navigatingTo === "history" && (
-              <Loader2
-                size={15}
-                className="animate-spin"
-              />
+              <Loader2 size={15} className="animate-spin" />
             )}
-
             Back to Audits
           </button>
         </div>
@@ -451,25 +424,38 @@ export default function AuditPage() {
     );
   }
 
-  const {
-    project,
-    session,
-    result,
-  } = audit;
+  return (
+    <AuditReportContent
+      audit={audit}
+      projectId={projectId}
+      router={router}
+      navigatingTo={navigatingTo}
+      setNavigatingTo={setNavigatingTo}
+      isPremium={isPremium}
+    />
+  );
+}
 
-  const overallScore =
-    Number(result.overall_score ?? 0);
+interface AuditReportContentProps {
+  audit: AuditData;
+  projectId: string;
+  router: ReturnType<typeof useRouter>;
+  navigatingTo: string | null;
+  setNavigatingTo: React.Dispatch<React.SetStateAction<string | null>>;
+  isPremium: boolean;
+}
 
+function AuditReportContent({
+  audit,
+  projectId,
+  router,
+  navigatingTo,
+  setNavigatingTo,
+  isPremium,
+}: AuditReportContentProps) {
+  const { project, session, result } = audit;
+  const overallScore = Number(result.overall_score ?? 0);
   const tone = scoreTone(overallScore);
-
-  /*
-   * IMPORTANT:
-   * Do not use useMemo here.
-   *
-   * This calculation happens after conditional returns above.
-   * useMemo would violate React's Rules of Hooks and cause
-   * React error #310 when loading changes from true to false.
-   */
   const scoreDriver = getScoreDriver(result);
 
   return (
@@ -1102,6 +1088,8 @@ export default function AuditPage() {
     </main>
   );
 }
+
+
 
 /* =========================================================
    Score Driver Component
