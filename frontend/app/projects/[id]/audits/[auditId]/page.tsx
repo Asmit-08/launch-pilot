@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import {
@@ -21,9 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import {
-  getProjectAudit,
-} from "@/services/projects";
+import { getProjectAudit } from "@/services/projects";
 import { getCurrentUser } from "@/services/user";
 
 /* =========================================================
@@ -222,12 +220,28 @@ function getRiskImpact(
   return null;
 }
 
-function scoreLabel(score: number) {
+/* =========================================================
+   Score Labels
+========================================================= */
+
+function overallScoreLabel(score: number) {
   if (score >= 80) {
     return "Strong position";
   }
 
   if (score >= 60) {
+    return "Needs attention";
+  }
+
+  return "High risk";
+}
+
+function dimensionScoreLabel(score: number) {
+  if (score >= 8) {
+    return "Strong";
+  }
+
+  if (score >= 6) {
     return "Needs attention";
   }
 
@@ -251,6 +265,95 @@ function formatDate(date: string) {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+/* =========================================================
+   Score Driver Helpers
+========================================================= */
+
+function getScoreDrivers(
+  result: AuditData["result"]
+) {
+  const dimensions = [
+    {
+      key: "product",
+      label: "Product",
+      score: Number(
+        result.product_json?.score ?? 0
+      ),
+      weaknesses:
+        result.product_json?.weaknesses ?? [],
+    },
+    {
+      key: "validation",
+      label: "Validation",
+      score: Number(
+        result.validation_json?.score ?? 0
+      ),
+      weaknesses:
+        result.validation_json?.weaknesses ?? [],
+    },
+    {
+      key: "launch",
+      label: "Launch readiness",
+      score: Number(
+        result.launch_json?.score ?? 0
+      ),
+      weaknesses:
+        result.launch_json?.weaknesses ?? [],
+    },
+    {
+      key: "risk",
+      label: "Risk",
+      score: Number(
+        result.risk_json?.score ?? 0
+      ),
+      weaknesses:
+        result.risk_json?.critical_risks ?? [],
+    },
+  ];
+
+  const weakest = [...dimensions].sort(
+    (a, b) => a.score - b.score
+  )[0];
+
+  const finding =
+    weakest.weaknesses.length > 0
+      ? toDisplayText(
+          weakest.weaknesses[0]
+        )
+      : null;
+
+  return {
+    weakest,
+    finding,
+  };
+}
+
+function getNextAction(
+  dimension: string,
+  finding: string | null
+) {
+  if (finding) {
+    return `Investigate this ${dimension.toLowerCase()} weakness before investing further in the areas that depend on it.`;
+  }
+
+  switch (dimension) {
+    case "Validation":
+      return "Collect stronger evidence from target users before making additional product or growth commitments.";
+
+    case "Product":
+      return "Identify the weakest product assumption and test it with real users before adding more scope.";
+
+    case "Launch readiness":
+      return "Close the most important launch dependency before increasing traffic or distribution.";
+
+    case "Risk":
+      return "Identify the highest-impact risk and run the smallest test that can reduce uncertainty around it.";
+
+    default:
+      return "Focus on the weakest area before increasing investment.";
+  }
 }
 
 /* =========================================================
@@ -301,7 +404,8 @@ export default function AuditPage() {
 
         setIsPremium(
           subscription === "premium" ||
-          subscription === "super_premium"
+            subscription ===
+              "super_premium"
         );
       } catch (error) {
         console.error(
@@ -341,26 +445,32 @@ export default function AuditPage() {
           </h1>
 
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            {error || "Audit not found."}
+            {error ||
+              "Audit not found."}
           </p>
 
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo("history");
+              setNavigatingTo(
+                "history"
+              );
+
               router.push(
                 `/projects/${projectId}/audits`
               );
             }}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
           >
-            {navigatingTo === "history" && (
+            {navigatingTo ===
+              "history" && (
               <Loader2
                 size={15}
                 className="animate-spin"
               />
             )}
+
             Back to Audits
           </button>
         </div>
@@ -377,16 +487,8 @@ export default function AuditPage() {
   const overallScore =
     Number(result.overall_score ?? 0);
 
-  const tone = scoreTone(overallScore);
-
-  const premiumUpsellLabel = isPremium
-    ? "Premium active"
-    : "Unlock full diagnosis";
-
-  const premiumUpsellDescription =
-    isPremium
-      ? "You have access to the full reasoning, risks, and mitigation details."
-      : "See the specific reasoning behind each score, detailed risks, and what to do about them.";
+  const tone =
+    scoreTone(overallScore);
 
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
@@ -397,14 +499,18 @@ export default function AuditPage() {
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo("history");
+              setNavigatingTo(
+                "history"
+              );
+
               router.push(
                 `/projects/${projectId}/audits`
               );
             }}
             className="group inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950 disabled:cursor-wait disabled:opacity-70"
           >
-            {navigatingTo === "history" ? (
+            {navigatingTo ===
+            "history" ? (
               <Loader2
                 size={16}
                 className="animate-spin text-blue-600"
@@ -416,7 +522,8 @@ export default function AuditPage() {
               />
             )}
 
-            {navigatingTo === "history"
+            {navigatingTo ===
+            "history"
               ? "Opening history..."
               : "Audit history"}
           </button>
@@ -437,7 +544,10 @@ export default function AuditPage() {
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo("new-audit");
+              setNavigatingTo(
+                "new-audit"
+              );
+
               router.push("/audit");
             }}
             className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
@@ -469,15 +579,22 @@ export default function AuditPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Plavtora evaluated your product, validation, launch readiness,
-              and risk. The free result gives you the signal. Premium exposes
-              the reasoning behind it.
+              Plavtora evaluated your
+              product, validation,
+              launch readiness, and
+              risk. The free result
+              gives you the signal.
+              Premium exposes the
+              reasoning behind it.
             </p>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Clock3 size={14} />
-            Generated {formatDate(result.created_at)}
+            Generated{" "}
+            {formatDate(
+              result.created_at
+            )}
           </div>
         </div>
 
@@ -508,7 +625,9 @@ export default function AuditPage() {
                       : "bg-rose-50 text-rose-700"
                 }`}
               >
-                {scoreLabel(overallScore)}
+                {overallScoreLabel(
+                  overallScore
+                )}
               </div>
 
               <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -522,7 +641,10 @@ export default function AuditPage() {
                   }`}
                   style={{
                     width: `${Math.min(
-                      Math.max(overallScore, 0),
+                      Math.max(
+                        overallScore,
+                        0
+                      ),
                       100
                     )}%`,
                   }}
@@ -530,7 +652,9 @@ export default function AuditPage() {
               </div>
 
               <p className="mt-3 text-xs leading-5 text-slate-400">
-                Score generated from the current audit snapshot.
+                Score generated from
+                the current audit
+                snapshot.
               </p>
             </div>
 
@@ -542,7 +666,8 @@ export default function AuditPage() {
                   </p>
 
                   <h2 className="mt-3 text-2xl font-bold tracking-tight">
-                    What this score means
+                    What this score
+                    means
                   </h2>
                 </div>
 
@@ -552,30 +677,47 @@ export default function AuditPage() {
               </div>
 
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/65">
-                Your audit score is a starting point for decision-making, not a
-                guarantee. Use the strongest weak signal in the report to decide
-                what deserves attention next.
+                Your audit score is a
+                starting point for
+                decision-making, not a
+                guarantee. Use the
+                strongest weak signal in
+                the report to decide what
+                deserves attention next.
               </p>
 
               <div className="mt-7 grid gap-2 sm:grid-cols-2">
                 <DarkMetric
                   label="Product"
-                  score={result.product_json.score}
+                  score={
+                    result.product_json
+                      .score
+                  }
                 />
 
                 <DarkMetric
                   label="Validation"
-                  score={result.validation_json.score}
+                  score={
+                    result
+                      .validation_json
+                      .score
+                  }
                 />
 
                 <DarkMetric
                   label="Launch readiness"
-                  score={result.launch_json.score}
+                  score={
+                    result.launch_json
+                      .score
+                  }
                 />
 
                 <DarkMetric
                   label="Risk"
-                  score={result.risk_json.score}
+                  score={
+                    result.risk_json
+                      .score
+                  }
                   risk
                 />
               </div>
@@ -587,33 +729,230 @@ export default function AuditPage() {
         <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <ScoreCard
             title="Product"
-            score={result.product_json.score}
+            score={
+              result.product_json
+                .score
+            }
             icon={<Package size={18} />}
           />
 
           <ScoreCard
             title="Validation"
-            score={result.validation_json.score}
+            score={
+              result.validation_json
+                .score
+            }
             icon={<Target size={18} />}
           />
 
           <ScoreCard
             title="Launch Readiness"
-            score={result.launch_json.score}
+            score={
+              result.launch_json
+                .score
+            }
             icon={<Rocket size={18} />}
           />
 
           <RiskScoreCard
-            score={result.risk_json.score}
+            score={
+              result.risk_json.score
+            }
           />
         </section>
+
+        {/* =====================================================
+            Score Drivers
+        ====================================================== */}
+        {(() => {
+          const {
+            weakest,
+            finding,
+          } = getScoreDrivers(
+            result
+          );
+
+          const nextAction =
+            getNextAction(
+              weakest.label,
+              finding
+            );
+
+          return (
+            <section className="mt-8 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 p-6 sm:p-7">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <TrendingUp
+                      size={19}
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                      Score driver
+                    </p>
+
+                    <h2 className="mt-2 text-xl font-bold text-slate-950">
+                      Your biggest
+                      pressure point is{" "}
+                      {weakest.label}.
+                    </h2>
+
+                    <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
+                      Of the four
+                      dimensions Plavtora
+                      evaluated, this is
+                      currently the weakest
+                      signal in your audit.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[0.8fr_1.2fr]">
+                {/* Weakest dimension */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                    Weakest dimension
+                  </p>
+
+                  <div className="mt-4 flex items-end gap-2">
+                    <span className="text-5xl font-bold tracking-tight text-slate-950">
+                      {weakest.score}
+                    </span>
+
+                    <span className="pb-1 text-sm font-medium text-slate-400">
+                      /10
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-sm font-semibold text-slate-700">
+                    {weakest.label}
+                  </p>
+
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-violet-500"
+                      style={{
+                        width: `${Math.min(
+                          Math.max(
+                            weakest.score,
+                            0
+                          ) * 10,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-xs leading-5 text-slate-400">
+                    This does not mean the
+                    startup will fail. It
+                    identifies where
+                    uncertainty is currently
+                    concentrated.
+                  </p>
+                </div>
+
+                {/* Finding + action */}
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-5">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb
+                        size={16}
+                        className="text-violet-600"
+                      />
+
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-700">
+                        One finding
+                      </p>
+                    </div>
+
+                    {finding ? (
+                      <p className="mt-3 text-sm leading-6 text-slate-700">
+                        {finding}
+                      </p>
+                    ) : (
+                      <p className="mt-3 text-sm leading-6 text-slate-500">
+                        Plavtora identified
+                        this as the weakest
+                        dimension, but no
+                        specific finding was
+                        returned in the
+                        current audit data.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2
+                        size={16}
+                        className="text-emerald-600"
+                      />
+
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                        Recommended next
+                        move
+                      </p>
+                    </div>
+
+                    <p className="mt-3 text-sm leading-6 text-slate-700">
+                      {nextAction}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {!isPremium && (
+                <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5 sm:px-7">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">
+                        Want to understand
+                        what is driving this
+                        score?
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Premium reveals the
+                        complete reasoning,
+                        evidence gaps, risks,
+                        and prioritized
+                        remediation plan.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(
+                          "/billing"
+                        )
+                      }
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
+                    >
+                      See full diagnosis
+                      <ArrowRight
+                        size={15}
+                      />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+        })()}
 
         {/* Free-value section */}
         <section className="mt-8 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <CheckCircle2 size={19} />
+                <CheckCircle2
+                  size={19}
+                />
               </div>
 
               <div>
@@ -622,12 +961,16 @@ export default function AuditPage() {
                 </p>
 
                 <h2 className="mt-2 text-xl font-bold text-slate-950">
-                  You have the signal. Now find out why.
+                  You have the signal.
+                  Now find out why.
                 </h2>
 
                 <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
-                  Your core scores and executive assessment are available now.
-                  Premium opens the specific findings, risks, and mitigations
+                  Your core scores and
+                  executive assessment are
+                  available now. Premium
+                  opens the specific findings,
+                  risks, and mitigations
                   behind those scores.
                 </p>
               </div>
@@ -637,7 +980,9 @@ export default function AuditPage() {
               <button
                 type="button"
                 onClick={() =>
-                  router.push("/billing")
+                  router.push(
+                    "/billing"
+                  )
                 }
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
               >
@@ -663,13 +1008,19 @@ export default function AuditPage() {
             <>
               <InsightColumn
                 title="Strengths"
-                items={result.product_json.strengths}
+                items={
+                  result.product_json
+                    .strengths
+                }
                 positive
               />
 
               <InsightColumn
                 title="Weaknesses"
-                items={result.product_json.weaknesses}
+                items={
+                  result.product_json
+                    .weaknesses
+                }
               />
             </>
           ) : (
@@ -696,7 +1047,8 @@ export default function AuditPage() {
               <InsightColumn
                 title="Strengths"
                 items={
-                  result.validation_json
+                  result
+                    .validation_json
                     .strengths
                 }
                 positive
@@ -705,7 +1057,8 @@ export default function AuditPage() {
               <InsightColumn
                 title="Weaknesses"
                 items={
-                  result.validation_json
+                  result
+                    .validation_json
                     .weaknesses
                 }
               />
@@ -734,7 +1087,8 @@ export default function AuditPage() {
               <InsightColumn
                 title="Strengths"
                 items={
-                  result.launch_json
+                  result
+                    .launch_json
                     .strengths
                 }
                 positive
@@ -743,7 +1097,8 @@ export default function AuditPage() {
               <InsightColumn
                 title="Weaknesses"
                 items={
-                  result.launch_json
+                  result
+                    .launch_json
                     .weaknesses
                 }
               />
@@ -761,7 +1116,9 @@ export default function AuditPage() {
           <div className="border-b border-red-100 bg-red-50/60 p-6 sm:p-7">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                <ShieldAlert size={19} />
+                <ShieldAlert
+                  size={19}
+                />
               </div>
 
               <div>
@@ -776,7 +1133,11 @@ export default function AuditPage() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
                   Risk score:{" "}
                   <span className="font-bold">
-                    {result.risk_json.score}/10
+                    {
+                      result.risk_json
+                        .score
+                    }
+                    /10
                   </span>
                 </p>
               </div>
@@ -789,7 +1150,9 @@ export default function AuditPage() {
                 <RiskList
                   title="Critical Risks"
                   icon={
-                    <AlertTriangle size={17} />
+                    <AlertTriangle
+                      size={17}
+                    />
                   }
                   items={
                     result.risk_json
@@ -801,7 +1164,9 @@ export default function AuditPage() {
                 <RiskList
                   title="Mitigation"
                   icon={
-                    <Lightbulb size={17} />
+                    <Lightbulb
+                      size={17}
+                    />
                   }
                   items={
                     result.risk_json
@@ -824,6 +1189,7 @@ export default function AuditPage() {
               <div>
                 <div className="flex items-center gap-2 text-violet-300">
                   <Sparkles size={15} />
+
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
                     {isPremium
                       ? "Keep iterating"
@@ -855,18 +1221,24 @@ export default function AuditPage() {
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
                 >
                   Back to Project
-                  <ArrowRight size={16} />
+                  <ArrowRight
+                    size={16}
+                  />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() =>
-                    router.push("/billing")
+                    router.push(
+                      "/billing"
+                    )
                   }
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
                 >
                   Unlock Premium
-                  <ArrowRight size={16} />
+                  <ArrowRight
+                    size={16}
+                  />
                 </button>
               )}
             </div>
@@ -876,15 +1248,21 @@ export default function AuditPage() {
         <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Clock3 size={13} />
+
             Audit generated{" "}
-            {formatDate(result.created_at)}
+            {formatDate(
+              result.created_at
+            )}
           </div>
 
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo("history");
+              setNavigatingTo(
+                "history"
+              );
+
               router.push(
                 `/projects/${projectId}/audits`
               );
@@ -892,7 +1270,9 @@ export default function AuditPage() {
             className="inline-flex items-center gap-1.5 font-semibold text-slate-500 transition hover:text-slate-900"
           >
             Audit history
-            <ChevronRight size={14} />
+            <ChevronRight
+              size={14}
+            />
           </button>
         </div>
       </section>
@@ -943,7 +1323,7 @@ function ScoreCard({
       </p>
 
       <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-        {scoreLabel(score)}
+        {dimensionScoreLabel(score)}
       </p>
     </div>
   );
@@ -1106,33 +1486,38 @@ function InsightColumn({
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-400">
-          No items returned for this section.
+          No items returned for
+          this section.
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((item, index) => (
-            <div
-              key={index}
-              className={`rounded-2xl border p-4 ${
-                positive
-                  ? "border-emerald-100 bg-emerald-50/60"
-                  : "border-slate-200 bg-slate-50"
-              }`}
-            >
-              <div className="flex gap-3">
-                {positive && (
-                  <CheckCircle2
-                    size={17}
-                    className="mt-0.5 shrink-0 text-emerald-600"
-                  />
-                )}
+          {items.map(
+            (item, index) => (
+              <div
+                key={index}
+                className={`rounded-2xl border p-4 ${
+                  positive
+                    ? "border-emerald-100 bg-emerald-50/60"
+                    : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <div className="flex gap-3">
+                  {positive && (
+                    <CheckCircle2
+                      size={17}
+                      className="mt-0.5 shrink-0 text-emerald-600"
+                    />
+                  )}
 
-                <p className="text-sm leading-6 text-slate-600">
-                  {toDisplayText(item)}
-                </p>
+                  <p className="text-sm leading-6 text-slate-600">
+                    {toDisplayText(
+                      item
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       )}
     </div>
@@ -1155,7 +1540,9 @@ function PremiumLockedSection({
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
-            <LockKeyhole size={19} />
+            <LockKeyhole
+              size={19}
+            />
           </div>
 
           <div>
@@ -1176,7 +1563,9 @@ function PremiumLockedSection({
         <button
           type="button"
           onClick={() =>
-            window.location.assign("/billing")
+            window.location.assign(
+              "/billing"
+            )
           }
           className="shrink-0 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
         >
@@ -1197,6 +1586,7 @@ function PremiumLockedSection({
             <span className="mr-2 text-violet-600">
               •
             </span>
+
             {label}
           </div>
         ))}
@@ -1251,52 +1641,59 @@ function RiskList({
       </div>
 
       <div className="space-y-3">
-        {items.map((item, index) => {
-          const titleText = risk
-            ? getRiskTitle(item)
-            : toDisplayText(item);
+        {items.map(
+          (item, index) => {
+            const titleText =
+              risk
+                ? getRiskTitle(item)
+                : toDisplayText(item);
 
-          const description = risk
-            ? getRiskDescription(item)
-            : null;
+            const description =
+              risk
+                ? getRiskDescription(
+                    item
+                  )
+                : null;
 
-          const impact = risk
-            ? getRiskImpact(item)
-            : null;
+            const impact = risk
+              ? getRiskImpact(item)
+              : null;
 
-          return (
-            <div
-              key={index}
-              className={`rounded-2xl border p-4 ${
-                risk
-                  ? "border-red-100 bg-red-50/70"
-                  : "border-amber-100 bg-amber-50/70"
-              }`}
-            >
-              <p
-                className={`text-sm font-semibold ${
+            return (
+              <div
+                key={index}
+                className={`rounded-2xl border p-4 ${
                   risk
-                    ? "text-red-800"
-                    : "text-amber-800"
+                    ? "border-red-100 bg-red-50/70"
+                    : "border-amber-100 bg-amber-50/70"
                 }`}
               >
-                {titleText}
-              </p>
-
-              {description && (
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {description}
+                <p
+                  className={`text-sm font-semibold ${
+                    risk
+                      ? "text-red-800"
+                      : "text-amber-800"
+                  }`}
+                >
+                  {titleText}
                 </p>
-              )}
 
-              {impact && (
-                <p className="mt-2 text-xs font-medium text-slate-400">
-                  Impact: {impact}
-                </p>
-              )}
-            </div>
-          );
-        })}
+                {description && (
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {description}
+                  </p>
+                )}
+
+                {impact && (
+                  <p className="mt-2 text-xs font-medium text-slate-400">
+                    Impact:{" "}
+                    {impact}
+                  </p>
+                )}
+              </div>
+            );
+          }
+        )}
       </div>
     </div>
   );
@@ -1309,14 +1706,20 @@ function PremiumLockedRisk() {
         <LockedRiskCard
           title="Critical Risks"
           description="See the specific risks Plavtora identified, their impact, and why they matter."
-          icon={<AlertTriangle size={18} />}
+          icon={
+            <AlertTriangle
+              size={18}
+            />
+          }
           tone="red"
         />
 
         <LockedRiskCard
           title="Mitigation"
           description="Get the recommended actions for reducing the risks that affect your launch."
-          icon={<Lightbulb size={18} />}
+          icon={
+            <Lightbulb size={18} />
+          }
           tone="amber"
         />
       </div>
@@ -1324,18 +1727,22 @@ function PremiumLockedRisk() {
       <div className="mt-5 flex flex-col gap-4 rounded-2xl border border-white bg-white/70 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-bold text-slate-950">
-            Want the full risk analysis?
+            Want the full risk
+            analysis?
           </p>
 
           <p className="mt-1 text-sm text-slate-500">
-            Unlock Critical Risks and Mitigation with Premium.
+            Unlock Critical Risks and
+            Mitigation with Premium.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() =>
-            window.location.assign("/billing")
+            window.location.assign(
+              "/billing"
+            )
           }
           className="shrink-0 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
         >
@@ -1404,24 +1811,30 @@ function AuditReportLoader() {
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between">
           <div className="h-9 w-9 animate-pulse rounded-xl bg-slate-200" />
+
           <div className="h-9 w-28 animate-pulse rounded-xl bg-slate-200" />
         </div>
 
         <div className="mt-12">
           <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
+
           <div className="mt-4 h-12 w-80 animate-pulse rounded-lg bg-slate-200" />
+
           <div className="mt-4 h-4 w-[520px] max-w-full animate-pulse rounded bg-slate-100" />
         </div>
 
         <div className="mt-10 overflow-hidden rounded-[30px] bg-white ring-1 ring-slate-200">
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="h-72 animate-pulse border-b border-slate-100 bg-slate-50 lg:border-b-0 lg:border-r" />
+
             <div className="h-72 animate-pulse bg-slate-900/90" />
           </div>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({
+            length: 4,
+          }).map((_, index) => (
             <div
               key={index}
               className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200"
