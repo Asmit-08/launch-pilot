@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import {
@@ -18,11 +18,15 @@ import {
   ShieldAlert,
   Sparkles,
   Target,
-  TrendingUp,
 } from "lucide-react";
 
-import { getProjectAudit } from "@/services/projects";
-import { getCurrentUser } from "@/services/user";
+import {
+  getProjectAudit,
+} from "@/services/projects";
+
+import {
+  getCurrentUser,
+} from "@/services/user";
 
 /* =========================================================
    Types
@@ -221,10 +225,10 @@ function getRiskImpact(
 }
 
 /* =========================================================
-   Score Labels
+   Score Helpers
 ========================================================= */
 
-function overallScoreLabel(score: number) {
+function scoreLabel(score: number) {
   if (score >= 80) {
     return "Strong position";
   }
@@ -236,7 +240,7 @@ function overallScoreLabel(score: number) {
   return "High risk";
 }
 
-function dimensionScoreLabel(score: number) {
+function dimensionLabel(score: number) {
   if (score >= 8) {
     return "Strong";
   }
@@ -260,6 +264,18 @@ function scoreTone(score: number) {
   return "rose";
 }
 
+function dimensionTone(score: number) {
+  if (score >= 8) {
+    return "emerald";
+  }
+
+  if (score >= 6) {
+    return "amber";
+  }
+
+  return "rose";
+}
+
 function formatDate(date: string) {
   return new Date(date).toLocaleString("en-IN", {
     dateStyle: "medium",
@@ -268,92 +284,64 @@ function formatDate(date: string) {
 }
 
 /* =========================================================
-   Score Driver Helpers
+   Score Driver
 ========================================================= */
 
-function getScoreDrivers(
+interface ScoreDriver {
+  name: string;
+  score: number;
+  description: string;
+  recommendation: string;
+  icon: React.ReactNode;
+}
+
+function getScoreDriver(
   result: AuditData["result"]
-) {
+): ScoreDriver {
   const dimensions = [
     {
-      key: "product",
-      label: "Product",
-      score: Number(
-        result.product_json?.score ?? 0
-      ),
-      weaknesses:
-        result.product_json?.weaknesses ?? [],
+      name: "Product",
+      score: Number(result.product_json?.score ?? 0),
+      icon: <Package size={18} />,
+      description:
+        "Your product score is currently the weakest signal across the core product dimensions.",
+      recommendation:
+        "Clarify the product's differentiated value before investing heavily in acquisition.",
     },
     {
-      key: "validation",
-      label: "Validation",
-      score: Number(
-        result.validation_json?.score ?? 0
-      ),
-      weaknesses:
-        result.validation_json?.weaknesses ?? [],
+      name: "Validation",
+      score: Number(result.validation_json?.score ?? 0),
+      icon: <Target size={18} />,
+      description:
+        "Your validation evidence is currently the weakest signal in the audit.",
+      recommendation:
+        "Increase evidence of real demand through usage, retention, feedback, and willingness-to-pay signals.",
     },
     {
-      key: "launch",
-      label: "Launch readiness",
-      score: Number(
-        result.launch_json?.score ?? 0
-      ),
-      weaknesses:
-        result.launch_json?.weaknesses ?? [],
-    },
-    {
-      key: "risk",
-      label: "Risk",
-      score: Number(
-        result.risk_json?.score ?? 0
-      ),
-      weaknesses:
-        result.risk_json?.critical_risks ?? [],
+      name: "Launch Readiness",
+      score: Number(result.launch_json?.score ?? 0),
+      icon: <Rocket size={18} />,
+      description:
+        "Your launch-readiness score is currently the weakest signal in the audit.",
+      recommendation:
+        "Strengthen distribution, positioning, acquisition channels, and launch execution before scaling.",
     },
   ];
 
-  const weakest = [...dimensions].sort(
-    (a, b) => a.score - b.score
-  )[0];
-
-  const finding =
-    weakest.weaknesses.length > 0
-      ? toDisplayText(
-          weakest.weaknesses[0]
-        )
-      : null;
+  const weakest = dimensions.reduce(
+    (lowest, current) =>
+      current.score < lowest.score
+        ? current
+        : lowest
+  );
 
   return {
-    weakest,
-    finding,
+    ...weakest,
+    description:
+      weakest.description,
+    recommendation:
+      weakest.recommendation,
   };
-}
-
-function getNextAction(
-  dimension: string,
-  finding: string | null
-) {
-  if (finding) {
-    return `Investigate this ${dimension.toLowerCase()} weakness before investing further in the areas that depend on it.`;
-  }
-
-  switch (dimension) {
-    case "Validation":
-      return "Collect stronger evidence from target users before making additional product or growth commitments.";
-
-    case "Product":
-      return "Identify the weakest product assumption and test it with real users before adding more scope.";
-
-    case "Launch readiness":
-      return "Close the most important launch dependency before increasing traffic or distribution.";
-
-    case "Risk":
-      return "Identify the highest-impact risk and run the smallest test that can reduce uncertainty around it.";
-
-    default:
-      return "Focus on the weakest area before increasing investment.";
-  }
 }
 
 /* =========================================================
@@ -388,14 +376,16 @@ export default function AuditPage() {
         setLoading(true);
         setError(null);
 
-        const [auditData, currentUser] =
-          await Promise.all([
-            getProjectAudit(
-              projectId,
-              auditId
-            ),
-            getCurrentUser(),
-          ]);
+        const [
+          auditData,
+          currentUser,
+        ] = await Promise.all([
+          getProjectAudit(
+            projectId,
+            auditId
+          ),
+          getCurrentUser(),
+        ]);
 
         setAudit(auditData);
 
@@ -404,8 +394,7 @@ export default function AuditPage() {
 
         setIsPremium(
           subscription === "premium" ||
-            subscription ===
-              "super_premium"
+          subscription === "super_premium"
         );
       } catch (error) {
         console.error(
@@ -445,17 +434,14 @@ export default function AuditPage() {
           </h1>
 
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            {error ||
-              "Audit not found."}
+            {error || "Audit not found."}
           </p>
 
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo(
-                "history"
-              );
+              setNavigatingTo("history");
 
               router.push(
                 `/projects/${projectId}/audits`
@@ -463,8 +449,7 @@ export default function AuditPage() {
             }}
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-wait disabled:opacity-70"
           >
-            {navigatingTo ===
-              "history" && (
+            {navigatingTo === "history" && (
               <Loader2
                 size={15}
                 className="animate-spin"
@@ -490,18 +475,22 @@ export default function AuditPage() {
   const tone =
     scoreTone(overallScore);
 
+  const driver =
+    getScoreDriver(result);
+
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
-      {/* Header */}
+      {/* =====================================================
+          Header
+      ===================================================== */}
+
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo(
-                "history"
-              );
+              setNavigatingTo("history");
 
               router.push(
                 `/projects/${projectId}/audits`
@@ -509,8 +498,7 @@ export default function AuditPage() {
             }}
             className="group inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950 disabled:cursor-wait disabled:opacity-70"
           >
-            {navigatingTo ===
-            "history" ? (
+            {navigatingTo === "history" ? (
               <Loader2
                 size={16}
                 className="animate-spin text-blue-600"
@@ -522,8 +510,7 @@ export default function AuditPage() {
               />
             )}
 
-            {navigatingTo ===
-            "history"
+            {navigatingTo === "history"
               ? "Opening history..."
               : "Audit history"}
           </button>
@@ -544,9 +531,7 @@ export default function AuditPage() {
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo(
-                "new-audit"
-              );
+              setNavigatingTo("new-audit");
 
               router.push("/audit");
             }}
@@ -559,7 +544,11 @@ export default function AuditPage() {
       </header>
 
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
-        {/* Intro */}
+
+        {/* ===================================================
+            Intro
+        =================================================== */}
+
         <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-violet-700">
@@ -579,28 +568,30 @@ export default function AuditPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Plavtora evaluated your
-              product, validation,
-              launch readiness, and
-              risk. The free result
-              gives you the signal.
-              Premium exposes the
-              reasoning behind it.
+              Plavtora evaluated your product,
+              validation, launch readiness, and
+              risk. The free result gives you the
+              signal. Premium exposes the reasoning
+              behind it.
             </p>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Clock3 size={14} />
             Generated{" "}
-            {formatDate(
-              result.created_at
-            )}
+            {formatDate(result.created_at)}
           </div>
         </div>
 
-        {/* Overall verdict */}
+        {/* ===================================================
+            Overall Verdict
+        =================================================== */}
+
         <section className="mt-8 overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm">
           <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
+
+            {/* Overall score */}
+
             <div className="border-b border-slate-100 p-7 sm:p-9 lg:border-b-0 lg:border-r">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                 Overall readiness
@@ -625,9 +616,7 @@ export default function AuditPage() {
                       : "bg-rose-50 text-rose-700"
                 }`}
               >
-                {overallScoreLabel(
-                  overallScore
-                )}
+                {scoreLabel(overallScore)}
               </div>
 
               <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -652,11 +641,12 @@ export default function AuditPage() {
               </div>
 
               <p className="mt-3 text-xs leading-5 text-slate-400">
-                Score generated from
-                the current audit
-                snapshot.
+                Score generated from the
+                current audit snapshot.
               </p>
             </div>
+
+            {/* Executive verdict */}
 
             <div className="bg-slate-950 p-7 text-white sm:p-9">
               <div className="flex items-start justify-between gap-5">
@@ -666,8 +656,7 @@ export default function AuditPage() {
                   </p>
 
                   <h2 className="mt-3 text-2xl font-bold tracking-tight">
-                    What this score
-                    means
+                    What this score means
                   </h2>
                 </div>
 
@@ -677,12 +666,10 @@ export default function AuditPage() {
               </div>
 
               <p className="mt-5 max-w-2xl text-sm leading-7 text-white/65">
-                Your audit score is a
-                starting point for
-                decision-making, not a
-                guarantee. Use the
-                strongest weak signal in
-                the report to decide what
+                Your audit score is a starting
+                point for decision-making, not a
+                guarantee. Use the strongest weak
+                signal in the report to decide what
                 deserves attention next.
               </p>
 
@@ -690,33 +677,28 @@ export default function AuditPage() {
                 <DarkMetric
                   label="Product"
                   score={
-                    result.product_json
-                      .score
+                    result.product_json.score
                   }
                 />
 
                 <DarkMetric
                   label="Validation"
                   score={
-                    result
-                      .validation_json
-                      .score
+                    result.validation_json.score
                   }
                 />
 
                 <DarkMetric
                   label="Launch readiness"
                   score={
-                    result.launch_json
-                      .score
+                    result.launch_json.score
                   }
                 />
 
                 <DarkMetric
                   label="Risk"
                   score={
-                    result.risk_json
-                      .score
+                    result.risk_json.score
                   }
                   risk
                 />
@@ -725,13 +707,15 @@ export default function AuditPage() {
           </div>
         </section>
 
-        {/* Score overview */}
+        {/* ===================================================
+            Score Overview
+        =================================================== */}
+
         <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <ScoreCard
             title="Product"
             score={
-              result.product_json
-                .score
+              result.product_json.score
             }
             icon={<Package size={18} />}
           />
@@ -739,8 +723,7 @@ export default function AuditPage() {
           <ScoreCard
             title="Validation"
             score={
-              result.validation_json
-                .score
+              result.validation_json.score
             }
             icon={<Target size={18} />}
           />
@@ -748,8 +731,7 @@ export default function AuditPage() {
           <ScoreCard
             title="Launch Readiness"
             score={
-              result.launch_json
-                .score
+              result.launch_json.score
             }
             icon={<Rocket size={18} />}
           />
@@ -761,198 +743,23 @@ export default function AuditPage() {
           />
         </section>
 
-        {/* =====================================================
-            Score Drivers
-        ====================================================== */}
-        {(() => {
-          const {
-            weakest,
-            finding,
-          } = getScoreDrivers(
-            result
-          );
+        {/* ===================================================
+            SCORE DRIVER
+        =================================================== */}
 
-          const nextAction =
-            getNextAction(
-              weakest.label,
-              finding
-            );
+        <ScoreDriverSection
+          driver={driver}
+        />
 
-          return (
-            <section className="mt-8 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 p-6 sm:p-7">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                    <TrendingUp
-                      size={19}
-                    />
-                  </div>
+        {/* ===================================================
+            Free Value
+        =================================================== */}
 
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
-                      Score driver
-                    </p>
-
-                    <h2 className="mt-2 text-xl font-bold text-slate-950">
-                      Your biggest
-                      pressure point is{" "}
-                      {weakest.label}.
-                    </h2>
-
-                    <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
-                      Of the four
-                      dimensions Plavtora
-                      evaluated, this is
-                      currently the weakest
-                      signal in your audit.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-5 p-6 sm:p-7 lg:grid-cols-[0.8fr_1.2fr]">
-                {/* Weakest dimension */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                    Weakest dimension
-                  </p>
-
-                  <div className="mt-4 flex items-end gap-2">
-                    <span className="text-5xl font-bold tracking-tight text-slate-950">
-                      {weakest.score}
-                    </span>
-
-                    <span className="pb-1 text-sm font-medium text-slate-400">
-                      /10
-                    </span>
-                  </div>
-
-                  <p className="mt-2 text-sm font-semibold text-slate-700">
-                    {weakest.label}
-                  </p>
-
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className="h-full rounded-full bg-violet-500"
-                      style={{
-                        width: `${Math.min(
-                          Math.max(
-                            weakest.score,
-                            0
-                          ) * 10,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-
-                  <p className="mt-3 text-xs leading-5 text-slate-400">
-                    This does not mean the
-                    startup will fail. It
-                    identifies where
-                    uncertainty is currently
-                    concentrated.
-                  </p>
-                </div>
-
-                {/* Finding + action */}
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-5">
-                    <div className="flex items-center gap-2">
-                      <Lightbulb
-                        size={16}
-                        className="text-violet-600"
-                      />
-
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-700">
-                        One finding
-                      </p>
-                    </div>
-
-                    {finding ? (
-                      <p className="mt-3 text-sm leading-6 text-slate-700">
-                        {finding}
-                      </p>
-                    ) : (
-                      <p className="mt-3 text-sm leading-6 text-slate-500">
-                        Plavtora identified
-                        this as the weakest
-                        dimension, but no
-                        specific finding was
-                        returned in the
-                        current audit data.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2
-                        size={16}
-                        className="text-emerald-600"
-                      />
-
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                        Recommended next
-                        move
-                      </p>
-                    </div>
-
-                    <p className="mt-3 text-sm leading-6 text-slate-700">
-                      {nextAction}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {!isPremium && (
-                <div className="border-t border-slate-100 bg-slate-50/70 px-6 py-5 sm:px-7">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">
-                        Want to understand
-                        what is driving this
-                        score?
-                      </p>
-
-                      <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Premium reveals the
-                        complete reasoning,
-                        evidence gaps, risks,
-                        and prioritized
-                        remediation plan.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        router.push(
-                          "/billing"
-                        )
-                      }
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
-                    >
-                      See full diagnosis
-                      <ArrowRight
-                        size={15}
-                      />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
-          );
-        })()}
-
-        {/* Free-value section */}
         <section className="mt-8 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                <CheckCircle2
-                  size={19}
-                />
+                <CheckCircle2 size={19} />
               </div>
 
               <div>
@@ -961,16 +768,14 @@ export default function AuditPage() {
                 </p>
 
                 <h2 className="mt-2 text-xl font-bold text-slate-950">
-                  You have the signal.
-                  Now find out why.
+                  You have the signal. Now find out why.
                 </h2>
 
                 <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
-                  Your core scores and
-                  executive assessment are
-                  available now. Premium
-                  opens the specific findings,
-                  risks, and mitigations
+                  Your core scores and executive
+                  assessment are available now.
+                  Premium opens the specific
+                  findings, risks, and mitigations
                   behind those scores.
                 </p>
               </div>
@@ -980,9 +785,7 @@ export default function AuditPage() {
               <button
                 type="button"
                 onClick={() =>
-                  router.push(
-                    "/billing"
-                  )
+                  router.push("/billing")
                 }
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
               >
@@ -993,7 +796,10 @@ export default function AuditPage() {
           </div>
         </section>
 
-        {/* Product */}
+        {/* ===================================================
+            Product
+        =================================================== */}
+
         <InsightSection
           eyebrow="01 / Product"
           title="Product Analysis"
@@ -1031,7 +837,10 @@ export default function AuditPage() {
           )}
         </InsightSection>
 
-        {/* Validation */}
+        {/* ===================================================
+            Validation
+        =================================================== */}
+
         <InsightSection
           eyebrow="02 / Validation"
           title="Validation Analysis"
@@ -1047,8 +856,7 @@ export default function AuditPage() {
               <InsightColumn
                 title="Strengths"
                 items={
-                  result
-                    .validation_json
+                  result.validation_json
                     .strengths
                 }
                 positive
@@ -1057,8 +865,7 @@ export default function AuditPage() {
               <InsightColumn
                 title="Weaknesses"
                 items={
-                  result
-                    .validation_json
+                  result.validation_json
                     .weaknesses
                 }
               />
@@ -1071,7 +878,10 @@ export default function AuditPage() {
           )}
         </InsightSection>
 
-        {/* Launch */}
+        {/* ===================================================
+            Launch
+        =================================================== */}
+
         <InsightSection
           eyebrow="03 / Launch"
           title="Launch Readiness"
@@ -1087,8 +897,7 @@ export default function AuditPage() {
               <InsightColumn
                 title="Strengths"
                 items={
-                  result
-                    .launch_json
+                  result.launch_json
                     .strengths
                 }
                 positive
@@ -1097,8 +906,7 @@ export default function AuditPage() {
               <InsightColumn
                 title="Weaknesses"
                 items={
-                  result
-                    .launch_json
+                  result.launch_json
                     .weaknesses
                 }
               />
@@ -1111,14 +919,15 @@ export default function AuditPage() {
           )}
         </InsightSection>
 
-        {/* Risk */}
+        {/* ===================================================
+            Risk
+        =================================================== */}
+
         <section className="mt-8 overflow-hidden rounded-[28px] border border-red-100 bg-white shadow-sm">
           <div className="border-b border-red-100 bg-red-50/60 p-6 sm:p-7">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                <ShieldAlert
-                  size={19}
-                />
+                <ShieldAlert size={19} />
               </div>
 
               <div>
@@ -1133,11 +942,7 @@ export default function AuditPage() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">
                   Risk score:{" "}
                   <span className="font-bold">
-                    {
-                      result.risk_json
-                        .score
-                    }
-                    /10
+                    {result.risk_json.score}/10
                   </span>
                 </p>
               </div>
@@ -1180,7 +985,10 @@ export default function AuditPage() {
           </div>
         </section>
 
-        {/* Final CTA */}
+        {/* ===================================================
+            Final CTA
+        =================================================== */}
+
         <section className="mt-8 overflow-hidden rounded-[30px] bg-slate-950 p-7 text-white shadow-xl shadow-slate-900/10 sm:p-9">
           <div className="relative">
             <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl" />
@@ -1221,47 +1029,40 @@ export default function AuditPage() {
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
                 >
                   Back to Project
-                  <ArrowRight
-                    size={16}
-                  />
+                  <ArrowRight size={16} />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() =>
-                    router.push(
-                      "/billing"
-                    )
+                    router.push("/billing")
                   }
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
                 >
                   Unlock Premium
-                  <ArrowRight
-                    size={16}
-                  />
+                  <ArrowRight size={16} />
                 </button>
               )}
             </div>
           </div>
         </section>
 
+        {/* ===================================================
+            Footer
+        =================================================== */}
+
         <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Clock3 size={13} />
-
             Audit generated{" "}
-            {formatDate(
-              result.created_at
-            )}
+            {formatDate(result.created_at)}
           </div>
 
           <button
             type="button"
             disabled={!!navigatingTo}
             onClick={() => {
-              setNavigatingTo(
-                "history"
-              );
+              setNavigatingTo("history");
 
               router.push(
                 `/projects/${projectId}/audits`
@@ -1270,9 +1071,7 @@ export default function AuditPage() {
             className="inline-flex items-center gap-1.5 font-semibold text-slate-500 transition hover:text-slate-900"
           >
             Audit history
-            <ChevronRight
-              size={14}
-            />
+            <ChevronRight size={14} />
           </button>
         </div>
       </section>
@@ -1281,7 +1080,135 @@ export default function AuditPage() {
 }
 
 /* =========================================================
-   Score Components
+   Score Driver Component
+========================================================= */
+
+function ScoreDriverSection({
+  driver,
+}: {
+  driver: ScoreDriver;
+}) {
+  const tone =
+    dimensionTone(driver.score);
+
+  return (
+    <section className="mt-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+      <div className="grid lg:grid-cols-[0.7fr_1.3fr]">
+
+        {/* Driver score */}
+
+        <div className="border-b border-slate-100 bg-slate-50 p-6 sm:p-7 lg:border-b-0 lg:border-r">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                tone === "emerald"
+                  ? "bg-emerald-50 text-emerald-600"
+                  : tone === "amber"
+                    ? "bg-amber-50 text-amber-600"
+                    : "bg-rose-50 text-rose-600"
+              }`}
+            >
+              {driver.icon}
+            </div>
+
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Score driver
+            </p>
+          </div>
+
+          <p className="mt-6 text-xs font-semibold text-slate-400">
+            Weakest dimension
+          </p>
+
+          <div className="mt-2 flex items-end gap-2">
+            <span className="text-6xl font-bold leading-none tracking-[-0.06em] text-slate-950">
+              {driver.score}
+            </span>
+
+            <span className="pb-1.5 text-sm font-medium text-slate-400">
+              /10
+            </span>
+          </div>
+
+          <p className="mt-3 text-lg font-bold text-slate-950">
+            {driver.name}
+          </p>
+        </div>
+
+        {/* Driver explanation */}
+
+        <div className="p-6 sm:p-7">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+              <Target size={16} />
+            </div>
+
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-600">
+              What is driving the score
+            </p>
+          </div>
+
+          <h2 className="mt-4 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+            Your biggest pressure point is{" "}
+            <span className="text-violet-600">
+              {driver.name}
+            </span>
+            .
+          </h2>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            {driver.description}
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                Weakest dimension
+              </p>
+
+              <p className="mt-2 text-lg font-bold text-slate-950">
+                {driver.score}/10
+              </p>
+
+              <p
+                className={`mt-1 text-xs font-semibold ${
+                  tone === "emerald"
+                    ? "text-emerald-600"
+                    : tone === "amber"
+                      ? "text-amber-600"
+                      : "text-rose-600"
+                }`}
+              >
+                {dimensionLabel(
+                  driver.score
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-600">
+                Recommended next move
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-700">
+                {driver.recommendation}
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-5 text-xs leading-5 text-slate-400">
+            This does not mean the startup will fail.
+            It identifies where uncertainty is currently
+            concentrated in this audit.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* =========================================================
+   Score Cards
 ========================================================= */
 
 function ScoreCard({
@@ -1293,7 +1220,8 @@ function ScoreCard({
   score: number;
   icon: React.ReactNode;
 }) {
-  const tone = scoreTone(score);
+  const tone =
+    dimensionTone(score);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -1323,7 +1251,7 @@ function ScoreCard({
       </p>
 
       <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-        {dimensionScoreLabel(score)}
+        {dimensionLabel(score)}
       </p>
     </div>
   );
@@ -1360,6 +1288,10 @@ function RiskScoreCard({
     </div>
   );
 }
+
+/* =========================================================
+   Dark Metric
+========================================================= */
 
 function DarkMetric({
   label,
@@ -1457,6 +1389,10 @@ function InsightSection({
   );
 }
 
+/* =========================================================
+   Insight Column
+========================================================= */
+
 function InsightColumn({
   title,
   items,
@@ -1480,14 +1416,16 @@ function InsightColumn({
               : "bg-slate-100 text-slate-500"
           }`}
         >
-          {items.length} items
+          {items.length}{" "}
+          {items.length === 1
+            ? "item"
+            : "items"}
         </span>
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-400">
-          No items returned for
-          this section.
+          No items returned for this section.
         </div>
       ) : (
         <div className="space-y-3">
@@ -1510,9 +1448,7 @@ function InsightColumn({
                   )}
 
                   <p className="text-sm leading-6 text-slate-600">
-                    {toDisplayText(
-                      item
-                    )}
+                    {toDisplayText(item)}
                   </p>
                 </div>
               </div>
@@ -1540,9 +1476,7 @@ function PremiumLockedSection({
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
-            <LockKeyhole
-              size={19}
-            />
+            <LockKeyhole size={19} />
           </div>
 
           <div>
@@ -1596,7 +1530,7 @@ function PremiumLockedSection({
 }
 
 /* =========================================================
-   Risk
+   Risk List
 ========================================================= */
 
 function RiskList({
@@ -1643,10 +1577,9 @@ function RiskList({
       <div className="space-y-3">
         {items.map(
           (item, index) => {
-            const titleText =
-              risk
-                ? getRiskTitle(item)
-                : toDisplayText(item);
+            const titleText = risk
+              ? getRiskTitle(item)
+              : toDisplayText(item);
 
             const description =
               risk
@@ -1655,9 +1588,10 @@ function RiskList({
                   )
                 : null;
 
-            const impact = risk
-              ? getRiskImpact(item)
-              : null;
+            const impact =
+              risk
+                ? getRiskImpact(item)
+                : null;
 
             return (
               <div
@@ -1686,8 +1620,7 @@ function RiskList({
 
                 {impact && (
                   <p className="mt-2 text-xs font-medium text-slate-400">
-                    Impact:{" "}
-                    {impact}
+                    Impact: {impact}
                   </p>
                 )}
               </div>
@@ -1698,6 +1631,10 @@ function RiskList({
     </div>
   );
 }
+
+/* =========================================================
+   Premium Locked Risk
+========================================================= */
 
 function PremiumLockedRisk() {
   return (
@@ -1718,7 +1655,9 @@ function PremiumLockedRisk() {
           title="Mitigation"
           description="Get the recommended actions for reducing the risks that affect your launch."
           icon={
-            <Lightbulb size={18} />
+            <Lightbulb
+              size={18}
+            />
           }
           tone="amber"
         />
@@ -1727,13 +1666,11 @@ function PremiumLockedRisk() {
       <div className="mt-5 flex flex-col gap-4 rounded-2xl border border-white bg-white/70 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-bold text-slate-950">
-            Want the full risk
-            analysis?
+            Want the full risk analysis?
           </p>
 
           <p className="mt-1 text-sm text-slate-500">
-            Unlock Critical Risks and
-            Mitigation with Premium.
+            Unlock Critical Risks and Mitigation with Premium.
           </p>
         </div>
 
@@ -1752,6 +1689,10 @@ function PremiumLockedRisk() {
     </div>
   );
 }
+
+/* =========================================================
+   Locked Risk Card
+========================================================= */
 
 function LockedRiskCard({
   title,
@@ -1809,6 +1750,7 @@ function AuditReportLoader() {
   return (
     <main className="min-h-screen bg-[#f7f8fc] px-5 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl">
+
         <div className="flex items-center justify-between">
           <div className="h-9 w-9 animate-pulse rounded-xl bg-slate-200" />
 
@@ -1841,6 +1783,8 @@ function AuditReportLoader() {
             />
           ))}
         </div>
+
+        <div className="mt-5 h-52 animate-pulse rounded-[28px] bg-white ring-1 ring-slate-200" />
 
         <div className="mt-8 h-40 animate-pulse rounded-[28px] bg-white ring-1 ring-slate-200" />
       </div>
