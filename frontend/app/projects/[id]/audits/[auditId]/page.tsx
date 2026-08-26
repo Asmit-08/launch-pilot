@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import {
@@ -69,9 +69,7 @@ interface AuditData {
     overall_score: number;
 
     product_json: AuditSection;
-
     validation_json: AuditSection;
-
     launch_json: AuditSection;
 
     risk_json: {
@@ -288,11 +286,13 @@ function getScoreDriver(
   ];
 
   /*
-   * We deliberately do not use Risk here.
+   * Risk is deliberately excluded from the Score Driver.
    *
-   * Risk is an assessment of exposure, whereas the Score Driver
-   * should answer: "Which core area is currently holding the
-   * startup back the most?"
+   * Risk represents exposure/risk assessment.
+   * The Score Driver answers:
+   *
+   * "Which core execution area is currently
+   * holding the startup back the most?"
    */
 
   const weakest = dimensions.reduce(
@@ -462,10 +462,15 @@ export default function AuditPage() {
 
   const tone = scoreTone(overallScore);
 
-  const scoreDriver = useMemo(
-    () => getScoreDriver(result),
-    [result]
-  );
+  /*
+   * IMPORTANT:
+   * Do not use useMemo here.
+   *
+   * This calculation happens after conditional returns above.
+   * useMemo would violate React's Rules of Hooks and cause
+   * React error #310 when loading changes from true to false.
+   */
+  const scoreDriver = getScoreDriver(result);
 
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
@@ -1130,8 +1135,9 @@ function ScoreDriverSection({
             </h2>
 
             <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
-              Of the four dimensions Plavtora evaluated,
-              this is currently the weakest signal in your audit.
+              Of the three core execution dimensions
+              Plavtora evaluated, this is currently the
+              weakest signal in your audit.
             </p>
 
           </div>
