@@ -5,6 +5,7 @@ from ai.agents import audit_agent
 from repositories.repository_manager import audit_repository
 
 from services.aggregator import aggregate_results
+from services.decision_service import DecisionService
 from services.usage_service import usage_service
 
 
@@ -83,6 +84,27 @@ class AuditService:
             )
 
             # -----------------------------------
+            # Initialize V2 Startup State
+            # -----------------------------------
+            #
+            # The audit provides initial signals.
+            # DecisionService converts those signals
+            # into persistent startup state:
+            #
+            # beliefs
+            # constraint
+            # first objective
+            # decision
+            # state events
+            #
+            # No additional AI call is made.
+
+            startup_state = DecisionService.initialize_project(
+                project=project,
+                audit_result=result,
+            )
+
+            # -----------------------------------
             # Record Actual AI Usage
             # -----------------------------------
 
@@ -100,6 +122,7 @@ class AuditService:
                 **result,
                 "project_id": project["id"],
                 "audit_id": session["id"],
+                "startup_state": startup_state,
             }
 
         except HTTPException:

@@ -3,7 +3,8 @@
 import { supabase } from "@/lib/supabase";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://launch-pilot-backend.onrender.com";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://launch-pilot-backend.onrender.com";
 
 export interface Project {
   id: string;
@@ -48,35 +49,79 @@ export interface ProjectWorkspace {
   latest_audit: LatestAudit | null;
 }
 
-// ---------------- Get Project Audit History ---------------- //
+/* =========================================================
+   V2 TYPES
+   ========================================================= */
 
-export async function getProjectAudits(
-  projectId: string
-): Promise<any[]> {
-  const accessToken = await getAccessToken();
-
-  const response = await fetch(
-    `https://launch-pilot-backend.onrender.com/projects/${projectId}/audits`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-
-  if (response.status === 404) {
-    throw new Error("Project not found.");
-  }
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch project audits.");
-  }
-
-  return response.json();
+export interface DailyObjectiveConstraint {
+  id: string;
+  project_id: string;
+  claim: string;
+  type: string;
+  status: string;
+  confidence: number;
 }
 
-async function getAccessToken() {
+export interface DailyObjectiveState {
+  project_id: string;
+  stage: string;
+  one_liner: string;
+  current_constraint_belief_id: string | null;
+  why_this_constraint: string | null;
+  active_objective_id: string | null;
+  active_experiment_id: string | null;
+  updated_at: string;
+}
+
+export interface DailyObjective {
+  id: string;
+  project_id: string;
+  constraint_belief_id: string;
+  text: string;
+  action: string;
+  target_count: number;
+  evidence_kind: string;
+  success_criteria: string;
+  failure_criteria: string;
+  do_not_do: string;
+  status: string;
+  created_at: string;
+  due_at: string;
+  completed_at: string | null;
+}
+
+export interface DailyObjectiveResponse {
+  project_id: string;
+  has_active_objective: boolean;
+  state: DailyObjectiveState;
+  constraint: DailyObjectiveConstraint | null;
+  objective: DailyObjective | null;
+}
+
+export interface ObjectiveOutcomePayload {
+  completion_status:
+    | "completed"
+    | "success"
+    | "partial"
+    | "failed"
+    | "not_completed";
+
+  quantity: number;
+
+  observations: string;
+
+  evidence?: string | null;
+
+  user_interpretation?: string | null;
+
+  unexpected_result?: string | null;
+}
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+async function getAccessToken(): Promise<string> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -88,18 +133,66 @@ async function getAccessToken() {
   return session.access_token;
 }
 
+/* =========================================================
+   GET PROJECT AUDIT HISTORY
+   ========================================================= */
 
-// ---------------- Get All Projects ---------------- //
+export async function getProjectAudits(
+  projectId: string
+): Promise<any[]> {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch(
+    `${API_URL}/projects/${projectId}/audits`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
+  if (response.status === 404) {
+    throw new Error("Project not found.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to fetch project audits."
+    );
+  }
+
+  return response.json();
+}
+
+/* =========================================================
+   GET ALL PROJECTS
+   ========================================================= */
 
 export async function getProjects(): Promise<Project[]> {
   const accessToken = await getAccessToken();
 
-  const response = await fetch(`https://launch-pilot-backend.onrender.com/projects`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await fetch(
+    `${API_URL}/projects`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
 
   if (!response.ok) {
     throw new Error("Failed to fetch projects.");
@@ -108,8 +201,9 @@ export async function getProjects(): Promise<Project[]> {
   return response.json();
 }
 
-
-// ---------------- Get Project By ID ---------------- //
+/* =========================================================
+   GET PROJECT BY ID
+   ========================================================= */
 
 export async function getProjectById(
   projectId: string
@@ -126,6 +220,12 @@ export async function getProjectById(
     }
   );
 
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
   if (response.status === 404) {
     throw new Error("Project not found.");
   }
@@ -136,6 +236,10 @@ export async function getProjectById(
 
   return response.json();
 }
+
+/* =========================================================
+   GET PROJECT AUDIT
+   ========================================================= */
 
 export async function getProjectAudit(
   projectId: string,
@@ -153,6 +257,12 @@ export async function getProjectAudit(
     }
   );
 
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
   if (response.status === 404) {
     throw new Error("Audit not found.");
   }
@@ -162,4 +272,93 @@ export async function getProjectAudit(
   }
 
   return response.json();
+}
+
+/* =========================================================
+   V2 — GET DAILY OBJECTIVE
+   ========================================================= */
+
+export async function getDailyObjective(
+  projectId: string
+): Promise<DailyObjectiveResponse> {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch(
+    `${API_URL}/projects/${projectId}/daily-objective`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
+  if (response.status === 404) {
+    throw new Error(
+      "Daily Objective is not initialized for this project yet."
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to fetch Daily Objective."
+    );
+  }
+
+  return response.json();
+}
+
+/* =========================================================
+   V2 — SUBMIT DAILY OBJECTIVE OUTCOME
+   ========================================================= */
+
+export async function submitObjectiveOutcome(
+  projectId: string,
+  payload: ObjectiveOutcomePayload
+) {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch(
+    `${API_URL}/projects/${projectId}/daily-objective/outcome`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
+  let data: any = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    // Ignore malformed response.
+  }
+
+  if (!response.ok) {
+    if (typeof data?.detail === "string") {
+      throw new Error(data.detail);
+    }
+
+    throw new Error(
+      "Failed to submit objective outcome."
+    );
+  }
+
+  return data;
 }

@@ -25,8 +25,11 @@ import { supabase } from "@/lib/supabase";
 
 import {
   getProjectById,
+  getDailyObjective,
+  submitObjectiveOutcome,
   Project,
   LatestAudit,
+  DailyObjectiveResponse,
 } from "@/services/projects";
 
 export default function ProjectPage() {
@@ -41,7 +44,8 @@ export default function ProjectPage() {
   const [latestAudit, setLatestAudit] =
     useState<LatestAudit | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -49,7 +53,8 @@ export default function ProjectPage() {
   const [activeTab, setActiveTab] =
     useState("Overview");
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] =
+    useState("");
 
   const [messages, setMessages] = useState<
     {
@@ -58,7 +63,8 @@ export default function ProjectPage() {
     }[]
   >([]);
 
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping, setIsTyping] =
+    useState(false);
 
   const [chatError, setChatError] =
     useState<string | null>(null);
@@ -66,14 +72,66 @@ export default function ProjectPage() {
   const [navigationLoading, setNavigationLoading] =
     useState<string | null>(null);
 
+  /* =========================================================
+     DAILY OBJECTIVE STATE
+     ========================================================= */
+
+  const [dailyObjective, setDailyObjective] =
+    useState<DailyObjectiveResponse | null>(null);
+
+  const [dailyObjectiveLoading, setDailyObjectiveLoading] =
+    useState(true);
+
+  const [dailyObjectiveError, setDailyObjectiveError] =
+    useState<string | null>(null);
+
+  const [showOutcomeForm, setShowOutcomeForm] =
+    useState(false);
+
+  const [outcomeSubmitting, setOutcomeSubmitting] =
+    useState(false);
+
+  const [outcomeError, setOutcomeError] =
+    useState<string | null>(null);
+
+  const [completionStatus, setCompletionStatus] =
+    useState<
+      "completed" |
+      "success" |
+      "partial" |
+      "failed" |
+      "not_completed"
+    >("completed");
+
+  const [quantity, setQuantity] =
+    useState(1);
+
+  const [observations, setObservations] =
+    useState("");
+
+  const [evidence, setEvidence] =
+    useState("");
+
+  const [userInterpretation, setUserInterpretation] =
+    useState("");
+
+  const [unexpectedResult, setUnexpectedResult] =
+    useState("");
+
   const messagesEndRef =
     useRef<HTMLDivElement>(null);
+
+  /* =========================================================
+     LOAD PROJECT + DAILY OBJECTIVE
+     ========================================================= */
 
   useEffect(() => {
     async function loadProject() {
       try {
         setLoading(true);
         setError(null);
+        setDailyObjectiveLoading(true);
+        setDailyObjectiveError(null);
 
         const workspace =
           await getProjectById(projectId);
@@ -82,6 +140,26 @@ export default function ProjectPage() {
         setLatestAudit(
           workspace.latest_audit
         );
+
+        try {
+          const objectiveData =
+            await getDailyObjective(projectId);
+
+          setDailyObjective(objectiveData);
+        } catch (objectiveError) {
+          console.error(
+            "Failed to load Daily Objective:",
+            objectiveError
+          );
+
+          setDailyObjectiveError(
+            objectiveError instanceof Error
+              ? objectiveError.message
+              : "Failed to load Daily Objective."
+          );
+        } finally {
+          setDailyObjectiveLoading(false);
+        }
       } catch (error) {
         console.error(
           "Failed to load project:",
@@ -93,6 +171,8 @@ export default function ProjectPage() {
             ? error.message
             : "Failed to load project."
         );
+
+        setDailyObjectiveLoading(false);
       } finally {
         setLoading(false);
       }
@@ -103,11 +183,19 @@ export default function ProjectPage() {
     }
   }, [projectId]);
 
+  /* =========================================================
+     CHAT SCROLL
+     ========================================================= */
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, isTyping]);
+
+  /* =========================================================
+     NAVIGATION
+     ========================================================= */
 
   const handleNavigation = (
     key: string,
@@ -115,9 +203,127 @@ export default function ProjectPage() {
   ) => {
     if (navigationLoading) return;
 
+    if (href === "#") {
+      setActiveTab("Chat");
+      return;
+    }
+
     setNavigationLoading(key);
     router.push(href);
   };
+
+  /* =========================================================
+     DAILY OBJECTIVE SUBMISSION
+     ========================================================= */
+
+  const handleSubmitObjective = async () => {
+    if (
+      !project ||
+      !dailyObjective?.objective ||
+      outcomeSubmitting
+    ) {
+      return;
+    }
+
+    if (!observations.trim()) {
+      setOutcomeError(
+        "Tell us what actually happened before submitting."
+      );
+
+      return;
+    }
+
+    if (quantity < 1) {
+      setOutcomeError(
+        "Quantity must be at least 1."
+      );
+
+      return;
+    }
+
+    setOutcomeError(null);
+    setOutcomeSubmitting(true);
+
+    try {
+      const result =
+        await submitObjectiveOutcome(
+          project.id,
+          {
+            completion_status:
+              completionStatus,
+            quantity,
+            observations:
+              observations.trim(),
+            evidence:
+              evidence.trim() || null,
+            user_interpretation:
+              userInterpretation.trim() ||
+              null,
+            unexpected_result:
+              unexpectedResult.trim() ||
+              null,
+          }
+        );
+
+      setShowOutcomeForm(false);
+
+      setObservations("");
+      setEvidence("");
+      setUserInterpretation("");
+      setUnexpectedResult("");
+      setQuantity(1);
+      setCompletionStatus("completed");
+
+      /*
+       * If the objective completed, the backend's
+       * transition contains the next objective.
+       *
+       * If it did not complete, simply refresh the
+       * authoritative Daily Objective state.
+       */
+
+      if (
+        result?.transition?.next_objective
+      ) {
+        setDailyObjective({
+          project_id: project.id,
+          has_active_objective: true,
+          state:
+            result.transition.state,
+          constraint:
+            result.transition.next_belief ??
+            null,
+          objective:
+            result.transition
+              .next_objective,
+        });
+      } else {
+        const refreshed =
+          await getDailyObjective(
+            project.id
+          );
+
+        setDailyObjective(refreshed);
+      }
+    } catch (error) {
+      console.error(
+        "Objective submission failed:",
+        error
+      );
+
+      setOutcomeError(
+        error instanceof Error
+          ? error.message
+          : "Failed to submit objective outcome."
+      );
+    } finally {
+      setOutcomeSubmitting(false);
+    }
+  };
+
+  /* =========================================================
+     CHAT ERROR HANDLING
+     ========================================================= */
 
   const getChatErrorMessage = (
     errorData: any,
@@ -132,7 +338,8 @@ export default function ProjectPage() {
 
     if (
       errorData?.detail &&
-      typeof errorData.detail === "object" &&
+      typeof errorData.detail ===
+        "object" &&
       errorData.detail.error ===
         "usage_limit_reached"
     ) {
@@ -147,7 +354,8 @@ export default function ProjectPage() {
         errorData.detail.limit ?? 0;
 
       const plan =
-        errorData.detail.plan || "free";
+        errorData.detail.plan ||
+        "free";
 
       return `You've reached your ${plan} ${resource.replace(
         /_/g,
@@ -178,6 +386,10 @@ export default function ProjectPage() {
 
     return `Chat request failed (${responseStatus}).`;
   };
+
+  /* =========================================================
+     CHAT
+     ========================================================= */
 
   const handleSendMessage = async () => {
     if (
@@ -242,20 +454,21 @@ export default function ProjectPage() {
           },
           body: JSON.stringify({
             message: currentMessage,
-            audit_result: auditResult
-              ? {
-                  overall_score:
-                    auditResult.overall_score,
-                  product:
-                    auditResult.product_json,
-                  validation:
-                    auditResult.validation_json,
-                  launch_readiness:
-                    auditResult.launch_json,
-                  risk:
-                    auditResult.risk_json,
-                }
-              : {},
+            audit_result:
+              auditResult
+                ? {
+                    overall_score:
+                      auditResult.overall_score,
+                    product:
+                      auditResult.product_json,
+                    validation:
+                      auditResult.validation_json,
+                    launch_readiness:
+                      auditResult.launch_json,
+                    risk:
+                      auditResult.risk_json,
+                  }
+                : {},
             startup_data: {
               id: project.id,
               name: project.name,
@@ -316,7 +529,9 @@ export default function ProjectPage() {
           return;
         }
 
-        throw new Error(errorMessage);
+        throw new Error(
+          errorMessage
+        );
       }
 
       const data =
@@ -344,7 +559,8 @@ export default function ProjectPage() {
         ...updatedMessages,
         {
           role: "assistant",
-          content: assistantResponse,
+          content:
+            assistantResponse,
         },
       ]);
     } catch (error) {
@@ -365,6 +581,10 @@ export default function ProjectPage() {
       setIsTyping(false);
     }
   };
+
+  /* =========================================================
+     LOADING / ERROR
+     ========================================================= */
 
   if (loading) {
     return <ProjectLoader />;
@@ -395,7 +615,9 @@ export default function ProjectPage() {
                 "/dashboard"
               )
             }
-            disabled={!!navigationLoading}
+            disabled={
+              !!navigationLoading
+            }
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
           >
             {navigationLoading ===
@@ -420,9 +642,10 @@ export default function ProjectPage() {
     auditResult?.product_json
   );
 
-  const validationScore = getScore(
-    auditResult?.validation_json
-  );
+  const validationScore =
+    getScore(
+      auditResult?.validation_json
+    );
 
   const launchScore = getScore(
     auditResult?.launch_json
@@ -440,12 +663,15 @@ export default function ProjectPage() {
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
       {/* Header */}
+
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() =>
-              router.push("/dashboard")
+              router.push(
+                "/dashboard"
+              )
             }
             className="group flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950"
           >
@@ -481,7 +707,9 @@ export default function ProjectPage() {
                     "/audit"
                   )
             }
-            disabled={!!navigationLoading}
+            disabled={
+              !!navigationLoading
+            }
             className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600"
           >
             {(navigationLoading ===
@@ -502,12 +730,15 @@ export default function ProjectPage() {
       </header>
 
       {/* Project context */}
+
       <section className="mx-auto max-w-7xl px-5 pt-8 sm:px-6 lg:px-8">
         <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4 sm:gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm sm:h-16 sm:w-16">
-                <FolderGit2 size={27} />
+                <FolderGit2
+                  size={27}
+                />
               </div>
 
               <div>
@@ -529,13 +760,17 @@ export default function ProjectPage() {
 
                 {project.website && (
                   <a
-                    href={project.website}
+                    href={
+                      project.website
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 transition hover:text-blue-700"
                   >
                     {project.website}
-                    <ExternalLink size={13} />
+                    <ExternalLink
+                      size={13}
+                    />
                   </a>
                 )}
               </div>
@@ -550,7 +785,9 @@ export default function ProjectPage() {
                     `/projects/${projectId}/audits`
                   )
                 }
-                disabled={!!navigationLoading}
+                disabled={
+                  !!navigationLoading
+                }
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Audit history
@@ -569,13 +806,17 @@ export default function ProjectPage() {
                         "/audit"
                       )
                 }
-                disabled={!!navigationLoading}
+                disabled={
+                  !!navigationLoading
+                }
                 className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
               >
                 {latestAudit
                   ? "Open latest audit"
                   : "Run first audit"}
-                <ArrowRight size={15} />
+                <ArrowRight
+                  size={15}
+                />
               </button>
             </div>
           </div>
@@ -583,19 +824,28 @@ export default function ProjectPage() {
       </section>
 
       {/* Navigation */}
+
       <nav className="mx-auto mt-7 max-w-7xl overflow-x-auto px-5 sm:px-6 lg:px-8">
         <div className="flex min-w-max gap-1 border-b border-slate-200">
           <ProjectTab
             label="Overview"
-            active={activeTab === "Overview"}
+            active={
+              activeTab ===
+              "Overview"
+            }
             onClick={() =>
-              setActiveTab("Overview")
+              setActiveTab(
+                "Overview"
+              )
             }
           />
 
           <ProjectTab
             label="Audits"
-            active={activeTab === "Audits"}
+            active={
+              activeTab ===
+              "Audits"
+            }
             onClick={() =>
               handleNavigation(
                 "audits-tab",
@@ -629,15 +879,23 @@ export default function ProjectPage() {
           <ProjectTab
             label="Roadmap"
             badge="Soon"
-            active={activeTab === "Roadmap"}
+            active={
+              activeTab ===
+              "Roadmap"
+            }
             onClick={() =>
-              setActiveTab("Roadmap")
+              setActiveTab(
+                "Roadmap"
+              )
             }
           />
 
           <ProjectTab
             label="AI Co-Founder"
-            active={activeTab === "Chat"}
+            active={
+              activeTab ===
+              "Chat"
+            }
             onClick={() =>
               setActiveTab("Chat")
             }
@@ -645,41 +903,149 @@ export default function ProjectPage() {
 
           <ProjectTab
             label="Settings"
-            active={activeTab === "Settings"}
+            active={
+              activeTab ===
+              "Settings"
+            }
             onClick={() =>
-              setActiveTab("Settings")
+              setActiveTab(
+                "Settings"
+              )
             }
           />
         </div>
       </nav>
 
-      {/* Chat */}
+      {/* Workspace */}
+
       {activeTab === "Chat" ? (
         <ChatWorkspace
           project={project}
-          latestAudit={latestAudit}
-          auditResult={auditResult}
+          latestAudit={
+            latestAudit
+          }
+          auditResult={
+            auditResult
+          }
           messages={messages}
           message={message}
-          isTyping={isTyping}
-          chatError={chatError}
-          messagesEndRef={messagesEndRef}
-          onMessageChange={setMessage}
-          onSend={handleSendMessage}
-          onSuggestion={setMessage}
+          isTyping={
+            isTyping
+          }
+          chatError={
+            chatError
+          }
+          messagesEndRef={
+            messagesEndRef
+          }
+          onMessageChange={
+            setMessage
+          }
+          onSend={
+            handleSendMessage
+          }
+          onSuggestion={
+            setMessage
+          }
         />
-      ) : activeTab === "Overview" ? (
+      ) : activeTab ===
+        "Overview" ? (
         <OverviewWorkspace
           project={project}
-          latestAudit={latestAudit}
-          auditResult={auditResult}
-          overallScore={overallScore}
-          productScore={productScore}
-          validationScore={validationScore}
-          launchScore={launchScore}
-          riskScore={riskScore}
-          navigationLoading={navigationLoading}
-          onNavigation={handleNavigation}
+          latestAudit={
+            latestAudit
+          }
+          auditResult={
+            auditResult
+          }
+          overallScore={
+            overallScore
+          }
+          productScore={
+            productScore
+          }
+          validationScore={
+            validationScore
+          }
+          launchScore={
+            launchScore
+          }
+          riskScore={
+            riskScore
+          }
+          navigationLoading={
+            navigationLoading
+          }
+          onNavigation={
+            handleNavigation
+          }
+          dailyObjective={
+            dailyObjective
+          }
+          dailyObjectiveLoading={
+            dailyObjectiveLoading
+          }
+          dailyObjectiveError={
+            dailyObjectiveError
+          }
+          showOutcomeForm={
+            showOutcomeForm
+          }
+          outcomeSubmitting={
+            outcomeSubmitting
+          }
+          outcomeError={
+            outcomeError
+          }
+          completionStatus={
+            completionStatus
+          }
+          quantity={quantity}
+          observations={
+            observations
+          }
+          evidence={
+            evidence
+          }
+          userInterpretation={
+            userInterpretation
+          }
+          unexpectedResult={
+            unexpectedResult
+          }
+          onShowOutcomeForm={() => {
+            setOutcomeError(null);
+            setShowOutcomeForm(
+              true
+            );
+          }}
+          onCloseOutcomeForm={() => {
+            setOutcomeError(null);
+            setShowOutcomeForm(
+              false
+            );
+          }}
+          onCompletionStatusChange={
+            setCompletionStatus
+          }
+          onQuantityChange={
+            setQuantity
+          }
+          onObservationsChange={
+            setObservations
+          }
+          onEvidenceChange={
+            setEvidence
+          }
+          onUserInterpretationChange={
+            setUserInterpretation
+          }
+          onUnexpectedResultChange={
+            setUnexpectedResult
+          }
+          onSubmitOutcome={
+            handleSubmitObjective
+          }
         />
       ) : (
         <PlaceholderWorkspace
@@ -689,6 +1055,10 @@ export default function ProjectPage() {
     </main>
   );
 }
+
+/* =========================================================
+   OVERVIEW WORKSPACE
+   ========================================================= */
 
 function OverviewWorkspace({
   project,
@@ -701,6 +1071,27 @@ function OverviewWorkspace({
   riskScore,
   navigationLoading,
   onNavigation,
+  dailyObjective,
+  dailyObjectiveLoading,
+  dailyObjectiveError,
+  showOutcomeForm,
+  outcomeSubmitting,
+  outcomeError,
+  completionStatus,
+  quantity,
+  observations,
+  evidence,
+  userInterpretation,
+  unexpectedResult,
+  onShowOutcomeForm,
+  onCloseOutcomeForm,
+  onCompletionStatusChange,
+  onQuantityChange,
+  onObservationsChange,
+  onEvidenceChange,
+  onUserInterpretationChange,
+  onUnexpectedResultChange,
+  onSubmitOutcome,
 }: {
   project: Project;
   latestAudit: LatestAudit | null;
@@ -715,6 +1106,72 @@ function OverviewWorkspace({
     key: string,
     href: string
   ) => void;
+
+  dailyObjective:
+    DailyObjectiveResponse | null;
+
+  dailyObjectiveLoading: boolean;
+
+  dailyObjectiveError:
+    string | null;
+
+  showOutcomeForm: boolean;
+
+  outcomeSubmitting: boolean;
+
+  outcomeError: string | null;
+
+  completionStatus:
+    | "completed"
+    | "success"
+    | "partial"
+    | "failed"
+    | "not_completed";
+
+  quantity: number;
+
+  observations: string;
+
+  evidence: string;
+
+  userInterpretation: string;
+
+  unexpectedResult: string;
+
+  onShowOutcomeForm: () => void;
+
+  onCloseOutcomeForm: () => void;
+
+  onCompletionStatusChange: (
+    value:
+      | "completed"
+      | "success"
+      | "partial"
+      | "failed"
+      | "not_completed"
+  ) => void;
+
+  onQuantityChange: (
+    value: number
+  ) => void;
+
+  onObservationsChange: (
+    value: string
+  ) => void;
+
+  onEvidenceChange: (
+    value: string
+  ) => void;
+
+  onUserInterpretationChange: (
+    value: string
+  ) => void;
+
+  onUnexpectedResultChange: (
+    value: string
+  ) => void;
+
+  onSubmitOutcome: () => void;
 }) {
   if (!latestAudit) {
     return (
@@ -733,8 +1190,11 @@ function OverviewWorkspace({
           </h2>
 
           <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
-            Plavtora will evaluate {project.name} across product,
-            validation, launch readiness, and risk.
+            Plavtora will evaluate{" "}
+            {project.name} across
+            product, validation,
+            launch readiness, and
+            risk.
           </p>
 
           <button
@@ -745,7 +1205,9 @@ function OverviewWorkspace({
                 "/audit"
               )
             }
-            disabled={!!navigationLoading}
+            disabled={
+              !!navigationLoading
+            }
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
           >
             {navigationLoading ===
@@ -755,8 +1217,12 @@ function OverviewWorkspace({
                 className="animate-spin"
               />
             )}
+
             Run SaaS Audit
-            <ArrowRight size={16} />
+
+            <ArrowRight
+              size={16}
+            />
           </button>
         </div>
       </section>
@@ -772,8 +1238,76 @@ function OverviewWorkspace({
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
-      {/* Main verdict */}
-      <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+
+      {/* =====================================================
+          DAILY OBJECTIVE
+          ===================================================== */}
+
+      <DailyObjectiveCard
+        data={dailyObjective}
+        loading={
+          dailyObjectiveLoading
+        }
+        error={
+          dailyObjectiveError
+        }
+        showOutcomeForm={
+          showOutcomeForm
+        }
+        outcomeSubmitting={
+          outcomeSubmitting
+        }
+        outcomeError={
+          outcomeError
+        }
+        completionStatus={
+          completionStatus
+        }
+        quantity={quantity}
+        observations={
+          observations
+        }
+        evidence={evidence}
+        userInterpretation={
+          userInterpretation
+        }
+        unexpectedResult={
+          unexpectedResult
+        }
+        onShowOutcomeForm={
+          onShowOutcomeForm
+        }
+        onCloseOutcomeForm={
+          onCloseOutcomeForm
+        }
+        onCompletionStatusChange={
+          onCompletionStatusChange
+        }
+        onQuantityChange={
+          onQuantityChange
+        }
+        onObservationsChange={
+          onObservationsChange
+        }
+        onEvidenceChange={
+          onEvidenceChange
+        }
+        onUserInterpretationChange={
+          onUserInterpretationChange
+        }
+        onUnexpectedResultChange={
+          onUnexpectedResultChange
+        }
+        onSubmitOutcome={
+          onSubmitOutcome
+        }
+      />
+
+      {/* =====================================================
+          MAIN VERDICT
+          ===================================================== */}
+
+      <div className="mt-5 rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
@@ -808,11 +1342,15 @@ function OverviewWorkspace({
                     `/projects/${project.id}/audits/${latestAudit.session.id}`
                   )
                 }
-                disabled={!!navigationLoading}
+                disabled={
+                  !!navigationLoading
+                }
                 className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
               >
                 View full audit
-                <ArrowRight size={15} />
+                <ArrowRight
+                  size={15}
+                />
               </button>
 
               <button
@@ -823,7 +1361,9 @@ function OverviewWorkspace({
                     "/audit"
                   )
                 }
-                disabled={!!navigationLoading}
+                disabled={
+                  !!navigationLoading
+                }
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Run another audit
@@ -860,13 +1400,17 @@ function OverviewWorkspace({
 
               <DarkScoreRow
                 label="Validation"
-                score={validationScore}
+                score={
+                  validationScore
+                }
                 max={10}
               />
 
               <DarkScoreRow
                 label="Launch readiness"
-                score={launchScore}
+                score={
+                  launchScore
+                }
                 max={10}
               />
 
@@ -882,43 +1426,71 @@ function OverviewWorkspace({
       </div>
 
       {/* Score cards */}
+
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <ScoreCard
           title="Overall"
-          score={overallScore}
+          score={
+            overallScore
+          }
           maxScore={100}
-          icon={<Target size={18} />}
+          icon={
+            <Target size={18} />
+          }
           primary
         />
 
         <ScoreCard
           title="Product"
-          score={productScore}
+          score={
+            productScore
+          }
           maxScore={10}
-          icon={<Package size={18} />}
+          icon={
+            <Package size={18} />
+          }
         />
 
         <ScoreCard
           title="Validation"
-          score={validationScore}
+          score={
+            validationScore
+          }
           maxScore={10}
-          icon={<CheckCircle2 size={18} />}
+          icon={
+            <CheckCircle2
+              size={18}
+            />
+          }
         />
 
         <ScoreCard
           title="Launch"
-          score={launchScore}
+          score={
+            launchScore
+          }
           maxScore={10}
-          icon={<Rocket size={18} />}
+          icon={
+            <Rocket
+              size={18}
+            />
+          }
         />
 
         <RiskCard
-          score={riskScore}
-          icon={<ShieldAlert size={18} />}
+          score={
+            riskScore
+          }
+          icon={
+            <ShieldAlert
+              size={18}
+            />
+          }
         />
       </div>
 
       {/* Project status + next steps */}
+
       <div className="mt-5 grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
@@ -940,7 +1512,9 @@ function OverviewWorkspace({
 
             <StatusRow
               label="Product analyzed"
-              completed={productScore > 0}
+              completed={
+                productScore > 0
+              }
             />
 
             <StatusRow
@@ -1010,6 +1584,7 @@ function OverviewWorkspace({
       </div>
 
       {/* Premium context */}
+
       <div className="mt-5 overflow-hidden rounded-[28px] border border-violet-100 bg-gradient-to-r from-violet-50 to-blue-50 p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
@@ -1047,6 +1622,568 @@ function OverviewWorkspace({
   );
 }
 
+/* =========================================================
+   DAILY OBJECTIVE CARD
+   ========================================================= */
+
+function DailyObjectiveCard({
+  data,
+  loading,
+  error,
+  showOutcomeForm,
+  outcomeSubmitting,
+  outcomeError,
+  completionStatus,
+  quantity,
+  observations,
+  evidence,
+  userInterpretation,
+  unexpectedResult,
+  onShowOutcomeForm,
+  onCloseOutcomeForm,
+  onCompletionStatusChange,
+  onQuantityChange,
+  onObservationsChange,
+  onEvidenceChange,
+  onUserInterpretationChange,
+  onUnexpectedResultChange,
+  onSubmitOutcome,
+}: {
+  data: DailyObjectiveResponse | null;
+  loading: boolean;
+  error: string | null;
+  showOutcomeForm: boolean;
+  outcomeSubmitting: boolean;
+  outcomeError: string | null;
+
+  completionStatus:
+    | "completed"
+    | "success"
+    | "partial"
+    | "failed"
+    | "not_completed";
+
+  quantity: number;
+  observations: string;
+  evidence: string;
+  userInterpretation: string;
+  unexpectedResult: string;
+
+  onShowOutcomeForm: () => void;
+  onCloseOutcomeForm: () => void;
+
+  onCompletionStatusChange: (
+    value:
+      | "completed"
+      | "success"
+      | "partial"
+      | "failed"
+      | "not_completed"
+  ) => void;
+
+  onQuantityChange: (
+    value: number
+  ) => void;
+
+  onObservationsChange: (
+    value: string
+  ) => void;
+
+  onEvidenceChange: (
+    value: string
+  ) => void;
+
+  onUserInterpretationChange: (
+    value: string
+  ) => void;
+
+  onUnexpectedResultChange: (
+    value: string
+  ) => void;
+
+  onSubmitOutcome: () => void;
+}) {
+  if (loading) {
+    return (
+      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 animate-pulse rounded-xl bg-violet-100" />
+
+          <div>
+            <div className="h-3 w-28 animate-pulse rounded bg-slate-200" />
+
+            <div className="mt-2 h-5 w-52 animate-pulse rounded bg-slate-100" />
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+          <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-6 shadow-sm sm:p-7">
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm">
+            <TriangleAlert size={19} />
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">
+              Daily Objective
+            </p>
+
+            <h2 className="mt-2 text-lg font-bold text-slate-950">
+              Unable to load your objective
+            </h2>
+
+            <p className="mt-1 text-sm leading-6 text-amber-800/80">
+              {error}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    !data?.has_active_objective ||
+    !data.objective
+  ) {
+    return (
+      <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6 shadow-sm sm:p-7">
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
+            <CheckCircle2
+              size={20}
+            />
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+              Daily Objective
+            </p>
+
+            <h2 className="mt-2 text-xl font-bold text-slate-950">
+              No active objective right now.
+            </h2>
+
+            <p className="mt-1 text-sm leading-6 text-emerald-900/70">
+              Your current V2 state has no objective waiting for input.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const objective =
+    data.objective;
+
+  const constraint =
+    data.constraint;
+
+  const dueDate =
+    formatDateOnly(
+      objective.due_at
+    );
+
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+
+      {/* Header */}
+
+      <div className="border-b border-slate-100 bg-slate-950 px-6 py-6 text-white sm:px-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300">
+                <Target size={18} />
+              </div>
+
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">
+                Today's objective
+              </p>
+            </div>
+
+            <h2 className="mt-4 max-w-3xl text-2xl font-bold tracking-tight sm:text-3xl">
+              {objective.text}
+            </h2>
+          </div>
+
+          <div className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/40">
+              Due
+            </p>
+
+            <p className="mt-1 text-sm font-semibold text-white">
+              {dueDate}
+            </p>
+          </div>
+        </div>
+
+        {constraint && (
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/35">
+              Current constraint
+            </p>
+
+            <p className="mt-1 text-sm leading-6 text-white/75">
+              {constraint.claim}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Main */}
+
+      <div className="p-6 sm:p-7">
+
+        <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              What to do
+            </p>
+
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {objective.action}
+            </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+
+              <ObjectiveInfoBox
+                label="Target"
+                value={`${objective.target_count} ${formatEvidenceKind(
+                  objective.evidence_kind
+                )}`}
+              />
+
+              <ObjectiveInfoBox
+                label="Evidence type"
+                value={formatEvidenceKind(
+                  objective.evidence_kind
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-slate-50 p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Success criteria
+            </p>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {objective.success_criteria}
+            </p>
+
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Do not do
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                {objective.do_not_do}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {!showOutcomeForm ? (
+          <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-slate-950">
+                Completed the experiment?
+              </p>
+
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Record what actually happened. Plavtora will use the
+                result to update your startup state.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onShowOutcomeForm}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
+            >
+              Log outcome
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        ) : (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+                  Objective outcome
+                </p>
+
+                <h3 className="mt-2 text-xl font-bold text-slate-950">
+                  What actually happened?
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  onCloseOutcomeForm
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                className="text-xs font-semibold text-slate-400 transition hover:text-slate-700"
+              >
+                Cancel
+              </button>
+            </div>
+
+            {outcomeError && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-medium text-red-700">
+                  {outcomeError}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700">
+                  Result
+                </label>
+
+                <select
+                  value={
+                    completionStatus
+                  }
+                  onChange={(event) =>
+                    onCompletionStatusChange(
+                      event.target
+                        .value as
+                        | "completed"
+                        | "success"
+                        | "partial"
+                        | "failed"
+                        | "not_completed"
+                    )
+                  }
+                  disabled={
+                    outcomeSubmitting
+                  }
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="completed">
+                    Completed
+                  </option>
+
+                  <option value="success">
+                    Successful
+                  </option>
+
+                  <option value="partial">
+                    Partially completed
+                  </option>
+
+                  <option value="failed">
+                    Failed
+                  </option>
+
+                  <option value="not_completed">
+                    Not completed
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700">
+                  Quantity
+                </label>
+
+                <input
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={(event) =>
+                    onQuantityChange(
+                      Math.max(
+                        1,
+                        Number(
+                          event.target
+                            .value
+                        )
+                      )
+                    )
+                  }
+                  disabled={
+                    outcomeSubmitting
+                  }
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <label className="text-xs font-semibold text-slate-700">
+                What happened?
+              </label>
+
+              <textarea
+                value={
+                  observations
+                }
+                onChange={(event) =>
+                  onObservationsChange(
+                    event.target.value
+                  )
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                rows={4}
+                placeholder="Describe the actual outcome, what users did, and what you observed."
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="mt-5">
+              <label className="text-xs font-semibold text-slate-700">
+                Evidence
+                <span className="ml-1 font-normal text-slate-400">
+                  optional
+                </span>
+              </label>
+
+              <textarea
+                value={
+                  evidence
+                }
+                onChange={(event) =>
+                  onEvidenceChange(
+                    event.target.value
+                  )
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                rows={3}
+                placeholder="Quotes, counts, behavioral signals, links, or anything concrete that supports the outcome."
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="mt-5">
+              <label className="text-xs font-semibold text-slate-700">
+                Your interpretation
+                <span className="ml-1 font-normal text-slate-400">
+                  optional
+                </span>
+              </label>
+
+              <textarea
+                value={
+                  userInterpretation
+                }
+                onChange={(event) =>
+                  onUserInterpretationChange(
+                    event.target.value
+                  )
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                rows={3}
+                placeholder="What do you think this result means?"
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="mt-5">
+              <label className="text-xs font-semibold text-slate-700">
+                Unexpected result
+                <span className="ml-1 font-normal text-slate-400">
+                  optional
+                </span>
+              </label>
+
+              <textarea
+                value={
+                  unexpectedResult
+                }
+                onChange={(event) =>
+                  onUnexpectedResultChange(
+                    event.target.value
+                  )
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                rows={3}
+                placeholder="Anything surprising, contradictory, or materially different from what you expected."
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={
+                  onCloseOutcomeForm
+                }
+                disabled={
+                  outcomeSubmitting
+                }
+                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={
+                  onSubmitOutcome
+                }
+                disabled={
+                  outcomeSubmitting ||
+                  !observations.trim()
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {outcomeSubmitting ? (
+                  <>
+                    <Loader2
+                      size={16}
+                      className="animate-spin"
+                    />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Submit outcome
+                    <ArrowRight
+                      size={15}
+                    />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   CHAT WORKSPACE
+   ========================================================= */
+
 function ChatWorkspace({
   project,
   latestAudit,
@@ -1070,12 +2207,16 @@ function ChatWorkspace({
   message: string;
   isTyping: boolean;
   chatError: string | null;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  messagesEndRef: React.RefObject<
+    HTMLDivElement | null
+  >;
   onMessageChange: (
     value: string
   ) => void;
   onSend: () => void;
-  onSuggestion: (value: string) => void;
+  onSuggestion: (
+    value: string
+  ) => void;
 }) {
   return (
     <section className="mx-auto max-w-5xl px-5 py-8 sm:px-6 lg:px-8">
@@ -1096,7 +2237,8 @@ function ChatWorkspace({
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Working from the context of {project.name}
+                Working from the context of{" "}
+                {project.name}
               </p>
             </div>
           </div>
@@ -1199,37 +2341,45 @@ function ChatWorkspace({
             </div>
           ) : (
             <>
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`mb-5 flex ${
-                    msg.role === "user"
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
-                >
+              {messages.map(
+                (msg, index) => (
                   <div
-                    className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-7 ${
-                      msg.role === "user"
-                        ? "bg-slate-950 text-white"
-                        : "border border-slate-200 bg-white text-slate-700 shadow-sm"
+                    key={index}
+                    className={`mb-5 flex ${
+                      msg.role ===
+                      "user"
+                        ? "justify-end"
+                        : "justify-start"
                     }`}
                   >
-                    {msg.role ===
-                    "assistant" ? (
-                      <div className="prose prose-slate max-w-none prose-p:my-3 prose-headings:mb-3 prose-headings:mt-5 prose-headings:font-semibold prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-strong:text-slate-950">
-                        <ReactMarkdown>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p className="whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    )}
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm leading-7 ${
+                        msg.role ===
+                        "user"
+                          ? "bg-slate-950 text-white"
+                          : "border border-slate-200 bg-white text-slate-700 shadow-sm"
+                      }`}
+                    >
+                      {msg.role ===
+                      "assistant" ? (
+                        <div className="prose prose-slate max-w-none prose-p:my-3 prose-headings:mb-3 prose-headings:mt-5 prose-headings:font-semibold prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-strong:text-slate-950">
+                          <ReactMarkdown>
+                            {
+                              msg.content
+                            }
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">
+                          {
+                            msg.content
+                          }
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
 
               {isTyping && (
                 <div className="mb-5 flex justify-start">
@@ -1245,7 +2395,11 @@ function ChatWorkspace({
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
+              <div
+                ref={
+                  messagesEndRef
+                }
+              />
             </>
           )}
         </div>
@@ -1253,30 +2407,41 @@ function ChatWorkspace({
         <div className="border-t border-slate-100 bg-white p-5">
           <div className="flex gap-3">
             <input
-              value={message}
+              value={
+                message
+              }
               onChange={(event) =>
                 onMessageChange(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
               onKeyDown={(event) => {
                 if (
-                  event.key === "Enter" &&
+                  event.key ===
+                    "Enter" &&
                   !event.shiftKey
                 ) {
                   event.preventDefault();
                   onSend();
                 }
               }}
-              disabled={isTyping}
+              disabled={
+                isTyping
+              }
               placeholder="Ask your AI Co-Founder..."
               className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
 
             <button
               type="button"
-              onClick={onSend}
-              disabled={!message.trim() || isTyping}
+              onClick={
+                onSend
+              }
+              disabled={
+                !message.trim() ||
+                isTyping
+              }
               className="flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isTyping ? (
@@ -1285,7 +2450,9 @@ function ChatWorkspace({
                   className="animate-spin"
                 />
               ) : (
-                <Send size={17} />
+                <Send
+                  size={17}
+                />
               )}
 
               <span className="hidden sm:inline">
@@ -1306,6 +2473,65 @@ function ChatWorkspace({
   );
 }
 
+/* =========================================================
+   DAILY OBJECTIVE HELPERS
+   ========================================================= */
+
+function ObjectiveInfoBox({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-2 text-sm font-semibold text-slate-900">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function formatEvidenceKind(
+  kind: string
+) {
+  const labels: Record<
+    string,
+    string
+  > = {
+    interview: "user interviews",
+    commit: "commitments",
+    signup: "signups",
+    checkout_attempt:
+      "checkout attempts",
+    payment: "payments",
+    retention: "retention signals",
+    ad_spend: "ad-spend results",
+    message_reply:
+      "message replies",
+    waitlist: "waitlist signups",
+    usage: "usage observations",
+    other: "observations",
+  };
+
+  return (
+    labels[kind] ||
+    kind.replace(
+      /_/g,
+      " "
+    )
+  );
+}
+
+/* =========================================================
+   GENERAL UI
+   ========================================================= */
+
 function ProjectLoader() {
   return (
     <main className="min-h-screen bg-[#f7f8fc] px-5 py-10 sm:px-6">
@@ -1313,8 +2539,10 @@ function ProjectLoader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-200" />
+
             <div>
               <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+
               <div className="mt-2 h-2.5 w-36 animate-pulse rounded bg-slate-100" />
             </div>
           </div>
@@ -1325,21 +2553,28 @@ function ProjectLoader() {
         <div className="mt-10 rounded-[28px] bg-white p-7 shadow-sm ring-1 ring-slate-200">
           <div className="flex gap-4">
             <div className="h-14 w-14 animate-pulse rounded-2xl bg-slate-100" />
+
             <div className="flex-1">
               <div className="h-6 w-48 animate-pulse rounded bg-slate-100" />
+
               <div className="mt-3 h-4 w-96 max-w-full animate-pulse rounded bg-slate-100" />
+
               <div className="mt-2 h-3 w-64 animate-pulse rounded bg-slate-100" />
             </div>
           </div>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200"
-            />
-          ))}
+          {Array.from({
+            length: 5,
+          }).map(
+            (_, index) => (
+              <div
+                key={index}
+                className="h-32 animate-pulse rounded-2xl bg-white ring-1 ring-slate-200"
+              />
+            )
+          )}
         </div>
       </div>
     </main>
@@ -1362,7 +2597,9 @@ function ProjectTab({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={
+        onClick
+      }
       className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition ${
         active
           ? "text-slate-950"
@@ -1394,7 +2631,9 @@ function Suggestion({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={
+        onClick
+      }
       className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-950"
     >
       {text}
@@ -1443,6 +2682,7 @@ function ScoreCard({
 
       <p className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
         {score}
+
         <span className="text-sm font-medium text-slate-400">
           /{maxScore}
         </span>
@@ -1472,6 +2712,7 @@ function RiskCard({
 
       <p className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
         {score}
+
         <span className="text-sm font-medium text-slate-400">
           /10
         </span>
@@ -1505,7 +2746,8 @@ function DarkScoreRow({
               : "text-white"
           }`}
         >
-          {score}/{max}
+          {score}/
+          {max}
         </span>
       </div>
 
@@ -1519,7 +2761,10 @@ function DarkScoreRow({
           style={{
             width: `${Math.min(
               (score /
-                Math.max(max, 1)) *
+                Math.max(
+                  max,
+                  1
+                )) *
                 100,
               100
             )}%`,
@@ -1585,8 +2830,13 @@ function ActionCard({
   return (
     <button
       type="button"
-      onClick={handleClick}
-      disabled={comingSoon || loading}
+      onClick={
+        handleClick
+      }
+      disabled={
+        comingSoon ||
+        loading
+      }
       className={`rounded-2xl border p-5 text-left transition ${
         comingSoon
           ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60"
@@ -1625,7 +2875,9 @@ function ActionCard({
         ) : (
           <>
             Open
-            <ArrowRight size={14} />
+            <ArrowRight
+              size={14}
+            />
           </>
         )}
       </span>
@@ -1634,7 +2886,12 @@ function ActionCard({
 }
 
 function getScore(
-  data: Record<string, any> | undefined
+  data:
+    | Record<
+        string,
+        any
+      >
+    | undefined
 ): number {
   if (!data) return 0;
 
@@ -1648,7 +2905,9 @@ function getScore(
 
   for (const key of possibleKeys) {
     if (
-      typeof data[key] === "number"
+      typeof data[
+        key
+      ] === "number"
     ) {
       return data[key];
     }
@@ -1658,15 +2917,36 @@ function getScore(
 }
 
 function formatDate(
-  date: string | undefined
+  date:
+    | string
+    | undefined
 ) {
   if (!date) return "Unknown";
 
-  return new Date(date).toLocaleString(
+  return new Date(
+    date
+  ).toLocaleString(
     "en-IN",
     {
-      dateStyle: "medium",
-      timeStyle: "short",
+      dateStyle:
+        "medium",
+      timeStyle:
+        "short",
+    }
+  );
+}
+
+function formatDateOnly(
+  date: string
+) {
+  return new Date(
+    date
+  ).toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     }
   );
 }
@@ -1680,7 +2960,9 @@ function PlaceholderWorkspace({
     <section className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
       <div className="rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
-          <Sparkles size={24} />
+          <Sparkles
+            size={24}
+          />
         </div>
 
         <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
