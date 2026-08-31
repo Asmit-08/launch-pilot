@@ -140,27 +140,34 @@ class BeliefRepository:
         return response.data
 
     def get_unresolved_beliefs(
-    self,
-    project_id: str,
+        self,
+        project_id: str,
     ):
-            """
-            Get beliefs that are not currently resolved/supported.
+        """
+        Get beliefs that are not currently resolved/supported.
 
-            These are candidates for constraint selection.
-            """
+        These are candidates for constraint selection.
+        """
 
-            query = (
-                self.client
-                .table("beliefs")
-                .select("*")
-                .eq("project_id", project_id)
-                .in_("status", ["untested", "weak", "contradicted"])
-                .order("created_at", desc=False)
+        query = (
+            self.client
+            .table("beliefs")
+            .select("*")
+            .eq("project_id", project_id)
+            .in_(
+                "status",
+                [
+                    "untested",
+                    "weak",
+                    "contradicted",
+                ],
             )
+            .order("created_at", desc=False)
+        )
 
-            response = self._execute_with_retry(query)
+        response = self._execute_with_retry(query)
 
-            return response.data
+        return response.data
 
     # ---------------- Update ---------------- #
 

@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from core.auth import get_current_user
 from repositories.repository_manager import audit_repository
 
+from services.decision_service import DecisionService
+
 
 router = APIRouter(
     prefix="/projects",
@@ -41,7 +43,10 @@ def get_project(
             detail="Project not found",
         )
 
+    # -----------------------------------
     # Get audit history
+    # -----------------------------------
+
     audit_sessions = audit_repository.get_audit_sessions(
         project_id=project_id
     )
@@ -60,6 +65,33 @@ def get_project(
                 "session": latest_session,
                 "result": audit_result,
             }
+
+    # -----------------------------------
+    # Initialize / repair V2 state
+    # -----------------------------------
+    #
+    # If this project has an audit, make sure
+    # its V2 decision state is initialized.
+    #
+    # DecisionService.initialize_project()
+    # is idempotent:
+    #
+    # - existing state + active objective
+    #       -> preserve existing state
+    #
+    # - existing state + no active objective
+    #       -> create replacement objective
+    #
+    # - no existing state
+    #       -> initialize V2 from the audit
+    #
+    # -----------------------------------
+
+    if latest_audit is not None:
+        DecisionService.initialize_project(
+            project=project,
+            audit_result=latest_audit["result"],
+        )
 
     return {
         "project": project,

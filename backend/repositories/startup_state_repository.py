@@ -95,6 +95,7 @@ class StartupStateRepository:
         )
 
         return response.data[0]
+
     def update_state(
         self,
         project_id: str,

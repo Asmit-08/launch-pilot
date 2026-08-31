@@ -7,10 +7,20 @@ from supabase import Client
 
 class ObjectiveRepository:
 
+    VALID_STATUSES = {
+        "active",
+        "completed",
+        "failed",
+        "skipped",
+        "expired",
+    }
+
     def __init__(self, client: Client):
         self.client = client
 
-    # ---------------- Internal Helpers ---------------- #
+    # =========================================================
+    # INTERNAL HELPERS
+    # =========================================================
 
     def _execute_with_retry(
         self,
@@ -21,7 +31,11 @@ class ObjectiveRepository:
         """
         Execute a Supabase read query with limited retry handling.
 
-        Reads are safe to retry because they do not mutate state.
+        Only read operations should use this helper.
+
+        Writes are intentionally not retried automatically because
+        retrying a mutation can create duplicate records or apply
+        the same state transition more than once.
         """
 
         for attempt in range(retries + 1):
@@ -45,7 +59,21 @@ class ObjectiveRepository:
 
                 time.sleep(delay * (attempt + 1))
 
-    # ---------------- Create ---------------- #
+    @classmethod
+    def _validate_status(cls, status: str):
+        """
+        Validate an objective status.
+        """
+
+        if status not in cls.VALID_STATUSES:
+            raise ValueError(
+                f"Invalid objective status: {status}. "
+                f"Expected one of: {sorted(cls.VALID_STATUSES)}"
+            )
+
+    # =========================================================
+    # CREATE
+    # =========================================================
 
     def create_objective(
         self,
@@ -61,15 +89,41 @@ class ObjectiveRepository:
         due_at: str | None = None,
     ):
         """
-        Create a new objective for a project.
+        Create a new active objective for a project.
 
-        Objective creation should normally be controlled
-        by the decision engine.
+        Objective creation should normally be controlled by
+        the decision engine.
+
+        Database-level protection should enforce that a project
+        cannot have more than one active objective.
         """
+
+        if not project_id:
+            raise ValueError("project_id is required.")
+
+        if not constraint_belief_id:
+            raise ValueError(
+                "constraint_belief_id is required."
+            )
+
+        if not text or not text.strip():
+            raise ValueError(
+                "Objective text cannot be empty."
+            )
+
+        if not action or not action.strip():
+            raise ValueError(
+                "Objective action cannot be empty."
+            )
 
         if target_count < 1:
             raise ValueError(
                 "Objective target_count must be at least 1."
+            )
+
+        if not evidence_kind or not evidence_kind.strip():
+            raise ValueError(
+                "Objective evidence_kind cannot be empty."
             )
 
         response = (
@@ -78,10 +132,10 @@ class ObjectiveRepository:
             .insert({
                 "project_id": project_id,
                 "constraint_belief_id": constraint_belief_id,
-                "text": text,
-                "action": action,
+                "text": text.strip(),
+                "action": action.strip(),
                 "target_count": target_count,
-                "evidence_kind": evidence_kind,
+                "evidence_kind": evidence_kind.strip(),
                 "success_criteria": success_criteria,
                 "failure_criteria": failure_criteria,
                 "do_not_do": do_not_do,
@@ -91,9 +145,16 @@ class ObjectiveRepository:
             .execute()
         )
 
+        if not response.data:
+            raise RuntimeError(
+                "Failed to create objective."
+            )
+
         return response.data[0]
 
-    # ---------------- Read ---------------- #
+    # =========================================================
+    # READ
+    # =========================================================
 
     def get_objective(
         self,
@@ -126,6 +187,8 @@ class ObjectiveRepository:
     ):
         """
         Get all objectives belonging to a project.
+
+        Newest objectives are returned first.
         """
 
         query = (
@@ -145,9 +208,12 @@ class ObjectiveRepository:
         project_id: str,
     ):
         """
-        Get the single active objective for a project.
+        Get the current active objective for a project.
 
-        V2 allows only one active objective at a time.
+        V2 is designed around one active objective at a time.
+
+        The database should additionally enforce this invariant
+        with a partial unique index.
         """
 
         query = (
@@ -176,18 +242,7 @@ class ObjectiveRepository:
         Get project objectives filtered by status.
         """
 
-        valid_statuses = {
-            "active",
-            "completed",
-            "failed",
-            "skipped",
-            "expired",
-        }
-
-        if status not in valid_statuses:
-            raise ValueError(
-                f"Invalid objective status: {status}"
-            )
+        self._validate_status(status)
 
         query = (
             self.client
@@ -224,7 +279,9 @@ class ObjectiveRepository:
 
         return response.data
 
-    # ---------------- Update ---------------- #
+    # =========================================================
+    # UPDATE
+    # =========================================================
 
     def update_objective(
         self,
@@ -233,11 +290,38 @@ class ObjectiveRepository:
         updates: dict,
     ):
         """
-        Update an objective.
+        Update an existing objective.
 
-        Decision logic determines what changes.
-        This repository only persists those changes.
+        The decision engine determines what changes.
+        This repository persists those changes.
+
+        Status transitions should preferably use update_status()
+        so completed_at remains consistent.
         """
+
+        if not updates:
+            raise ValueError(
+                "Objective updates cannot be empty."
+            )
+
+        # Prevent accidental status/completion timestamp
+        # inconsistencies when using the generic update method.
+        if "status" in updates:
+            self._validate_status(updates["status"])
+
+            if updates["status"] == "active":
+                updates = {
+                    **updates,
+                    "completed_at": None,
+                }
+
+            elif "completed_at" not in updates:
+                updates = {
+                    **updates,
+                    "completed_at": (
+                        datetime.now(timezone.utc).isoformat()
+                    ),
+                }
 
         response = (
             self.client
@@ -253,7 +337,9 @@ class ObjectiveRepository:
 
         return response.data[0]
 
-    # ---------------- Status ---------------- #
+    # =========================================================
+    # STATUS
+    # =========================================================
 
     def update_status(
         self,
@@ -262,37 +348,26 @@ class ObjectiveRepository:
         status: str,
     ):
         """
-        Update objective status.
+        Update objective status while keeping completed_at
+        consistent with the status.
         """
 
-        valid_statuses = {
-            "active",
-            "completed",
-            "failed",
-            "skipped",
-            "expired",
-        }
-
-        if status not in valid_statuses:
-            raise ValueError(
-                f"Invalid objective status: {status}"
-            )
-
-        updates = {
-            "status": status,
-        }
+        self._validate_status(status)
 
         if status == "active":
-            updates["completed_at"] = None
+            completed_at = None
         else:
-            updates["completed_at"] = (
+            completed_at = (
                 datetime.now(timezone.utc).isoformat()
             )
 
         response = (
             self.client
             .table("project_objectives")
-            .update(updates)
+            .update({
+                "status": status,
+                "completed_at": completed_at,
+            })
             .eq("id", objective_id)
             .eq("project_id", project_id)
             .execute()
@@ -303,7 +378,9 @@ class ObjectiveRepository:
 
         return response.data[0]
 
-    # ---------------- Completion ---------------- #
+    # =========================================================
+    # COMPLETION
+    # =========================================================
 
     def complete_objective(
         self,
@@ -365,7 +442,9 @@ class ObjectiveRepository:
             status="expired",
         )
 
-    # ---------------- Due Objectives ---------------- #
+    # =========================================================
+    # DUE OBJECTIVES
+    # =========================================================
 
     def get_due_objectives(
         self,
@@ -374,6 +453,8 @@ class ObjectiveRepository:
     ):
         """
         Get active objectives whose due time has passed.
+
+        Objectives without a due_at value are excluded.
         """
 
         query = (
@@ -382,6 +463,7 @@ class ObjectiveRepository:
             .select("*")
             .eq("project_id", project_id)
             .eq("status", "active")
+            .not_.is_("due_at", "null")
             .lte("due_at", due_at)
             .order("due_at", desc=False)
         )
