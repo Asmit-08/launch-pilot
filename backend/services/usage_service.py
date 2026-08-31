@@ -2,7 +2,10 @@ from datetime import date, datetime, timezone
 
 from fastapi import HTTPException, status
 
-from repositories.repository_manager import usage_repository
+from repositories.repository_manager import (
+    usage_repository,
+    objective_repository,
+)
 
 
 # ================================================================
@@ -33,6 +36,13 @@ PLAN_LIMITS = {
         "landing_page_analyses": 20,
     },
 }
+
+
+# ================================================================
+# V2 LIMITS
+# ================================================================
+
+FREE_V2_OBJECTIVE_LIMIT = 3
 
 
 # ================================================================
@@ -205,6 +215,98 @@ class UsageService:
             )
 
         return column
+
+    # ============================================================
+    # V2 DAILY OBJECTIVE LIMIT
+    # ============================================================
+
+    def check_v2_objective_limit(
+        self,
+        user: dict,
+        project_id: str,
+    ):
+        """
+        Check whether the user can continue V2 objective progression
+        for the given project.
+
+        This is NOT a monthly usage counter.
+
+        Free users have a lifetime-per-project limit of
+        FREE_V2_OBJECTIVE_LIMIT completed objectives.
+
+        Premium and super_premium users can continue without
+        this progression cap.
+
+        The project_objectives table is the source of truth for
+        completed V2 objectives, so no separate usage column or
+        database migration is required.
+        """
+
+        if not project_id:
+            raise ValueError(
+                "project_id is required."
+            )
+
+        plan = self._get_plan(
+            user
+        )
+
+        # Premium plans have no V2 progression cap.
+        if plan in {
+            "premium",
+            "super_premium",
+        }:
+            return {
+                "allowed": True,
+                "plan": plan,
+                "project_id": project_id,
+                "completed_objectives": None,
+                "limit": None,
+                "remaining": None,
+            }
+
+        # --------------------------------------------------------
+        # FREE PLAN
+        # --------------------------------------------------------
+
+        completed_objectives = (
+            objective_repository.get_objectives_by_status(
+                project_id=project_id,
+                status="completed",
+            )
+        )
+
+        completed_count = len(
+            completed_objectives
+        )
+
+        remaining = max(
+            FREE_V2_OBJECTIVE_LIMIT - completed_count,
+            0,
+        )
+
+        if completed_count >= FREE_V2_OBJECTIVE_LIMIT:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail={
+                    "error": "usage_limit_reached",
+                    "resource": "v2_objectives",
+                    "plan": plan,
+                    "limit": FREE_V2_OBJECTIVE_LIMIT,
+                    "used": completed_count,
+                    "remaining": 0,
+                    "project_id": project_id,
+                },
+            )
+
+        return {
+            "allowed": True,
+            "plan": plan,
+            "project_id": project_id,
+            "completed_objectives": completed_count,
+            "limit": FREE_V2_OBJECTIVE_LIMIT,
+            "remaining": remaining,
+        }
 
     # ============================================================
     # CHECK LIMIT

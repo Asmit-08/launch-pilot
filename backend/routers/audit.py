@@ -336,7 +336,16 @@ def submit_objective_outcome(
         }
 
     # -----------------------------------------------------
-    # 9. Process completed objective
+    # 9. Check V2 objective limit
+    # -----------------------------------------------------
+
+    usage_service.check_v2_objective_limit(
+        current_user,
+        project_id,
+    )
+
+    # -----------------------------------------------------
+    # 10. Process completed objective
     # -----------------------------------------------------
 
     transition = DecisionService.process_objective_completion(
@@ -345,7 +354,7 @@ def submit_objective_outcome(
     )
 
     # -----------------------------------------------------
-    # 10. Return complete transition
+    # 11. Return complete transition
     # -----------------------------------------------------
 
     return {
