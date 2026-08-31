@@ -275,36 +275,15 @@ export default function ProjectPage() {
       setCompletionStatus("completed");
 
       /*
-       * If the objective completed, the backend's
-       * transition contains the next objective.
-       *
-       * If it did not complete, simply refresh the
-       * authoritative Daily Objective state.
+       * Always refresh from the backend after a successful submission.
+       * The Daily Objective endpoint is the authoritative source for
+       * the current objective, constraint, and startup state.
        */
 
-      if (
-        result?.transition?.next_objective
-      ) {
-        setDailyObjective({
-          project_id: project.id,
-          has_active_objective: true,
-          state:
-            result.transition.state,
-          constraint:
-            result.transition.next_belief ??
-            null,
-          objective:
-            result.transition
-              .next_objective,
-        });
-      } else {
-        const refreshed =
-          await getDailyObjective(
-            project.id
-          );
+      const refreshed =
+        await getDailyObjective(project.id);
 
-        setDailyObjective(refreshed);
-      }
+      setDailyObjective(refreshed);
     } catch (error) {
       console.error(
         "Objective submission failed:",
