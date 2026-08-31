@@ -339,10 +339,22 @@ def submit_objective_outcome(
     # 9. Check V2 objective limit
     # -----------------------------------------------------
 
-    usage_service.check_v2_objective_limit(
-        current_user,
-        project_id,
+    completed_objectives = (
+        objective_repository.get_objectives_by_status(
+            project_id=project_id,
+            status="completed",
+        )
     )
+
+    if (
+        current_user.get("subscription", "free")
+        == "free"
+        and len(completed_objectives) >= 3
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Free plan limit reached. Upgrade to continue with Daily Objectives.",
+        )
 
     # -----------------------------------------------------
     # 10. Process completed objective
@@ -352,7 +364,6 @@ def submit_objective_outcome(
         project_id=project_id,
         objective_id=objective["id"],
     )
-
     # -----------------------------------------------------
     # 11. Return complete transition
     # -----------------------------------------------------
