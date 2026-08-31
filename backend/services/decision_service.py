@@ -169,44 +169,76 @@ class DecisionService:
                 }
 
             # -----------------------------------------------------
-            # Existing state but no active objective
-            # -----------------------------------------------------
+        # Existing state but no active objective
+        # -----------------------------------------------------
 
-            if constraint_belief is None:
-
-                raise RuntimeError(
-                    "Project has V2 state but no current constraint belief."
-                )
-
-            objective = DecisionService._create_objective(
-                project_id=project_id,
-                belief=constraint_belief,
+        if constraint_belief is None:
+            raise RuntimeError(
+                "Project has V2 state but no current constraint belief."
             )
 
-            existing_state = (
-                DecisionService._set_active_objective(
-                    project_id=project_id,
-                    objective=objective,
-                )
-            )
-
-            state_event_repository.create_event(
-                project_id=project_id,
-                event_type="objective_set",
-                payload={
-                    "objective_id": objective["id"],
-                    "constraint_belief_id": constraint_belief["id"],
-                    "reason": "Created replacement objective.",
-                },
-            )
-
+        # If the current constraint is already resolved,
+        # the absence of an active objective is intentional.
+        # Do NOT recreate the completed objective on refresh.
+        if constraint_belief.get("status") == "supported":
             return {
                 "state": existing_state,
                 "beliefs": existing_beliefs,
                 "constraint": constraint_belief,
-                "objective": objective,
+                "objective": None,
                 "decision": None,
             }
+
+        constraint_key = constraint_belief.get("type")
+
+        objective_config = (
+            DecisionService._get_objective_config(
+                constraint_key
+            )
+        )
+
+        due_at = (
+            datetime.now(timezone.utc)
+            + timedelta(days=2)
+        ).isoformat()
+
+        objective = objective_repository.create_objective(
+            project_id=project_id,
+            constraint_belief_id=constraint_belief["id"],
+            text=objective_config["text"],
+            action=objective_config["action"],
+            target_count=5,
+            evidence_kind=objective_config["evidence_kind"],
+            success_criteria=objective_config["success_criteria"],
+            failure_criteria=objective_config["failure_criteria"],
+            do_not_do=objective_config["do_not_do"],
+            due_at=due_at,
+        )
+
+        existing_state = (
+            startup_state_repository.set_active_objective(
+                project_id=project_id,
+                objective_id=objective["id"],
+            )
+        )
+
+        state_event_repository.create_event(
+            project_id=project_id,
+            event_type="objective_set",
+            payload={
+                "objective_id": objective["id"],
+                "constraint_belief_id": constraint_belief["id"],
+                "reason": "Created replacement objective.",
+            },
+        )
+
+        return {
+            "state": existing_state,
+            "beliefs": existing_beliefs,
+            "constraint": constraint_belief,
+            "objective": objective,
+            "decision": None,
+        }
 
         # =========================================================
         # 1. NO EXISTING STATE → INITIALIZE FROM AUDIT
