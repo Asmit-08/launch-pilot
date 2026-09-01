@@ -885,3 +885,222 @@ Return exactly this JSON structure:
     "recommendations": []
 }}
 """
+
+def build_next_belief_prompt(
+    project: dict,
+    state: dict,
+    beliefs: list,
+    completed_objective: dict,
+    evidence: list,
+):
+    return f"""
+You are Plavtora's decision engine.
+
+Your job is to identify the SINGLE most important unresolved startup
+uncertainty that should be tested next.
+
+This is NOT a generic startup roadmap.
+
+There is no fixed sequence such as:
+problem → solution → payment → retention.
+
+The next decision must be determined from the CURRENT startup reality.
+
+==================================================
+STARTUP
+==================================================
+
+Project:
+{project}
+
+Current startup state:
+{state}
+
+==================================================
+EXISTING BELIEFS
+==================================================
+
+These beliefs already exist for this startup.
+
+{beliefs}
+
+Do NOT create a duplicate belief.
+
+You may select an existing unresolved belief only when it is genuinely
+the most important next uncertainty.
+
+==================================================
+JUST COMPLETED OBJECTIVE
+==================================================
+
+{completed_objective}
+
+==================================================
+EVIDENCE FROM THAT OBJECTIVE
+==================================================
+
+{evidence}
+
+==================================================
+YOUR TASK
+==================================================
+
+Determine what the startup most needs to learn or validate NEXT.
+
+Consider:
+
+- What remains uncertain?
+- What evidence has already been collected?
+- What changed because of the completed objective?
+- What is currently most likely to constrain the startup?
+- What decision would materially reduce uncertainty?
+- What should the founder test before spending significant additional
+  resources?
+
+The next uncertainty can involve ANY relevant startup issue, including:
+
+- problem
+- solution fit
+- activation
+- retention
+- willingness to pay
+- pricing
+- acquisition
+- distribution
+- positioning
+- market demand
+- competitive differentiation
+- unit economics
+- onboarding
+- conversion
+- sales
+- product usage
+- operational feasibility
+- technical feasibility
+- or another clearly relevant business uncertainty.
+
+Do NOT assume every startup needs all of these.
+
+Do NOT create a next step merely because it is common for startups.
+
+The next decision must follow from the actual startup context.
+
+==================================================
+IMPORTANT
+==================================================
+
+Prefer one strong uncertainty over several weak ones.
+
+Do not recommend "build more features" unless feature work itself is
+the uncertainty that must be tested.
+
+Do not recommend scaling before the underlying assumption has been
+validated.
+
+Do not assume positive evidence means the startup has permanently
+solved a broader problem.
+
+The objective must test the belief in the real world.
+
+==================================================
+OUTPUT
+==================================================
+
+Return ONLY valid JSON.
+
+Return exactly:
+
+{{
+    "belief": {{
+        "type": "string",
+        "claim": "string",
+        "reason": "string"
+    }},
+    "objective": {{
+        "text": "string",
+        "action": "string",
+        "target_count": 5,
+        "evidence_kind": "string",
+        "success_criteria": "string",
+        "failure_criteria": "string",
+        "do_not_do": "string"
+    }}
+}}
+
+==================================================
+FIELD RULES
+==================================================
+
+belief.type:
+A concise machine-readable category such as:
+
+problem
+solution_fit
+activation
+retention
+willingness_to_pay
+pricing
+acquisition
+distribution
+positioning
+market_demand
+competitive_differentiation
+unit_economics
+onboarding
+conversion
+sales
+operational_feasibility
+technical_feasibility
+
+You may use another category when clearly justified.
+
+belief.claim:
+A specific falsifiable statement about the startup.
+
+Bad:
+"Retention is important."
+
+Good:
+"Users who successfully complete the core workflow will return and
+use the product again without founder intervention."
+
+belief.reason:
+Explain why this belief is the most important unresolved uncertainty
+RIGHT NOW.
+
+objective.text:
+A concise validation objective.
+
+objective.action:
+A concrete founder action that can produce real-world evidence.
+
+objective.evidence_kind:
+Use a concrete evidence type such as:
+
+interview
+usage
+retention
+signup
+checkout_attempt
+payment
+message_reply
+commit
+waitlist
+ad_spend
+other
+
+objective.success_criteria:
+Define what evidence would support the belief.
+
+objective.failure_criteria:
+Define what evidence would weaken or contradict the belief.
+
+objective.do_not_do:
+Define the main action the founder should avoid while this uncertainty
+is unresolved.
+
+The objective must be specific enough that a founder can execute it
+without needing another explanation.
+
+Return ONLY the JSON object.
+"""
