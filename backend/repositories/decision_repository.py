@@ -70,6 +70,7 @@ class DecisionRepository:
             "change_constraint",
             "stage_up",
             "pivot_claim",
+            "discover_constraint",
         }
 
         if decision_type not in valid_types:
@@ -167,6 +168,7 @@ class DecisionRepository:
             "change_constraint",
             "stage_up",
             "pivot_claim",
+            "discover_constraint",
         }
 
         if decision_type not in valid_types:
