@@ -39,9 +39,9 @@ class DecisionService:
         Create an objective for a belief.
 
         Existing deterministic belief types use the built-in
-        objective configuration.
+        configuration.
 
-        AI-discovered beliefs can provide their own objective
+        AI-discovered beliefs provide their own objective
         configuration.
         """
 
@@ -167,12 +167,11 @@ class DecisionService:
         """
         Initialize or repair V2 decision state.
 
-        The first startup beliefs remain the current initial
-        hypotheses.
+        V2 starts with a small initial belief set.
 
-        Once those beliefs are resolved, the decision engine no
-        longer stops. It dynamically discovers the next important
-        startup uncertainty through decision_agent().
+        Once the currently known beliefs are resolved, the decision
+        engine dynamically discovers the next important startup
+        uncertainty through decision_agent().
         """
 
         project_id = project["id"]
@@ -239,23 +238,32 @@ class DecisionService:
                 }
 
             # -----------------------------------------------------
-            # Existing state with no active objective
+            # Existing state but no active objective
             # -----------------------------------------------------
 
             if constraint_belief is None:
+
                 raise RuntimeError(
                     "Project has V2 state but no current constraint belief."
                 )
 
-            # If the current constraint is unresolved, recreate
-            # the objective for that constraint.
+            # -----------------------------------------------------
+            # Current constraint is unresolved.
+            #
+            # This means the objective disappeared while the belief
+            # still needs validation, so create another objective
+            # for the same constraint.
+            # -----------------------------------------------------
+
             if constraint_belief.get(
                 "status"
             ) != "supported":
 
-                objective = DecisionService._create_objective(
-                    project_id=project_id,
-                    belief=constraint_belief,
+                objective = (
+                    DecisionService._create_objective(
+                        project_id=project_id,
+                        belief=constraint_belief,
+                    )
                 )
 
                 existing_state = (
@@ -289,18 +297,219 @@ class DecisionService:
                 }
 
             # -----------------------------------------------------
-            # Resolved constraint + no active objective
+            # Current constraint is resolved and there is no active
+            # objective.
             #
-            # This is a valid completed state.
-            # Do not recreate the old objective.
+            # IMPORTANT:
+            #
+            # Do NOT recreate the old objective.
+            #
+            # Discover the next startup uncertainty instead.
             # -----------------------------------------------------
+
+            next_decision = decision_agent(
+                project=project,
+                state=existing_state,
+                beliefs=existing_beliefs,
+                completed_objective={
+                    "constraint_belief_id": constraint_belief["id"],
+                    "status": "completed",
+                },
+                evidence=[],
+            )
+
+            decision_result = next_decision.get(
+                "result",
+                {},
+            )
+
+            new_belief_data = decision_result.get(
+                "belief"
+            )
+
+            new_objective_config = decision_result.get(
+                "objective"
+            )
+
+            if not new_belief_data:
+
+                raise RuntimeError(
+                    "AI decision did not return a new belief."
+                )
+
+            if not new_objective_config:
+
+                raise RuntimeError(
+                    "AI decision did not return a new objective."
+                )
+
+            # -----------------------------------------------------
+            # Prevent obvious duplicate beliefs.
+            # -----------------------------------------------------
+
+            new_belief_type = new_belief_data.get(
+                "type"
+            )
+
+            new_belief_claim = new_belief_data.get(
+                "claim"
+            )
+
+            duplicate = any(
+                belief.get("type")
+                == new_belief_type
+                and belief.get("claim")
+                == new_belief_claim
+                for belief in existing_beliefs
+            )
+
+            if duplicate:
+
+                raise RuntimeError(
+                    "AI returned a duplicate belief."
+                )
+
+            # -----------------------------------------------------
+            # Create new belief.
+            # -----------------------------------------------------
+
+            next_belief = (
+                DecisionService._create_ai_belief(
+                    project_id=project_id,
+                    belief_data=new_belief_data,
+                )
+            )
+
+            # -----------------------------------------------------
+            # Make the new belief the current constraint.
+            # -----------------------------------------------------
+
+            existing_state = (
+                startup_state_repository.set_constraint(
+                    project_id=project_id,
+                    belief_id=next_belief["id"],
+                    why_this_constraint=(
+                        new_belief_data.get(
+                            "reason"
+                        )
+                        or (
+                            "The decision engine identified "
+                            "this as the next important "
+                            "startup uncertainty."
+                        )
+                    ),
+                )
+            )
+
+            state_event_repository.create_event(
+                project_id=project_id,
+                event_type="constraint_changed",
+                payload={
+                    "from_belief_id": (
+                        constraint_belief["id"]
+                    ),
+                    "to_belief_id": (
+                        next_belief["id"]
+                    ),
+                    "reason": (
+                        new_belief_data.get(
+                            "reason"
+                        )
+                        or (
+                            "AI discovered a new unresolved "
+                            "startup uncertainty."
+                        )
+                    ),
+                },
+            )
+
+            # -----------------------------------------------------
+            # Create next objective.
+            # -----------------------------------------------------
+
+            next_objective = (
+                DecisionService._create_objective(
+                    project_id=project_id,
+                    belief=next_belief,
+                    objective_config=new_objective_config,
+                )
+            )
+
+            # -----------------------------------------------------
+            # Set next objective active.
+            # -----------------------------------------------------
+
+            existing_state = (
+                DecisionService._set_active_objective(
+                    project_id=project_id,
+                    objective=next_objective,
+                )
+            )
+
+            # -----------------------------------------------------
+            # Record discovery decision.
+            # -----------------------------------------------------
+
+            decision = decision_repository.create_decision(
+                project_id=project_id,
+                decision_type="discover_constraint",
+                from_belief_id=constraint_belief["id"],
+                to_belief_id=next_belief["id"],
+                evidence_ids=[],
+            )
+
+            # -----------------------------------------------------
+            # Record objective event.
+            # -----------------------------------------------------
+
+            state_event_repository.create_event(
+                project_id=project_id,
+                event_type="objective_set",
+                payload={
+                    "objective_id": (
+                        next_objective["id"]
+                    ),
+                    "constraint_belief_id": (
+                        next_belief["id"]
+                    ),
+                    "reason": (
+                        "Created a new personalized "
+                        "objective after the previous "
+                        "constraint was resolved."
+                    ),
+                },
+            )
+
+            # -----------------------------------------------------
+            # Record decision event.
+            # -----------------------------------------------------
+
+            state_event_repository.create_event(
+                project_id=project_id,
+                event_type="decision_made",
+                payload={
+                    "decision_id": decision["id"],
+                    "decision_type": (
+                        "discover_constraint"
+                    ),
+                    "from_belief_id": (
+                        constraint_belief["id"]
+                    ),
+                    "to_belief_id": (
+                        next_belief["id"]
+                    ),
+                },
+            )
 
             return {
                 "state": existing_state,
-                "beliefs": existing_beliefs,
-                "constraint": constraint_belief,
-                "objective": None,
-                "decision": None,
+                "beliefs": [
+                    *existing_beliefs,
+                    next_belief,
+                ],
+                "constraint": next_belief,
+                "objective": next_objective,
+                "decision": decision,
             }
 
         # =========================================================
@@ -321,10 +530,8 @@ class DecisionService:
         # 2. CREATE INITIAL BELIEFS
         # =========================================================
         #
-        # These are initial hypotheses, NOT a fixed roadmap.
-        #
-        # Once they are resolved, the engine dynamically discovers
-        # further beliefs instead of ending.
+        # These are only starting hypotheses.
+        # They are NOT the complete startup roadmap.
         # =========================================================
 
         beliefs = []
@@ -467,7 +674,7 @@ class DecisionService:
         )
 
         # =========================================================
-        # 7. CREATE FIRST OBJECTIVE
+        # 7. BUILD FIRST OBJECTIVE
         # =========================================================
 
         objective = DecisionService._create_objective(
@@ -554,11 +761,27 @@ class DecisionService:
         """
         Process a completed objective.
 
-        Existing deterministic decision logic remains intact.
+        Flow:
 
-        When all currently known beliefs have been resolved,
-        Plavtora dynamically discovers a new belief rather than
-        ending the roadmap.
+            completed objective
+                    ↓
+            retrieve evidence
+                    ↓
+            evaluate evidence
+                    ↓
+            update belief
+                    ↓
+            determine whether belief is resolved
+                    ↓
+            ┌───────────────┴────────────────┐
+            │                                │
+        unresolved                         resolved
+            ↓                                ↓
+        retest same              existing unresolved belief?
+                                      ↓
+                                  yes → objective
+                                      ↓
+                                  no → AI discovery
         """
 
         # =========================================================
@@ -928,7 +1151,7 @@ class DecisionService:
         # =========================================================
         # 11. NO EXISTING UNRESOLVED BELIEFS
         #
-        # THIS IS THE OPEN-ENDED V2 PATH.
+        # Open-ended decision discovery.
         # =========================================================
 
         state = startup_state_repository.get_state(
@@ -936,6 +1159,7 @@ class DecisionService:
         )
 
         if state is None:
+
             raise RuntimeError(
                 "Startup state not found."
             )
@@ -945,12 +1169,14 @@ class DecisionService:
         )
 
         # ---------------------------------------------------------
-        # Give the decision agent the current startup state and
-        # everything that has happened so far.
+        # Build the startup context available to the decision agent.
         # ---------------------------------------------------------
 
         project_context = {
             "id": project_id,
+            "name": state.get(
+                "one_liner"
+            ),
             "description": state.get(
                 "one_liner"
             ),
@@ -981,17 +1207,19 @@ class DecisionService:
         )
 
         if not new_belief_data:
+
             raise RuntimeError(
                 "AI decision did not return a new belief."
             )
 
         if not new_objective_config:
+
             raise RuntimeError(
                 "AI decision did not return a new objective."
             )
 
         # ---------------------------------------------------------
-        # Prevent obvious duplicates.
+        # Prevent obvious duplicate beliefs.
         # ---------------------------------------------------------
 
         new_belief_type = new_belief_data.get(
@@ -1011,6 +1239,7 @@ class DecisionService:
         )
 
         if duplicate:
+
             raise RuntimeError(
                 "AI returned a duplicate belief."
             )
@@ -1027,7 +1256,7 @@ class DecisionService:
         )
 
         # =========================================================
-        # 13. SET NEW CONSTRAINT
+        # 13. CHANGE CURRENT CONSTRAINT
         # =========================================================
 
         state = startup_state_repository.set_constraint(
@@ -1038,8 +1267,8 @@ class DecisionService:
                     "reason"
                 )
                 or (
-                    "Plavtora identified this as the next "
-                    "important unresolved startup uncertainty."
+                    "The decision engine identified this as "
+                    "the next important startup uncertainty."
                 )
             ),
         )
@@ -1075,7 +1304,7 @@ class DecisionService:
         )
 
         # =========================================================
-        # 15. SET NEW OBJECTIVE ACTIVE
+        # 15. SET NEXT OBJECTIVE ACTIVE
         # =========================================================
 
         state = DecisionService._set_active_objective(
@@ -1386,12 +1615,16 @@ class DecisionService:
         constraint_key: str,
     ):
         """
-        Deterministic configurations for the existing initial
-        belief types.
+        Return deterministic objective configuration for existing
+        known belief types.
 
-        Newly discovered beliefs receive their objective
+        Newly discovered belief types receive their objective
         configuration directly from decision_agent().
         """
+
+        # =========================================================
+        # PROBLEM / VALIDATION
+        # =========================================================
 
         if constraint_key in (
             "problem",
@@ -1423,6 +1656,10 @@ class DecisionService:
                 "target_count": 5,
             }
 
+        # =========================================================
+        # SOLUTION FIT / PRODUCT
+        # =========================================================
+
         if constraint_key in (
             "solution_fit",
             "product",
@@ -1453,6 +1690,10 @@ class DecisionService:
                 ),
                 "target_count": 5,
             }
+
+        # =========================================================
+        # WILLINGNESS TO PAY
+        # =========================================================
 
         if constraint_key == "willingness_to_pay":
 
