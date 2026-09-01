@@ -757,6 +757,7 @@ class DecisionService:
     def process_objective_completion(
         project_id: str,
         objective_id: str,
+        project : dict
     ):
         """
         Process a completed objective.
@@ -1172,18 +1173,7 @@ class DecisionService:
         # Build the startup context available to the decision agent.
         # ---------------------------------------------------------
 
-        project_context = {
-            "id": project_id,
-            "name": state.get(
-                "one_liner"
-            ),
-            "description": state.get(
-                "one_liner"
-            ),
-            "stage": state.get(
-                "stage"
-            ),
-        }
+        project_context = project
 
         next_decision = decision_agent(
             project=project_context,

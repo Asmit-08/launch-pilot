@@ -361,9 +361,10 @@ def submit_objective_outcome(
     # -----------------------------------------------------
 
     transition = DecisionService.process_objective_completion(
-        project_id=project_id,
-        objective_id=objective["id"],
-    )
+    project_id=project_id,
+    objective_id=objective["id"],
+    project=project,
+)
     # -----------------------------------------------------
     # 11. Return complete transition
     # -----------------------------------------------------
