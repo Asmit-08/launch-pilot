@@ -246,44 +246,65 @@ export default function ProjectPage() {
 
     try {
       const result =
-        await submitObjectiveOutcome(
-          project.id,
-          {
-            completion_status:
-              completionStatus,
-            quantity,
-            observations:
-              observations.trim(),
-            evidence:
-              evidence.trim() || null,
-            user_interpretation:
-              userInterpretation.trim() ||
-              null,
-            unexpected_result:
-              unexpectedResult.trim() ||
-              null,
-          }
-        );
+  await submitObjectiveOutcome(
+    project.id,
+    {
+      completion_status:
+        completionStatus,
+      quantity,
+      observations:
+        observations.trim(),
+      evidence:
+        evidence.trim() || null,
+      user_interpretation:
+        userInterpretation.trim() ||
+        null,
+      unexpected_result:
+        unexpectedResult.trim() ||
+        null,
+    }
+  );
 
-      setShowOutcomeForm(false);
+setShowOutcomeForm(false);
 
-      setObservations("");
-      setEvidence("");
-      setUserInterpretation("");
-      setUnexpectedResult("");
-      setQuantity(1);
-      setCompletionStatus("completed");
+setObservations("");
+setEvidence("");
+setUserInterpretation("");
+setUnexpectedResult("");
+setQuantity(1);
+setCompletionStatus("completed");
 
-      /*
-       * Always refresh from the backend after a successful submission.
-       * The Daily Objective endpoint is the authoritative source for
-       * the current objective, constraint, and startup state.
-       */
+/*
+ * The outcome response already contains the next decision state.
+ * Update the UI immediately from that response.
+ */
 
-      const refreshed =
-        await getDailyObjective(project.id);
+const nextObjective =
+  result?.transition?.next_objective;
 
-      setDailyObjective(refreshed);
+const nextBelief =
+  result?.transition?.next_belief;
+
+const nextState =
+  result?.transition?.state;
+
+if (nextObjective) {
+  setDailyObjective({
+    project_id: project.id,
+    has_active_objective: true,
+    state: nextState,
+    constraint: nextBelief,
+    objective: nextObjective,
+  });
+} else {
+  setDailyObjective({
+    project_id: project.id,
+    has_active_objective: false,
+    state: nextState,
+    constraint: null,
+    objective: null,
+  });
+}
     } catch (error) {
       console.error(
         "Objective submission failed:",
