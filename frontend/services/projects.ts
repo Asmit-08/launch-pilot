@@ -90,12 +90,20 @@ export interface DailyObjective {
   completed_at: string | null;
 }
 
+export interface DailyObjectiveUsage {
+  subscription: string;
+  completed: number;
+  limit: number | null;
+  limit_reached: boolean;
+}
+
 export interface DailyObjectiveResponse {
   project_id: string;
   has_active_objective: boolean;
   state: DailyObjectiveState;
   constraint: DailyObjectiveConstraint | null;
   objective: DailyObjective | null;
+  objective_usage: DailyObjectiveUsage;
 }
 
 export interface ObjectiveOutcomePayload {
@@ -336,12 +344,6 @@ export async function submitObjectiveOutcome(
     }
   );
 
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      "Your session has expired. Please sign in again."
-    );
-  }
-
   let data: any = null;
 
   try {
@@ -349,6 +351,65 @@ export async function submitObjectiveOutcome(
   } catch {
     // Ignore malformed response.
   }
+
+  /* -------------------------------------------------------
+     Authentication errors
+     ------------------------------------------------------- */
+
+  if (response.status === 401) {
+    throw new Error(
+      "Your session has expired. Please sign in again."
+    );
+  }
+
+  /* -------------------------------------------------------
+     Daily Objective plan limit
+     ------------------------------------------------------- */
+
+  if (
+    response.status === 403 &&
+    data?.detail &&
+    typeof data.detail === "object" &&
+    data.detail.error ===
+      "objective_limit_reached"
+  ) {
+    const error = new Error(
+      data.detail.message ||
+        "Free plan limit reached. Upgrade to continue with Daily Objectives."
+    );
+
+    (
+      error as Error & {
+        code?: string;
+        objective_usage?: DailyObjectiveUsage;
+      }
+    ).code =
+      "objective_limit_reached";
+
+    (
+      error as Error & {
+        code?: string;
+        objective_usage?: DailyObjectiveUsage;
+      }
+    ).objective_usage =
+      data.detail.objective_usage;
+
+    throw error;
+  }
+
+  /* -------------------------------------------------------
+     Other forbidden responses
+     ------------------------------------------------------- */
+
+  if (response.status === 403) {
+    throw new Error(
+      "You do not have permission to perform this action."
+    );
+  }
+
+  /* -------------------------------------------------------
+     Other API errors
+     ------------------------------------------------------- */
 
   if (!response.ok) {
     if (typeof data?.detail === "string") {

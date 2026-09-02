@@ -275,9 +275,14 @@ setQuantity(1);
 setCompletionStatus("completed");
 
 /*
- * The outcome response already contains the next decision state.
+ * The outcome response already contains the latest
+ * Daily Objective state and usage information.
  * Update the UI immediately from that response.
+ * No follow-up GET is required here.
  */
+
+const objectiveUsage =
+  result?.objective_usage;
 
 const nextObjective =
   result?.transition?.next_objective;
@@ -286,30 +291,117 @@ const nextBelief =
   result?.transition?.next_belief;
 
 const nextState =
-  result?.transition?.state;
+  result?.transition?.state ??
+  dailyObjective?.state;
 
-if (nextObjective) {
-  setDailyObjective({
-    project_id: project.id,
-    has_active_objective: true,
-    state: nextState,
-    constraint: nextBelief,
-    objective: nextObjective,
-  });
-} else {
+/*
+ * Free plan has exhausted its Daily Objective allowance.
+ * This takes precedence over any objective returned by
+ * the decision engine.
+ */
+if (objectiveUsage?.limit_reached) {
   setDailyObjective({
     project_id: project.id,
     has_active_objective: false,
     state: nextState,
     constraint: null,
     objective: null,
+    objective_usage:
+      objectiveUsage ??
+      dailyObjective.objective_usage,
   });
+
+  return;
 }
+
+/*
+ * Normal completed-objective transition.
+ */
+if (nextObjective) {
+  setDailyObjective({
+    project_id: project.id,
+    has_active_objective: true,
+    state: nextState,
+    constraint: nextBelief ?? null,
+    objective: nextObjective,
+    objective_usage:
+      objectiveUsage ??
+      dailyObjective.objective_usage,
+  });
+
+  return;
+}
+
+/*
+ * Non-completed outcomes keep the current objective active.
+ * The backend returns the objective and updated usage, but
+ * does not create a transition in that case.
+ */
+if (result?.objective) {
+  setDailyObjective({
+    project_id: project.id,
+    has_active_objective: true,
+    state: nextState,
+    constraint: dailyObjective?.constraint ?? null,
+    objective: result.objective,
+    objective_usage:
+      objectiveUsage ??
+      dailyObjective.objective_usage,
+  });
+
+  return;
+}
+
+/*
+ * Defensive fallback. Preserve the current UI state rather
+ * than replacing a valid objective with an empty state.
+ */
+setDailyObjective((current) =>
+  current
+    ? {
+        ...current,
+        objective_usage:
+          objectiveUsage ??
+          current.objective_usage,
+      }
+    : current
+);
     } catch (error) {
       console.error(
         "Objective submission failed:",
         error
       );
+
+      const objectiveLimitError =
+        error as Error & {
+          code?: string;
+          objective_usage?: DailyObjectiveResponse["objective_usage"];
+        };
+
+      if (
+        objectiveLimitError.code ===
+        "objective_limit_reached"
+      ) {
+        setShowOutcomeForm(false);
+        setOutcomeError(null);
+
+        setDailyObjective({
+          project_id: project.id,
+          has_active_objective: false,
+          state: dailyObjective.state,
+          constraint: null,
+          objective: null,
+          objective_usage:
+            objectiveLimitError.objective_usage ?? {
+              subscription: "free",
+              completed: 3,
+              limit: 3,
+              limit_reached: true,
+            },
+        });
+
+        return;
+      }
 
       setOutcomeError(
         error instanceof Error
@@ -1703,6 +1795,8 @@ function DailyObjectiveCard({
 
   onSubmitOutcome: () => void;
 }) {
+  const router = useRouter();
+
   if (loading) {
     return (
       <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
@@ -1744,6 +1838,52 @@ function DailyObjectiveCard({
 
             <p className="mt-1 text-sm leading-6 text-amber-800/80">
               {error}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    data?.objective_usage?.limit_reached
+  ) {
+    return (
+      <div className="rounded-[28px] border border-violet-200 bg-violet-50 p-6 shadow-sm sm:p-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-violet-600 shadow-sm">
+            <Sparkles size={20} />
+          </div>
+
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Daily Objective
+            </p>
+
+            <h2 className="mt-2 text-xl font-bold text-slate-950">
+              You've used your 3 free objectives.
+            </h2>
+
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+              Plavtora has more decisions to help you test.
+              Upgrade to keep receiving personalized objectives
+              as your startup evolves.
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push("/pricing")
+              }
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
+            >
+              Upgrade to continue
+              <ArrowRight size={15} />
+            </button>
+
+            <p className="mt-3 text-xs font-medium text-slate-500">
+              {data.objective_usage.completed}/
+              {data.objective_usage.limit} free objectives used
             </p>
           </div>
         </div>

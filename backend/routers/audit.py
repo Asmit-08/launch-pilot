@@ -20,6 +20,57 @@ router = APIRouter()
 
 
 # =========================================================
+# HELPERS
+# =========================================================
+
+def _get_objective_usage(
+    project_id: str,
+    current_user: dict,
+):
+    """
+    Return the project's Daily Objective usage state.
+
+    Free:
+        3 completed objectives maximum.
+
+    Premium / Super Premium:
+        Unlimited objectives.
+    """
+
+    subscription = current_user.get(
+        "subscription",
+        "free",
+    )
+
+    completed_objectives = (
+        objective_repository.get_objectives_by_status(
+            project_id=project_id,
+            status="completed",
+        )
+    )
+
+    completed_count = len(
+        completed_objectives
+    )
+
+    if subscription == "free":
+        limit = 3
+        limit_reached = (
+            completed_count >= limit
+        )
+    else:
+        limit = None
+        limit_reached = False
+
+    return {
+        "subscription": subscription,
+        "completed": completed_count,
+        "limit": limit,
+        "limit_reached": limit_reached,
+    }
+
+
+# =========================================================
 # AUDIT
 # =========================================================
 
@@ -63,15 +114,18 @@ def audit(
 # V2 — DAILY OBJECTIVE
 # =========================================================
 
-@router.get("/projects/{project_id}/daily-objective")
+@router.get(
+    "/projects/{project_id}/daily-objective"
+)
 def get_daily_objective(
     project_id: str,
     current_user=Depends(get_current_user),
 ):
     """
-    Return the startup's current active objective.
+    Return the startup's current Daily Objective state.
 
-    This endpoint is read-only.
+    Includes objective usage so the frontend can distinguish
+    between a genuinely inactive state and a Free-plan limit.
     """
 
     # -----------------------------------------------------
@@ -104,7 +158,31 @@ def get_daily_objective(
         )
 
     # -----------------------------------------------------
-    # 3. Get active objective
+    # 3. Get objective usage
+    # -----------------------------------------------------
+
+    objective_usage = _get_objective_usage(
+        project_id=project_id,
+        current_user=current_user,
+    )
+
+    # -----------------------------------------------------
+    # 4. Free plan exhausted
+    # -----------------------------------------------------
+
+    if objective_usage["limit_reached"]:
+
+        return {
+            "project_id": project_id,
+            "has_active_objective": False,
+            "state": state,
+            "objective": None,
+            "constraint": None,
+            "objective_usage": objective_usage,
+        }
+
+    # -----------------------------------------------------
+    # 5. Get active objective
     # -----------------------------------------------------
 
     objective = objective_repository.get_active_objective(
@@ -112,7 +190,7 @@ def get_daily_objective(
     )
 
     # -----------------------------------------------------
-    # 4. No active objective
+    # 6. No active objective
     # -----------------------------------------------------
 
     if objective is None:
@@ -123,10 +201,11 @@ def get_daily_objective(
             "state": state,
             "objective": None,
             "constraint": None,
+            "objective_usage": objective_usage,
         }
 
     # -----------------------------------------------------
-    # 5. Get current constraint
+    # 7. Get current constraint
     # -----------------------------------------------------
 
     constraint = None
@@ -143,7 +222,7 @@ def get_daily_objective(
         )
 
     # -----------------------------------------------------
-    # 6. Return objective context
+    # 8. Return objective context
     # -----------------------------------------------------
 
     return {
@@ -152,6 +231,7 @@ def get_daily_objective(
         "state": state,
         "constraint": constraint,
         "objective": objective,
+        "objective_usage": objective_usage,
     }
 
 
@@ -184,6 +264,8 @@ def submit_objective_outcome(
               ↓
         If complete:
             DecisionService processes transition
+              ↓
+        Objective usage returned
     """
 
     # -----------------------------------------------------
@@ -250,18 +332,6 @@ def submit_objective_outcome(
     # 5. Determine evidence quality
     # -----------------------------------------------------
 
-    # For the deterministic first version:
-    #
-    # success/completed
-    #     → repeated
-    #
-    # everything else
-    #     → anecdote
-    #
-    # Later we can make quality depend on the actual
-    # evidence characteristics rather than the submission
-    # status alone.
-
     if data.completion_status in (
         "completed",
         "success",
@@ -311,35 +381,34 @@ def submit_objective_outcome(
     # 7. Check V2 objective limit
     # -----------------------------------------------------
 
-    # Only a completed/successful objective consumes the
-    # Free plan's completed-objective allowance.
+    # A completed/successful objective consumes the
+    # Free-plan allowance.
     #
-    # This check happens BEFORE evidence is recorded so
-    # a blocked submission does not create a new evidence
-    # record.
+    # This happens BEFORE evidence is recorded so a blocked
+    # submission does not create an evidence record.
 
     if data.completion_status in (
         "completed",
         "success",
     ):
-        completed_objectives = (
-            objective_repository.get_objectives_by_status(
-                project_id=project_id,
-                status="completed",
-            )
+
+        objective_usage = _get_objective_usage(
+            project_id=project_id,
+            current_user=current_user,
         )
 
-        if (
-            current_user.get("subscription", "free")
-            == "free"
-            and len(completed_objectives) >= 3
-        ):
+        if objective_usage["limit_reached"]:
+
             raise HTTPException(
                 status_code=403,
-                detail=(
-                    "Free plan limit reached. "
-                    "Upgrade to continue with Daily Objectives."
-                ),
+                detail={
+                    "error": "objective_limit_reached",
+                    "message": (
+                        "Free plan limit reached. "
+                        "Upgrade to continue with Daily Objectives."
+                    ),
+                    "objective_usage": objective_usage,
+                },
             )
 
     # -----------------------------------------------------
@@ -361,6 +430,11 @@ def submit_objective_outcome(
 
     if not evidence_result["progress"]["completed"]:
 
+        objective_usage = _get_objective_usage(
+            project_id=project_id,
+            current_user=current_user,
+        )
+
         return {
             "status": "evidence_recorded",
             "objective_completed": False,
@@ -368,6 +442,7 @@ def submit_objective_outcome(
             "objective": evidence_result["objective"],
             "progress": evidence_result["progress"],
             "transition": None,
+            "objective_usage": objective_usage,
         }
 
     # -----------------------------------------------------
@@ -381,7 +456,16 @@ def submit_objective_outcome(
     )
 
     # -----------------------------------------------------
-    # 11. Return complete transition
+    # 11. Get updated objective usage
+    # -----------------------------------------------------
+
+    objective_usage = _get_objective_usage(
+        project_id=project_id,
+        current_user=current_user,
+    )
+
+    # -----------------------------------------------------
+    # 12. Return complete transition
     # -----------------------------------------------------
 
     return {
@@ -391,4 +475,5 @@ def submit_objective_outcome(
         "objective": evidence_result["objective"],
         "progress": evidence_result["progress"],
         "transition": transition,
+        "objective_usage": objective_usage,
     }
