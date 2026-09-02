@@ -249,7 +249,7 @@ def submit_objective_outcome(
     # -----------------------------------------------------
     # 5. Determine evidence quality
     # -----------------------------------------------------
-    #
+
     # For the deterministic first version:
     #
     # success/completed
@@ -258,9 +258,9 @@ def submit_objective_outcome(
     # everything else
     #     → anecdote
     #
-    # Later we can make quality depend on the actual evidence
-    # characteristics rather than the submission status alone.
-    #
+    # Later we can make quality depend on the actual
+    # evidence characteristics rather than the submission
+    # status alone.
 
     if data.completion_status in (
         "completed",
@@ -308,7 +308,42 @@ def submit_objective_outcome(
         )
 
     # -----------------------------------------------------
-    # 7. Record evidence
+    # 7. Check V2 objective limit
+    # -----------------------------------------------------
+
+    # Only a completed/successful objective consumes the
+    # Free plan's completed-objective allowance.
+    #
+    # This check happens BEFORE evidence is recorded so
+    # a blocked submission does not create a new evidence
+    # record.
+
+    if data.completion_status in (
+        "completed",
+        "success",
+    ):
+        completed_objectives = (
+            objective_repository.get_objectives_by_status(
+                project_id=project_id,
+                status="completed",
+            )
+        )
+
+        if (
+            current_user.get("subscription", "free")
+            == "free"
+            and len(completed_objectives) >= 3
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Free plan limit reached. "
+                    "Upgrade to continue with Daily Objectives."
+                ),
+            )
+
+    # -----------------------------------------------------
+    # 8. Record evidence
     # -----------------------------------------------------
 
     evidence_result = EvidenceService.record_evidence(
@@ -321,7 +356,7 @@ def submit_objective_outcome(
     )
 
     # -----------------------------------------------------
-    # 8. Check whether objective completed
+    # 9. Check whether objective completed
     # -----------------------------------------------------
 
     if not evidence_result["progress"]["completed"]:
@@ -336,35 +371,15 @@ def submit_objective_outcome(
         }
 
     # -----------------------------------------------------
-    # 9. Check V2 objective limit
-    # -----------------------------------------------------
-
-    completed_objectives = (
-        objective_repository.get_objectives_by_status(
-            project_id=project_id,
-            status="completed",
-        )
-    )
-
-    if (
-        current_user.get("subscription", "free")
-        == "free"
-        and len(completed_objectives) >= 3
-    ):
-        raise HTTPException(
-            status_code=403,
-            detail="Free plan limit reached. Upgrade to continue with Daily Objectives.",
-        )
-
-    # -----------------------------------------------------
     # 10. Process completed objective
     # -----------------------------------------------------
 
     transition = DecisionService.process_objective_completion(
-    project_id=project_id,
-    objective_id=objective["id"],
-    project=project,
-)
+        project_id=project_id,
+        objective_id=objective["id"],
+        project=project,
+    )
+
     # -----------------------------------------------------
     # 11. Return complete transition
     # -----------------------------------------------------
@@ -377,4 +392,3 @@ def submit_objective_outcome(
         "progress": evidence_result["progress"],
         "transition": transition,
     }
-
