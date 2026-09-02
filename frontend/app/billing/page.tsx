@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/lib/supabase";
 
 const freeFeatures = [
+  "3 Daily Objectives per project",
   "3 Launch Audits per month",
   "3 AI Co-Founder messages per month",
   "2 ICP / Persona analyses per month",
@@ -26,6 +27,8 @@ const freeFeatures = [
 ];
 
 const premiumFeatures = [
+  "Unlimited Daily Objectives",
+  "Evidence-driven next objectives",
   "20 Launch Audits per month",
   "100 AI Co-Founder messages per month",
   "20 ICP / Persona analyses per month",
@@ -223,16 +226,17 @@ export default function BillingPage() {
           </div>
 
           <h1 className="mt-6 text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
-            Get more than a signal.
+            Don&apos;t just know what&apos;s wrong.
             <span className="block text-slate-400">
-              Get a deeper diagnosis.
+              Know what to do next.
             </span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Free gives you a real starting point. Premium gives you
-            significantly more analysis capacity and deeper intelligence
-            when you're ready to keep working on the problem.
+            Free lets you experience Plavtora&apos;s decision loop.
+            Premium keeps that loop running with unlimited Daily
+            Objectives, deeper analysis, and more room to work through
+            your startup.
           </p>
         </section>
 
@@ -258,7 +262,7 @@ export default function BillingPage() {
                 </p>
 
                 <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
-                  Get the signal
+                  Experience the loop
                 </h2>
               </div>
 
@@ -278,8 +282,9 @@ export default function BillingPage() {
             </div>
 
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              A genuinely useful starting plan. Understand your startup,
-              test Plavtora, and see whether deeper analysis is worth it.
+              Understand your startup, test a few important decisions,
+              and see how Plavtora turns what happens into what you
+              should investigate next.
             </p>
 
             <div className="mt-8 border-t border-slate-100 pt-7">
@@ -343,16 +348,17 @@ export default function BillingPage() {
                 </div>
 
                 <p className="mt-4 max-w-lg text-sm leading-6 text-slate-600">
-                  More capacity and deeper intelligence for founders who
-                  want to repeatedly analyze, challenge, and improve their
-                  startup.
+                  Keep working with Plavtora as your startup evolves.
+                  Premium gives you unlimited Daily Objectives plus
+                  deeper analysis and more capacity across the rest of
+                  the platform.
                 </p>
 
                 {/* Main value strip */}
                 <div className="mt-7 grid gap-2 sm:grid-cols-3">
                   <ValueBlock
-                    value="20"
-                    label="Launch audits"
+                    value="∞"
+                    label="Daily Objectives"
                   />
 
                   <ValueBlock
@@ -362,7 +368,7 @@ export default function BillingPage() {
 
                   <ValueBlock
                     value="20"
-                    label="Landing analyses"
+                    label="Launch audits"
                   />
                 </div>
 
@@ -414,9 +420,10 @@ export default function BillingPage() {
                   </div>
                 )}
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                <div className="mt-4 flex items-center justify-center gap-2 text-center text-[10px] text-slate-400">
                   <ShieldCheck size={13} />
-                  Monthly subscription · Limits reset monthly
+                  Monthly subscription · Tool limits reset monthly ·
+                  Daily Objectives: 3 per project on Free
                 </div>
               </div>
             </div>
@@ -432,34 +439,34 @@ export default function BillingPage() {
               </p>
 
               <h3 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
-                Free helps you diagnose.
-                Premium helps you keep going.
+                Free lets you experience the decision loop.
+                Premium lets you stay in it.
               </h3>
 
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                Premium isn't about hiding the useful part behind a paywall.
-                It gives you substantially more room to run the workflow
-                repeatedly and access deeper decision support.
+                Plavtora doesn&apos;t stop at telling you what looks risky.
+                It helps you determine what to test next, capture what
+                happened, and use that evidence to guide the next decision.
               </p>
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               <DecisionCard
                 number="01"
-                title="Test"
-                description="Use the free plan to understand your startup and see whether Plavtora finds useful problems."
+                title="Diagnose"
+                description="Start with your startup's current state and see which assumptions or problems deserve attention."
               />
 
               <DecisionCard
                 number="02"
-                title="Go deeper"
-                description="Premium gives you much higher limits and deeper analysis when you need more than a first pass."
+                title="Act"
+                description="Get one concrete Daily Objective designed to test the most important unresolved uncertainty."
               />
 
               <DecisionCard
                 number="03"
-                title="Iterate"
-                description="Keep auditing, questioning assumptions, and improving instead of stopping after a single pass."
+                title="Learn"
+                description="Feed the result back into Plavtora so the next objective reflects what actually happened."
               />
             </div>
           </div>
@@ -470,11 +477,11 @@ export default function BillingPage() {
           <div className="overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-7 py-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                Monthly limits
+                Usage & access
               </p>
 
               <h3 className="mt-2 text-xl font-bold text-slate-950">
-                More room to analyze, iterate, and decide.
+                More room to decide, learn, and keep moving.
               </h3>
             </div>
 
@@ -493,6 +500,12 @@ export default function BillingPage() {
                 </div>
 
                 <div className="divide-y divide-slate-100">
+                  <LimitRow
+                    label="Daily Objectives"
+                    free="3 / project"
+                    premium="Unlimited"
+                  />
+
                   <LimitRow
                     label="Launch Audits"
                     free="3 / month"
