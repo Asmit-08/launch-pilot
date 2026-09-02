@@ -1154,18 +1154,19 @@ export default function Home() {
       <AnimatedSection>
         <section className="px-5 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-32">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="section-kicker">Make the next decision better</p>
+            <p className="section-kicker">Before you spend another week</p>
 
             <h2 className="mt-5 text-5xl font-semibold tracking-[-0.055em] sm:text-6xl lg:text-7xl">
-              Stop guessing.
+              You could spend the next month
               <span className="block text-zinc-400">
-                Start learning what matters.
+                working on the wrong thing.
               </span>
             </h2>
 
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-zinc-600">
-              Put your startup through a second opinion, test the most
-              important uncertainty, and let evidence shape the next move.
+              The hardest part of building a startup isn't finding something
+              to do. It's knowing whether the thing you're doing is actually
+              the thing that matters.
             </p>
 
             <Button
@@ -1177,7 +1178,7 @@ export default function Home() {
             >
               {navigatingTo === "/auth"
                 ? "Opening Plavtora..."
-                : "Start with my startup"}
+                : "Find out what matters next"}
               <span className="ml-1">→</span>
             </Button>
 
