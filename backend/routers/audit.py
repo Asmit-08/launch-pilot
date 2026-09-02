@@ -53,7 +53,7 @@ def _get_objective_usage(
         completed_objectives
     )
 
-    if subscription == "free":
+    if subscription == "none":
         limit = 3
         limit_reached = (
             completed_count >= limit
