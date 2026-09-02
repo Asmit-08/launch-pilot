@@ -1873,7 +1873,7 @@ function DailyObjectiveCard({
             <button
               type="button"
               onClick={() =>
-                router.push("/pricing")
+                router.push("/billing")
               }
               className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
             >
