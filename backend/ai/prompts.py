@@ -129,7 +129,7 @@ Do not invent information about competitors that was not provided.
 Return exactly:
 
 "product": {{
-    "score": integer from 0 to 10,
+    "score": number from 0.0 to 10.0, using one decimal place,
     "strengths": [
         "specific strength"
     ],
@@ -164,7 +164,7 @@ Important:
 Return exactly:
 
 "validation": {{
-    "score": integer from 0 to 10,
+    "score": number from 0.0 to 10.0, using one decimal place,
     "strengths": [
         "specific validation strength"
     ],
@@ -208,7 +208,7 @@ Identify the most important missing launch components.
 Return exactly:
 
 "launch_readiness": {{
-    "score": integer from 0 to 10,
+    "score": number from 0.0 to 10.0, using one decimal place,
     "strengths": [
         "specific launch strength"
     ],
@@ -259,7 +259,7 @@ For mitigation:
 Return exactly:
 
 "risk": {{
-    "score": integer from 0 to 10,
+    "score": number from 0.0 to 10.0, using one decimal place,
     "critical_risks": [
         "specific critical risk"
     ],
@@ -270,6 +270,48 @@ Return exactly:
 
 
 ==================================================
+SCORING PRECISION
+==================================================
+
+Scores represent the current strength of each dimension based on the
+available evidence and startup information.
+
+Use decimal scores to represent meaningful differences in evidence
+strength and startup condition.
+
+Do not choose decimal values randomly.
+
+Scores should reflect the actual evidence available to the analysis.
+
+A score change between audits should reflect a genuine change in the
+underlying evidence or startup state.
+
+Do not increase a score merely because an objective was completed.
+
+A completed objective only justifies a score increase when the evidence
+produced by that objective materially strengthens the corresponding
+dimension.
+
+Scores may increase, decrease, or remain unchanged when new evidence
+or startup conditions warrant it.
+
+Use exactly one decimal place.
+
+Valid examples:
+
+0.0
+2.4
+5.0
+5.7
+8.1
+10.0
+
+Do not return scores with more than one decimal place.
+
+All scores must remain between 0.0 and 10.0.
+
+
+==================================================
 FINAL OUTPUT
 ==================================================
 
@@ -277,28 +319,29 @@ Return exactly this JSON structure:
 
 {{
     "product": {{
-        "score": 0,
+        "score": 0.0,
         "strengths": [],
         "weaknesses": []
     }},
     "validation": {{
-        "score": 0,
+        "score": 0.0,
         "strengths": [],
         "weaknesses": []
     }},
     "launch_readiness": {{
-        "score": 0,
+        "score": 0.0,
         "strengths": [],
         "weaknesses": []
     }},
     "risk": {{
-        "score": 0,
+        "score": 0.0,
         "critical_risks": [],
         "mitigation": []
     }}
 }}
 
-All scores must be integers between 0 and 10.
+All scores must be numbers between 0.0 and 10.0.
+Use exactly one decimal place for every score.
 Do not add additional top-level fields.
 """
 

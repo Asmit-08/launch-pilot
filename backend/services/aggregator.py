@@ -13,7 +13,7 @@ def aggregate_results(
     }
 
     # ---------------------------------------------------------
-    # Validate agent outputs
+    # Validate and normalize agent outputs
     # ---------------------------------------------------------
 
     for section_name, section in results.items():
@@ -28,15 +28,20 @@ def aggregate_results(
                 f"{section_name} result is missing score"
             )
 
-        if not isinstance(section["score"], int):
+        score = section["score"]
+
+        if not isinstance(score, (int, float)) or isinstance(score, bool):
             raise ValueError(
-                f"{section_name} score must be an integer"
+                f"{section_name} score must be a number"
             )
 
-        if not 0 <= section["score"] <= 10:
+        if not 0 <= score <= 10:
             raise ValueError(
-                f"{section_name} score must be between 0 and 10"
+                f"{section_name} score must be between 0.0 and 10.0"
             )
+
+        # Normalize every dimension score to one decimal place
+        section["score"] = round(float(score), 1)
 
     # ---------------------------------------------------------
     # Overall score
@@ -48,7 +53,8 @@ def aggregate_results(
             + validation_result["score"] * 0.20
             + launch_result["score"] * 0.25
             + risk_result["score"] * 0.20
-        ) * 10
+        ) * 10,
+        1,
     )
 
     # ---------------------------------------------------------
@@ -236,4 +242,5 @@ def aggregate_results(
         "launch_readiness": launch_result,
 
         "risk": risk_result,
-    }
+  }
+
