@@ -130,8 +130,8 @@ class AuditService:
             raise
 
         except Exception as e:
-            # Never return a failed audit as a successful response.
+            print("AUDIT ERROR:", repr(e))
             raise HTTPException(
                 status_code=500,
-                detail="Audit generation failed. Please try again.",
+                detail=str(e),
             ) from e
