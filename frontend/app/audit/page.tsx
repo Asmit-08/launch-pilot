@@ -24,13 +24,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 interface FormData {
-  product_name: string;
-  one_line_pitch: string;
-  description: string;
-
-  target_audience: string;
+  website: string;
   competitors: string;
-  unique_value_proposition: string;
 
   beta_users: number;
   feedback_collected: boolean;
@@ -38,7 +33,6 @@ interface FormData {
   mvp_completed: boolean;
   critical_bugs: boolean;
 
-  landing_page: boolean;
   demo_video: boolean;
   social_media_presence: boolean;
 
@@ -240,7 +234,7 @@ function ToggleField({
 const loadingStages = [
   {
     title: "Understanding your startup",
-    description: "Mapping the product, market, and core promise.",
+    description: "Reading your website and mapping the product, market, and core promise.",
   },
   {
     title: "Evaluating validation",
@@ -276,13 +270,8 @@ export default function AuditPage() {
   } | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    product_name: "",
-    one_line_pitch: "",
-    description: "",
-
-    target_audience: "",
+    website: "",
     competitors: "",
-    unique_value_proposition: "",
 
     beta_users: 0,
     feedback_collected: false,
@@ -290,7 +279,6 @@ export default function AuditPage() {
     mvp_completed: false,
     critical_bugs: false,
 
-    landing_page: false,
     demo_video: false,
     social_media_presence: false,
 
@@ -320,11 +308,7 @@ export default function AuditPage() {
 
   const completion = useMemo(() => {
     const checks = [
-      Boolean(formData.product_name.trim()),
-      Boolean(formData.one_line_pitch.trim()),
-      Boolean(formData.description.trim()),
-      Boolean(formData.target_audience.trim()),
-      Boolean(formData.unique_value_proposition.trim()),
+      Boolean(formData.website.trim()),
       formData.beta_users > 0,
       formData.feedback_collected,
       formData.mvp_completed,
@@ -344,10 +328,7 @@ export default function AuditPage() {
 
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === "number"
-          ? Number(value)
-          : value,
+      [name]: type === "number" ? Number(value) : value,
     }));
   };
 
@@ -374,6 +355,8 @@ export default function AuditPage() {
     try {
       const payload = {
         ...formData,
+
+        website: formData.website.trim(),
 
         competitors: formData.competitors
           .split(",")
@@ -447,22 +430,18 @@ export default function AuditPage() {
       }
 
       if (!response.ok) {
-        let errorMessage =
-          "Failed to generate audit.";
+        let errorMessage = "Failed to generate audit.";
 
         try {
           const errorData = await response.json();
 
           if (errorData?.detail) {
             if (
-              typeof errorData.detail ===
-              "string"
+              typeof errorData.detail === "string"
             ) {
-              errorMessage =
-                errorData.detail;
+              errorMessage = errorData.detail;
             } else if (
-              typeof errorData.detail ===
-                "object" &&
+              typeof errorData.detail === "object" &&
               errorData.detail.error
             ) {
               errorMessage =
@@ -740,8 +719,9 @@ export default function AuditPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Give Plavtora the context behind your startup. It will turn
-              those inputs into one comprehensive assessment of your product,
+              Give Plavtora your website and the context it cannot
+              infer from the page itself. It will turn those inputs
+              into one comprehensive assessment of your product,
               validation, launch readiness, and risks.
             </p>
           </div>
@@ -774,7 +754,7 @@ export default function AuditPage() {
                 size={14}
                 className="mt-0.5 shrink-0 text-slate-400"
               />
-              Estimated completion: 2–3 minutes
+              Estimated completion: 1–2 minutes
             </div>
           </div>
         </div>
@@ -793,71 +773,54 @@ export default function AuditPage() {
           className="mt-10 grid gap-5"
           onSubmit={handleSubmit}
         >
+          {/* 01 / Product */}
           <Section
             eyebrow="01 / Product"
-            title="What are you building?"
-            description="Start with the core promise. This is the foundation of the audit."
+            title="Where can we inspect it?"
+            description="Give Plavtora the website. It will extract the product, positioning, audience, and core promise from the page."
             icon={<Wrench size={19} />}
           >
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Product name">
-                <Input
-                  name="product_name"
-                  value={formData.product_name}
-                  onChange={handleTextChange}
-                  placeholder="e.g. Plavtora"
-                  required
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
-                />
-              </Field>
-
-              <Field
-                label="One-line pitch"
-                hint="Keep it specific"
-              >
-                <Input
-                  name="one_line_pitch"
-                  value={formData.one_line_pitch}
-                  onChange={handleTextChange}
-                  placeholder="What does it help customers accomplish?"
-                  required
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
-                />
-              </Field>
-            </div>
-
-            <Field label="Product description">
-              <Textarea
-                name="description"
-                value={formData.description}
-                onChange={handleTextChange}
-                placeholder="Explain what the product does, how it works, and what problem it solves."
-                required
-                className="min-h-32 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
-              />
-            </Field>
-          </Section>
-
-          <Section
-            eyebrow="02 / Market"
-            title="Who is this for?"
-            description="Help Plavtora distinguish your intended customer from a broad market."
-            icon={<Target size={19} />}
-          >
-            <Field label="Target audience">
+            <Field
+              label="Website"
+              hint="Public URL"
+            >
               <Input
-                name="target_audience"
-                value={formData.target_audience}
+                name="website"
+                type="url"
+                value={formData.website}
                 onChange={handleTextChange}
-                placeholder="e.g. SaaS founders with 0–5 person teams"
+                placeholder="https://yourstartup.com"
                 required
                 className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
               />
             </Field>
 
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <div className="flex items-start gap-3">
+                <Sparkles
+                  size={16}
+                  className="mt-0.5 shrink-0 text-violet-500"
+                />
+
+                <p className="text-xs leading-5 text-slate-500">
+                  Plavtora will analyze the page itself instead of
+                  asking you to manually describe information already
+                  visible on your website.
+                </p>
+              </div>
+            </div>
+          </Section>
+
+          {/* 02 / Market */}
+          <Section
+            eyebrow="02 / Market"
+            title="Who are you up against?"
+            description="Add competitors if you know the relevant alternatives. Plavtora can use them as additional context."
+            icon={<Target size={19} />}
+          >
             <Field
               label="Competitors"
-              hint="Comma separated"
+              hint="Optional · comma separated"
             >
               <Textarea
                 name="competitors"
@@ -867,18 +830,9 @@ export default function AuditPage() {
                 className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
               />
             </Field>
-
-            <Field label="Unique value proposition">
-              <Textarea
-                name="unique_value_proposition"
-                value={formData.unique_value_proposition}
-                onChange={handleTextChange}
-                placeholder="What makes this materially different or better?"
-                className="min-h-28 resize-y rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-900 placeholder:text-slate-400 focus:bg-white"
-              />
-            </Field>
           </Section>
 
+          {/* 03 / Validation */}
           <Section
             eyebrow="03 / Validation"
             title="How much evidence do you have?"
@@ -908,6 +862,7 @@ export default function AuditPage() {
             />
           </Section>
 
+          {/* 04 / Product status */}
           <Section
             eyebrow="04 / Product status"
             title="How ready is the product?"
@@ -935,22 +890,14 @@ export default function AuditPage() {
             </div>
           </Section>
 
+          {/* 05 / Marketing */}
           <Section
             eyebrow="05 / Marketing"
             title="Could people discover and understand it?"
-            description="Launch readiness depends on more than having a working product."
+            description="Your website is analyzed directly. Tell us about the other marketing assets you have."
             icon={<ArrowRight size={19} />}
           >
-            <div className="grid gap-3 md:grid-cols-3">
-              <ToggleField
-                checked={formData.landing_page}
-                onChange={() =>
-                  toggleField("landing_page")
-                }
-                title="Landing page ready"
-                description="A live page communicates the offer."
-              />
-
+            <div className="grid gap-3 md:grid-cols-2">
               <ToggleField
                 checked={formData.demo_video}
                 onChange={() =>
@@ -975,6 +922,7 @@ export default function AuditPage() {
             </div>
           </Section>
 
+          {/* 06 / Distribution */}
           <Section
             eyebrow="06 / Distribution"
             title="How will you reach the market?"
@@ -1002,6 +950,7 @@ export default function AuditPage() {
             </Field>
           </Section>
 
+          {/* 07 / Business */}
           <Section
             eyebrow="07 / Business"
             title="What is the business model?"
@@ -1027,7 +976,7 @@ export default function AuditPage() {
                   value={formData.currency}
                   onChange={handleTextChange}
                   placeholder="USD"
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
                 />
               </Field>
 
@@ -1037,7 +986,7 @@ export default function AuditPage() {
                   value={formData.pricing_model}
                   onChange={handleTextChange}
                   placeholder="Freemium"
-                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 focus:bg-white"
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white"
                 />
               </Field>
             </div>
@@ -1049,6 +998,7 @@ export default function AuditPage() {
               <div>
                 <div className="flex items-center gap-2 text-violet-300">
                   <Sparkles size={16} />
+
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
                     Ready for the diagnosis?
                   </span>
@@ -1059,8 +1009,9 @@ export default function AuditPage() {
                 </h2>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
-                  One comprehensive audit. Four angles of analysis. A clearer
-                  picture of what deserves your attention next.
+                  One comprehensive audit. Four angles of analysis.
+                  A clearer picture of what deserves your attention
+                  next.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/40">

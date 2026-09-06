@@ -10,8 +10,14 @@ from ai.prompts import (
 from ai.gemini_client import generate_response
 
 
-def audit_agent(data):
-    prompt = build_combined_audit_prompt(data)
+def audit_agent(
+    data,
+    landing_page_data: dict | None = None,
+):
+    prompt = build_combined_audit_prompt(
+        data,
+        landing_page_data=landing_page_data,
+    )
 
     response = generate_response(prompt)
 
@@ -84,6 +90,7 @@ def persona_agent(data):
 
     return result
 
+
 def landing_page_agent(
     page_data: dict,
     icp_context: dict | None = None,
@@ -118,6 +125,7 @@ def landing_page_agent(
         ) from e
 
     return result
+
 
 def decision_agent(
     project: dict,

@@ -1,4 +1,12 @@
-def build_combined_audit_prompt(data):
+def build_combined_audit_prompt(
+    data,
+    landing_page_data: dict | None = None,
+):
+    landing_page_data = landing_page_data or {}
+
+    website = getattr(data, "website", "")
+    competitors = getattr(data, "competitors", None)
+
     return f"""
 You are Plavtora's startup analysis engine.
 
@@ -11,43 +19,142 @@ Perform a comprehensive startup audit using FOUR independent analytical perspect
 
 This is ONE AI call, but you must perform all four analyses independently.
 
-IMPORTANT RULES:
+==================================================
+CORE ANALYSIS PRINCIPLE
+==================================================
 
-- Be critical and evidence-based.
-- Do not blindly agree with the founder.
-- Do not invent customers, revenue, traction, market demand, interviews, testimonials, or other evidence.
+The startup website is the primary source for information that can
+reasonably be observed from the public landing page.
+
+Founder-provided inputs are the primary source for information that
+cannot reliably be determined from the website.
+
+You must keep these two evidence sources separate.
+
+WEBSITE-OBSERVABLE INFORMATION may include:
+
+- Product name
+- One-line pitch
+- Product description
+- Target audience
+- Value proposition
+- Positioning
+- Core problem being addressed
+- Benefits
+- Product capabilities
+- Calls to action
+- Pricing information when visible
+- Social proof when explicitly visible
+- Other information directly observable from the page
+
+FOUNDER-REPORTED INFORMATION includes:
+
+- Beta users
+- Feedback collected
+- MVP completion
+- Critical bugs
+- Demo video availability
+- Social media presence
+- Waitlist
+- Launch channels
+- Budget
+- Currency
+- Pricing model
+- Competitors when supplied
+
+IMPORTANT:
+
+- Do not invent information.
+- Do not treat an inference as a verified fact.
+- Do not invent customers, revenue, traction, market demand,
+  interviews, testimonials, retention, or other evidence.
 - A completed MVP is NOT proof of market validation.
-- A founder's claim of differentiation is NOT automatically meaningful differentiation.
-- Boolean fields represent what the founder reports; do not treat them as independently verified facts.
+- A founder's claim of differentiation is NOT automatically meaningful
+  differentiation.
+- Boolean fields represent what the founder reports; do not treat them
+  as independently verified facts.
 - Missing evidence should reduce confidence where appropriate.
-- Do not allow a strong result in one category to artificially inflate another category.
+- Do not allow a strong result in one category to artificially inflate
+  another category.
 - Give practical, specific findings rather than generic startup advice.
 - Return ONLY valid JSON.
 - Do NOT wrap the response in Markdown or ```json.
-
+- Do NOT create additional top-level fields.
 
 ==================================================
-STARTUP INFORMATION
+WEBSITE
 ==================================================
 
-Product name:
-{data.product_name}
+Website URL:
+{website}
 
-One-line pitch:
-{data.one_line_pitch}
+The website was fetched before this AI analysis.
 
-Description:
-{data.description}
+The following information is extracted from the website.
 
-Target audience:
-{data.target_audience}
+URL:
+{landing_page_data.get("url", "")}
 
-Competitors:
-{data.competitors}
+TITLE:
+{landing_page_data.get("title", "")}
 
-Unique value proposition:
-{data.unique_value_proposition}
+HEADINGS:
+{landing_page_data.get("headings", [])}
 
+PAGE CONTENT:
+{landing_page_data.get("text", "")}
+
+==================================================
+WEBSITE INTERPRETATION RULES
+==================================================
+
+Use the extracted website information to determine what the product
+appears to be.
+
+You should infer the following when the evidence supports it:
+
+- Product name
+- One-line pitch
+- Product description
+- Target audience
+- Core problem
+- Value proposition
+- Positioning
+- Primary benefit
+
+When the page does not provide enough evidence for one of these:
+
+- Do not invent it.
+- Treat the information as unknown or insufficiently evidenced.
+- Reflect that uncertainty in the relevant analysis.
+
+For example:
+
+If the page title clearly contains the product name, that is usable
+website evidence.
+
+If the page says "AI analytics for SaaS founders," the target audience
+may reasonably be inferred as SaaS founders.
+
+If the page only says "AI-powered platform," do not invent a specific
+customer segment or use case.
+
+Do not assume that information visible on the page represents actual
+customer validation.
+
+A claim such as:
+
+"Trusted by thousands of companies"
+
+may be treated as a claim made by the website, but it must not be
+treated as independently verified evidence unless the supplied data
+contains verification.
+
+==================================================
+FOUNDER-REPORTED STARTUP INFORMATION
+==================================================
+
+The following information was supplied directly by the founder.
 
 VALIDATION
 
@@ -68,9 +175,6 @@ Critical bugs:
 
 
 MARKETING
-
-Landing page:
-{data.landing_page}
 
 Demo video:
 {data.demo_video}
@@ -97,19 +201,52 @@ Pricing model:
 {data.pricing_model}
 
 
+COMPETITORS
+
+Founder-provided competitors:
+{competitors if competitors else "None provided."}
+
+
+==================================================
+COMPETITOR RULES
+==================================================
+
+Competitor information is optional.
+
+If competitors are provided:
+
+- Use only the competitors explicitly supplied.
+- Do not invent competitor characteristics.
+- Do not assume their pricing, market share, features, customers,
+  positioning, or strengths unless supplied by the founder or directly
+  observable from the provided information.
+- Evaluate differentiation cautiously.
+
+If competitors are not provided:
+
+- Do not invent competitors.
+- Do not pretend a competitive comparison was completed.
+- Evaluate differentiation based on the clarity and distinctiveness of
+  the product proposition itself.
+- State when competitive evidence is insufficient.
+
 ==================================================
 1. PRODUCT ANALYSIS
 ==================================================
 
-Analyze the actual product proposition.
+Analyze the actual product proposition using the website evidence and
+the founder-provided information.
 
 Evaluate:
 
-- Problem/value clarity based on the provided description
-- One-line pitch clarity
+- Problem/value clarity
+- Clarity of the product proposition
+- Clarity of the one-line pitch as represented by the website
 - Value proposition
 - Product usefulness
-- Differentiation from stated competitors
+- Target audience clarity
+- Positioning
+- Differentiation from stated competitors when competitors are provided
 - Whether the UVP appears meaningful
 - Product readiness
 - MVP completeness
@@ -122,9 +259,22 @@ Pay particular attention to:
 - weak differentiation
 - unclear value
 - feature-over-problem thinking
-- obvious competitive substitutes
+- unclear target customer
+- weak or generic messaging
+- obvious competitive substitutes when supported by the evidence
+- gaps between what the product claims to solve and how clearly that
+  value is communicated
 
-Do not invent information about competitors that was not provided.
+IMPORTANT:
+
+The website may communicate a strong proposition even when validation
+is weak.
+
+Do not reduce product quality simply because market validation is
+limited.
+
+Conversely, do not treat strong website messaging as proof that the
+product is actually valuable to customers.
 
 Return exactly:
 
@@ -154,12 +304,20 @@ Evaluate:
 - Whether validation is still mostly assumption-driven
 - Whether there is evidence of real user engagement
 
+Use the website only to understand what the product claims to do.
+
+Do NOT use website messaging itself as market validation.
+
 Important:
 
 - Beta users alone are not equivalent to paying customers.
 - Feedback collection is not equivalent to positive validation.
 - An MVP being completed is not validation.
-- Do not invent revenue, retention, customers, interviews, testimonials, or pre-orders.
+- Website traffic is not validation unless explicitly provided.
+- Testimonials or logos shown on the website are claims unless
+  independently verified by supplied evidence.
+- Do not invent revenue, retention, customers, interviews,
+  testimonials, pre-orders, or payment evidence.
 
 Return exactly:
 
@@ -184,7 +342,7 @@ Consider:
 
 - MVP completion
 - Critical bugs
-- Landing page
+- Website readiness
 - Demo video
 - Social media presence
 - Waitlist
@@ -195,13 +353,23 @@ Consider:
 - Pricing model
 - Ability to acquire initial users
 
+Use the website evidence to evaluate whether the startup has a usable
+public-facing product proposition.
+
 Distinguish between:
 
 PRODUCT READINESS
+
 and
+
 GO-TO-MARKET READINESS.
 
 A completed MVP does not automatically mean the startup is launch-ready.
+
+A website being present does not automatically mean it is effective.
+
+A social media presence does not automatically mean an acquisition
+strategy exists.
 
 Identify the most important missing launch components.
 
@@ -222,7 +390,8 @@ Return exactly:
 4. RISK ANALYSIS
 ==================================================
 
-Identify the most important risks that could prevent this startup from succeeding.
+Identify the most important risks that could prevent this startup from
+succeeding.
 
 Consider:
 
@@ -235,13 +404,16 @@ Consider:
 - Financial/budget risk
 - Execution risk
 - Technical/product readiness risk
+- Positioning risk
 
 Prioritize the most consequential risks.
 
 Do NOT generate generic statements such as:
+
 "Competition is a risk."
 
-Instead explain the actual risk in the context of the supplied startup information.
+Instead explain the actual risk in the context of the supplied startup
+information.
 
 For example:
 
@@ -249,12 +421,15 @@ Weak:
 "Customer acquisition may be difficult."
 
 Better:
-"The startup currently has no waitlist and no stated launch channel beyond social media, making the initial customer acquisition path uncertain."
+"The startup has no stated waitlist and no clearly defined acquisition
+channel, making the path to initial users uncertain."
 
 For mitigation:
 
-- Give a practical action that directly addresses the corresponding risk.
+- Give a practical action that directly addresses the corresponding
+  risk.
 - Keep mitigations specific and executable.
+- Do not recommend actions based on invented evidence.
 
 Return exactly:
 
@@ -267,6 +442,57 @@ Return exactly:
         "specific mitigation corresponding to the identified risks"
     ]
 }}
+
+
+==================================================
+EVIDENCE DISCIPLINE
+==================================================
+
+Every meaningful conclusion should be traceable to supplied evidence.
+
+Use these evidence categories internally:
+
+1. OBSERVED WEBSITE EVIDENCE
+Information directly visible in the extracted website content.
+
+2. FOUNDER-REPORTED EVIDENCE
+Information supplied through the startup audit form.
+
+3. REASONABLE INFERENCE
+A conclusion that follows logically from the supplied evidence.
+
+4. UNKNOWN
+Information that cannot reasonably be determined.
+
+Do not silently convert UNKNOWN into a fact.
+
+Examples:
+
+Valid:
+"The landing page clearly communicates an AI-powered workflow for
+startup founders."
+
+Valid:
+"The founder reports 25 beta users."
+
+Valid:
+"The absence of stated launch channels makes the acquisition path
+uncertain."
+
+Invalid:
+"The startup has strong market demand."
+
+There is no supplied evidence supporting that conclusion.
+
+Invalid:
+"Customers are willing to pay."
+
+No payment evidence was supplied.
+
+Invalid:
+"The product has no competitors."
+
+No competitor information was supplied.
 
 
 ==================================================
@@ -312,6 +538,42 @@ All scores must remain between 0.0 and 10.0.
 
 
 ==================================================
+CATEGORY INDEPENDENCE
+==================================================
+
+Keep the four dimensions analytically independent.
+
+PRODUCT:
+
+Measures the quality and clarity of the product proposition.
+
+VALIDATION:
+
+Measures evidence that users actually want the product.
+
+LAUNCH READINESS:
+
+Measures practical readiness to take the product to market.
+
+RISK:
+
+Measures the most consequential factors that could prevent success.
+
+Examples:
+
+- A clear product with no users can have a strong PRODUCT score and a
+  weak VALIDATION score.
+- A well-validated product with major technical bugs can have a strong
+  VALIDATION score and a weak LAUNCH READINESS score.
+- A polished website does not automatically create validation.
+- A completed MVP does not automatically create validation.
+- A strong validation result does not eliminate competitive or
+  monetization risk.
+
+Do not allow one category to automatically determine another.
+
+
+==================================================
 FINAL OUTPUT
 ==================================================
 
@@ -344,6 +606,7 @@ All scores must be numbers between 0.0 and 10.0.
 Use exactly one decimal place for every score.
 Do not add additional top-level fields.
 """
+
 
 def build_persona_prompt(data):
     additional_details = data.additional_details or "None provided."
@@ -928,6 +1191,7 @@ Return exactly this JSON structure:
     "recommendations": []
 }}
 """
+
 
 def build_next_belief_prompt(
     project: dict,
