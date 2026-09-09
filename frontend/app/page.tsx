@@ -114,7 +114,11 @@ function ToneDot({ tone }: { tone: string }) {
     blue: "bg-blue-500",
   };
 
-  return <span className={`h-2 w-2 rounded-full ${styles[tone] ?? styles.blue}`} />;
+  return (
+    <span
+      className={`h-2 w-2 rounded-full ${styles[tone] ?? styles.blue}`}
+    />
+  );
 }
 
 export default function Home() {
@@ -214,7 +218,7 @@ export default function Home() {
               <div className="max-w-2xl">
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/70 px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-600 shadow-sm">
                   <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                  Startup decision intelligence
+                  AI startup decision system
                 </div>
 
                 <h1 className="text-[clamp(3.1rem,6vw,5.7rem)] font-semibold leading-[0.96] tracking-[-0.055em]">
@@ -225,10 +229,11 @@ export default function Home() {
                 </h1>
 
                 <p className="mt-7 max-w-xl text-[17px] leading-7 text-zinc-600 sm:text-lg">
-                  Plavtora stress-tests your startup, identifies the most
-                  important unresolved uncertainty, and turns it into a focused
-                  next objective — then uses the evidence you bring back to
-                  decide what deserves attention next.
+                  Plavtora is an AI startup decision system that stress-tests
+                  your startup, identifies the most important unresolved
+                  uncertainty, and turns it into a focused next objective —
+                  then uses the evidence you bring back to decide what deserves
+                  attention next.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -1249,6 +1254,7 @@ export default function Home() {
           0% {
             transform: translateX(-100%);
           }
+
           100% {
             transform: translateX(320%);
           }

@@ -17,12 +17,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://plavtora.com"),
 
   title: {
-    default: "Plavtora | AI Startup Validation & Launch Analysis",
+    default: "Plavtora | AI Startup Decision System for Founders",
     template: "%s | Plavtora",
   },
 
   description:
-    "Plavtora is an AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions before the market does.",
+    "Plavtora is an AI startup decision system for founders. Pressure-test your startup idea, validate your ICP and positioning, assess launch readiness, and decide what deserves attention next.",
 
   alternates: {
     canonical: "/",
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "Plavtora | AI Startup Validation & Launch Analysis",
+    title: "Plavtora | AI Startup Decision System for Founders",
     description:
-      "An AI second opinion for founders. Pressure-test your startup, ICP, positioning, landing page, and launch decisions.",
+      "Pressure-test your startup, validate critical assumptions, and decide what deserves attention next.",
     url: "https://plavtora.com",
     siteName: "Plavtora",
     locale: "en_US",
@@ -51,16 +51,16 @@ export const metadata: Metadata = {
         url: "/icon.png",
         width: 1200,
         height: 630,
-        alt: "Plavtora — AI Startup Validation & Launch Analysis",
+        alt: "Plavtora — AI Startup Decision System for Founders",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Plavtora | AI Startup Validation & Launch Analysis",
+    title: "Plavtora | AI Startup Decision System for Founders",
     description:
-      "An AI second opinion for founders. Pressure-test your startup before the market does.",
+      "Pressure-test your startup, validate critical assumptions, and decide what deserves attention next.",
     images: ["/icon.png"],
   },
 
