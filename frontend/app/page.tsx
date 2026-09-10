@@ -106,6 +106,68 @@ const founderInsights = [
   },
 ];
 
+const audienceTypes = [
+  {
+    title: "Startup founders",
+    text: "Pressure-test important assumptions before committing more time, money, or engineering resources.",
+  },
+  {
+    title: "SaaS founders",
+    text: "Evaluate product, ICP, positioning, validation, launch readiness, and risks as your SaaS evolves.",
+  },
+  {
+    title: "Indie hackers",
+    text: "Find the next uncertainty worth testing instead of following a generic startup checklist.",
+  },
+  {
+    title: "Early-stage teams",
+    text: "Create a clearer view of startup risks, evidence gaps, priorities, and the decisions that matter next.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "What is Plavtora?",
+    answer:
+      "Plavtora is an AI-powered startup decision system for founders and entrepreneurs. It evaluates startup context, identifies important assumptions and evidence gaps, and helps determine what should be tested or investigated next.",
+  },
+  {
+    question: "Can Plavtora validate a startup idea?",
+    answer:
+      "Plavtora helps pressure-test startup ideas by examining the product, target customer, assumptions, positioning, validation evidence, risks, and launch readiness. It supports validation decisions but does not replace real-world customer or market evidence.",
+  },
+  {
+    question: "Can Plavtora analyze my ideal customer profile?",
+    answer:
+      "Yes. Plavtora includes ICP and persona analysis to help founders examine customer definition, customer fit, and important uncertainties surrounding their target customers.",
+  },
+  {
+    question: "Can Plavtora analyze startup positioning?",
+    answer:
+      "Yes. Plavtora can evaluate positioning and messaging as part of its broader startup analysis, helping identify weaknesses in how a product communicates its value to its intended customers.",
+  },
+  {
+    question: "Does Plavtora give startup founders a task list?",
+    answer:
+      "Plavtora is designed to do more than generate a generic task list. It identifies an important unresolved uncertainty and turns it into a focused Daily Objective with evidence requirements and success signals.",
+  },
+  {
+    question: "What is a Daily Objective in Plavtora?",
+    answer:
+      "A Daily Objective is a focused action intended to reduce an important unresolved uncertainty in a startup. It specifies what to do, what evidence to collect, and what signals would indicate success or failure.",
+  },
+  {
+    question: "Does Plavtora replace startup research or customer validation?",
+    answer:
+      "No. Plavtora helps founders decide what research, validation, or experiment is worth doing next. The resulting evidence should come from real customers, markets, experiments, and other real-world sources.",
+  },
+  {
+    question: "Is Plavtora free?",
+    answer:
+      "Yes. Plavtora has a Free plan that provides limited access to its startup analysis and decision workflow. Premium provides substantially higher usage limits and additional analysis capacity.",
+  },
+];
+
 function ToneDot({ tone }: { tone: string }) {
   const styles: Record<string, string> = {
     amber: "bg-amber-500",
@@ -142,8 +204,63 @@ export default function Home() {
     setActiveInsight((current) => (current + 1) % founderInsights.length);
   };
 
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Plavtora",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: "https://plavtora.com",
+    description:
+      "AI-powered startup decision system for founders that helps pressure-test startup ideas, evaluate ICP and positioning, identify evidence gaps, assess launch readiness, and determine what to test next.",
+    offers: [
+      {
+        "@type": "Offer",
+        name: "Free",
+        price: "0",
+        priceCurrency: "USD",
+        url: "https://plavtora.com",
+      },
+      {
+        "@type": "Offer",
+        name: "Premium",
+        price: "8.99",
+        priceCurrency: "USD",
+        url: "https://plavtora.com",
+      },
+    ],
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#f7f7f5] text-[#111113] selection:bg-violet-200">
+      {/* Structured data for search engines and AI systems */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
       {/* Background system */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute left-[-10%] top-[-15%] h-[650px] w-[650px] rounded-full bg-violet-200/35 blur-[130px]" />
@@ -158,12 +275,15 @@ export default function Home() {
       )}
 
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-black/[0.07] bg-[#f7f7f5]/85 backdrop-blur-xl">
+      <nav
+        aria-label="Main navigation"
+        className="fixed left-0 right-0 top-0 z-50 border-b border-black/[0.07] bg-[#f7f7f5]/85 backdrop-blur-xl"
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5" aria-label="Plavtora home">
             <Image
               src="/icon.png"
-              alt="Plavtora"
+              alt="Plavtora AI startup decision system logo"
               width={34}
               height={34}
               priority
@@ -181,12 +301,19 @@ export default function Home() {
             <a href="#capabilities" className="nav-link">
               Capabilities
             </a>
+            <a href="#who-is-it-for" className="nav-link">
+              For founders
+            </a>
             <a href="#pricing" className="nav-link">
               Pricing
             </a>
             <a href="#how-it-works" className="nav-link">
               How it works
             </a>
+            <a href="#faq" className="nav-link">
+              FAQ
+            </a>
+
             <Button
               type="button"
               size="sm"
@@ -222,18 +349,19 @@ export default function Home() {
                 </div>
 
                 <h1 className="text-[clamp(3.1rem,6vw,5.7rem)] font-semibold leading-[0.96] tracking-[-0.055em]">
-                  Stop guessing
+                  AI startup decision system
                   <span className="block text-zinc-400">
-                    what to do next.
+                    for founders who need to know what to do next.
                   </span>
                 </h1>
 
                 <p className="mt-7 max-w-xl text-[17px] leading-7 text-zinc-600 sm:text-lg">
-                  Plavtora is an AI startup decision system that stress-tests
-                  your startup, identifies the most important unresolved
-                  uncertainty, and turns it into a focused next objective —
-                  then uses the evidence you bring back to decide what deserves
-                  attention next.
+                  Plavtora is an AI-powered startup decision system for founders
+                  and entrepreneurs. It pressure-tests your startup idea,
+                  evaluates your product, ideal customer profile (ICP),
+                  positioning, validation, launch readiness, and risks, then
+                  turns the most important unresolved uncertainty into a
+                  focused next objective.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -259,9 +387,11 @@ export default function Home() {
                 </div>
 
                 <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-zinc-500">
-                  <span>Startup audit</span>
+                  <span>Startup analysis</span>
                   <span className="h-1 w-1 rounded-full bg-zinc-300" />
                   <span>Daily Objectives</span>
+                  <span className="h-1 w-1 rounded-full bg-zinc-300" />
+                  <span>ICP analysis</span>
                   <span className="h-1 w-1 rounded-full bg-zinc-300" />
                   <span>Evidence tracking</span>
                   <span className="h-1 w-1 rounded-full bg-zinc-300" />
@@ -269,7 +399,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Real-product-style hero preview */}
+              {/* Product preview */}
               <div className="relative">
                 <div className="absolute -inset-8 rounded-[40px] bg-violet-200/30 blur-3xl" />
 
@@ -380,8 +510,8 @@ export default function Home() {
 
             <div className="mt-16 grid grid-cols-2 gap-3 border-y border-black/[0.07] py-5 text-center sm:grid-cols-4">
               {[
-                ["01", "Audit"],
-                ["02", "Objective"],
+                ["01", "Startup audit"],
+                ["02", "Daily Objective"],
                 ["03", "Evidence"],
                 ["04", "Next decision"],
               ].map(([number, label]) => (
@@ -403,11 +533,70 @@ export default function Home() {
         </section>
       </AnimatedSection>
 
+      {/* What is Plavtora */}
+      <AnimatedSection>
+        <section
+          aria-labelledby="what-is-plavtora"
+          className="border-y border-black/[0.07] bg-white/60 px-5 py-20 sm:px-6 lg:px-8"
+        >
+          <div className="mx-auto max-w-4xl">
+            <p className="section-kicker">AI startup decision system</p>
+
+            <h2
+              id="what-is-plavtora"
+              className="mt-4 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl"
+            >
+              What is Plavtora?
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-zinc-600">
+              Plavtora is an AI-powered startup decision system that helps
+              founders evaluate a startup, identify weak assumptions and
+              evidence gaps, prioritize the most important uncertainty, and
+              determine what to test next. Instead of producing another
+              generic startup checklist, Plavtora connects startup analysis
+              with evidence-driven decisions and focused next actions.
+            </p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {[
+                {
+                  title: "Startup idea validation",
+                  text: "Pressure-test assumptions before investing more time, money, or effort into a startup idea.",
+                },
+                {
+                  title: "ICP and persona analysis",
+                  text: "Evaluate whether you understand your ideal customers and the uncertainties surrounding your target market.",
+                },
+                {
+                  title: "Startup positioning analysis",
+                  text: "Identify weaknesses in how your product communicates its value to the customers you want to reach.",
+                },
+                {
+                  title: "Launch readiness",
+                  text: "Assess important gaps before increasing acquisition, launching further, or committing additional resources.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-black/[0.07] bg-white p-5"
+                >
+                  <h3 className="font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-600">
+                    {item.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
       {/* Problem */}
       <AnimatedSection>
         <section className="border-y border-black/[0.07] bg-white/45 px-5 py-24 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-5xl text-center">
-            <p className="section-kicker">The problem</p>
+            <p className="section-kicker">The startup decision problem</p>
 
             <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl lg:text-6xl">
               Founders don't lack things to do.
@@ -419,8 +608,8 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-600">
               More features, more content, and more AI-generated task lists
               don't solve that. The hard part is knowing which assumption is
-              weak, which evidence matters, and which decision is worth making
-              next.
+              weak, which evidence matters, and which startup decision is
+              worth making next.
             </p>
           </div>
         </section>
@@ -434,19 +623,21 @@ export default function Home() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-3xl">
-              <p className="section-kicker">What you actually get</p>
+              <p className="section-kicker">Startup analysis and decisions</p>
 
               <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-                An audit that becomes
+                AI startup analysis that becomes
                 <span className="block text-zinc-400">
-                  a decision loop.
+                  an evidence-driven decision loop.
                 </span>
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-600">
-                Plavtora starts with your startup context, identifies the
-                important weaknesses and evidence gaps, then turns the current
-                state into a focused objective worth testing.
+                Plavtora analyzes your startup across product, customer, ICP,
+                positioning, validation, launch readiness, and risk. It
+                identifies important weaknesses and evidence gaps, then turns
+                the current state of your startup into a focused objective
+                worth testing.
               </p>
             </div>
 
@@ -455,7 +646,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">
-                      Audit overview
+                      Startup audit overview
                     </p>
 
                     <h3 className="mt-2 text-xl font-semibold tracking-tight">
@@ -559,7 +750,7 @@ export default function Home() {
 
                 <div className="mt-8 space-y-2">
                   {[
-                    "Weak assumptions",
+                    "Weak startup assumptions",
                     "Critical evidence gaps",
                     "Most important unresolved decision",
                   ].map((item) => (
@@ -596,9 +787,10 @@ export default function Home() {
               </h2>
 
               <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600">
-                Ask it to identify the uncertainty that matters most, tell you
-                how to test it, and update the next decision from the evidence
-                you bring back.
+                Plavtora combines startup validation, customer and ICP
+                analysis, positioning analysis, launch-readiness assessment,
+                evidence tracking, and AI-assisted decision making into one
+                continuous workflow for founders.
               </p>
             </div>
 
@@ -634,7 +826,7 @@ export default function Home() {
         </section>
       </AnimatedSection>
 
-      {/* Decision loop feature */}
+      {/* Daily Objectives */}
       <AnimatedSection>
         <section className="px-5 py-24 sm:px-6 lg:px-8 lg:py-32">
           <div className="mx-auto max-w-7xl">
@@ -643,7 +835,7 @@ export default function Home() {
                 <p className="section-kicker">Daily Objectives</p>
 
                 <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-                  One meaningful decision
+                  One meaningful startup decision
                   <span className="block text-zinc-400">
                     at a time.
                   </span>
@@ -714,6 +906,47 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
+      {/* Who is Plavtora for */}
+      <AnimatedSection>
+        <section
+          id="who-is-it-for"
+          className="border-y border-black/[0.07] bg-white/50 px-5 py-24 sm:px-6 lg:px-8 lg:py-32"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="max-w-3xl">
+              <p className="section-kicker">Built for founders</p>
+
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                A startup decision tool for
+                <span className="block text-zinc-400">
+                  founders at every stage.
+                </span>
+              </h2>
+
+              <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600">
+                Plavtora is designed for founders, entrepreneurs, indie
+                hackers, SaaS builders, and early-stage teams who need to make
+                better decisions under uncertainty.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {audienceTypes.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-[24px] border border-black/[0.08] bg-white p-6"
+                >
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-zinc-600">
+                    {item.text}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -806,7 +1039,7 @@ export default function Home() {
         >
           <div className="mx-auto max-w-6xl">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="section-kicker">Pricing</p>
+              <p className="section-kicker">Startup decision system pricing</p>
 
               <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
                 Experience the decision loop for free.
@@ -838,9 +1071,7 @@ export default function Home() {
                     $0
                   </span>
 
-                  <span className="pb-1 text-sm text-zinc-400">
-                    forever
-                  </span>
+                  <span className="pb-1 text-sm text-zinc-400">forever</span>
                 </div>
 
                 <p className="mt-4 text-sm leading-6 text-zinc-600">
@@ -924,9 +1155,7 @@ export default function Home() {
                     $8.99
                   </span>
 
-                  <span className="pb-1 text-sm text-white/40">
-                    / month
-                  </span>
+                  <span className="pb-1 text-sm text-white/40">/ month</span>
                 </div>
 
                 <p className="mt-4 max-w-lg text-sm leading-6 text-white/50">
@@ -1004,14 +1233,21 @@ export default function Home() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-3xl">
-              <p className="section-kicker">How it works</p>
+              <p className="section-kicker">How Plavtora works</p>
 
               <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-                From uncertainty
+                From startup uncertainty
                 <span className="block text-zinc-400">
                   to evidence, then the next decision.
                 </span>
               </h2>
+
+              <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600">
+                Plavtora turns startup analysis into an iterative workflow:
+                understand the current state, identify uncertainty, take a
+                focused action, capture evidence, and use that evidence to
+                determine what comes next.
+              </p>
             </div>
 
             <div className="mt-14 grid gap-3 md:grid-cols-2">
@@ -1068,20 +1304,21 @@ export default function Home() {
             <div className="grid items-center gap-12 lg:grid-cols-[0.8fr_1.2fr]">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-blue-300">
-                  Free landing page analyzer
+                  Free AI landing page analyzer
                 </p>
 
                 <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-                  Put your landing page
+                  Free AI landing page analyzer
                   <span className="block text-white/35">
-                    under a microscope.
+                    for messaging, positioning, and conversion.
                   </span>
                 </h2>
 
                 <p className="mt-5 max-w-xl text-base leading-7 text-white/50">
-                  See how clearly your page communicates value, positioning,
-                  messaging, trust, and conversion intent before you spend more
-                  on traffic.
+                  Analyze a landing page for clarity, messaging, positioning,
+                  trust, customer alignment, and conversion intent. Use the
+                  analysis to identify weaknesses before sending more traffic
+                  to the page.
                 </p>
 
                 <Button
@@ -1155,6 +1392,44 @@ export default function Home() {
         </section>
       </AnimatedSection>
 
+      {/* FAQ */}
+      <AnimatedSection>
+        <section
+          id="faq"
+          className="border-y border-black/[0.07] bg-white/50 px-5 py-24 sm:px-6 lg:px-8 lg:py-32"
+        >
+          <div className="mx-auto max-w-4xl">
+            <div className="max-w-3xl">
+              <p className="section-kicker">Frequently asked questions</p>
+
+              <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                Questions founders ask about Plavtora.
+              </h2>
+
+              <p className="mt-5 text-base leading-7 text-zinc-600">
+                Understand what Plavtora does, how it approaches startup
+                validation and decision making, and where it fits into a
+                founder's workflow.
+              </p>
+            </div>
+
+            <div className="mt-12 divide-y divide-black/[0.08] border-y border-black/[0.08]">
+              {faqItems.map((faq) => (
+                <details key={faq.question} className="group py-6">
+                  <summary className="cursor-pointer list-none pr-8 text-lg font-semibold tracking-tight">
+                    {faq.question}
+                  </summary>
+
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-600">
+                    {faq.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      </AnimatedSection>
+
       {/* Final CTA */}
       <AnimatedSection>
         <section className="px-5 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-32">
@@ -1210,6 +1485,13 @@ export default function Home() {
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <span>Built for founders who want sharper decisions.</span>
+
+            <Link
+              href="/landing_page_analyzer"
+              className="transition hover:text-zinc-900"
+            >
+              Landing Page Analyzer
+            </Link>
 
             <Link
               href="/privacy"

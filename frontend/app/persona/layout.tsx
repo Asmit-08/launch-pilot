@@ -1,60 +1,52 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free AI User Persona Generator",
+  metadataBase: new URL("https://plavtora.com"),
+
+  title: "Free AI User Persona Generator | ICP & Customer Persona",
 
   description:
-    "Generate detailed AI-powered user personas for your startup, SaaS, or business. Create customer personas with goals, pain points, motivations, buying behavior, and marketing insights in seconds.",
+    "Generate an AI-powered user persona and ideal customer profile for your startup, SaaS, or business. Identify customer goals, pain points, motivations, buying behaviour, objections, marketing channels, and messaging insights.",
 
-  keywords: [
-    "User Persona Generator",
-    "AI User Persona Generator",
-    "Customer Persona Generator",
-    "Buyer Persona Generator",
-    "Create User Persona",
-    "User Persona Maker",
-    "Startup User Persona",
-    "SaaS User Persona",
-    "Customer Persona",
-    "AI Customer Persona",
+  applicationName: "Plavtora",
+
+  authors: [
+    {
+      name: "Plavtora",
+      url: "https://plavtora.com",
+    },
   ],
 
+  creator: "Plavtora",
+  publisher: "Plavtora",
+
+  category: "Business Software",
+
   alternates: {
-    canonical: "https://www.plavtora.com/persona",
+    canonical: "/persona",
   },
 
   openGraph: {
     title: "Free AI User Persona Generator | Plavtora",
-
     description:
-      "Generate detailed customer personas in seconds using AI. Perfect for startup founders, marketers, and SaaS teams.",
-
-    url: "https://www.plavtora.com/persona",
-
+      "Generate an AI-powered user persona and ideal customer profile. Understand customer goals, pain points, motivations, buying behaviour, objections, channels, and messaging.",
+    url: "https://plavtora.com/persona",
     siteName: "Plavtora",
-
+    locale: "en_US",
+    type: "website",
     images: [
       {
         url: "/icon.png",
-        width: 1000,
-        height: 1000,
         alt: "Plavtora AI User Persona Generator",
       },
     ],
-
-    locale: "en_US",
-
-    type: "website",
   },
 
   twitter: {
     card: "summary_large_image",
-
-    title: "Free AI User Persona Generator",
-
+    title: "Free AI User Persona Generator | Plavtora",
     description:
-      "Generate detailed customer personas with AI in seconds.",
-
+      "Generate an AI-powered user persona and ideal customer profile for your startup or SaaS.",
     images: ["/icon.png"],
   },
 

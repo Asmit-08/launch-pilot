@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Check, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -55,10 +56,18 @@ function FAQItem({
 }) {
   const [open, setOpen] = useState(false);
 
+  const id = `faq-${question
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")}`;
+
   return (
     <div className="border-b border-black/[0.08]">
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={id}
         className="flex w-full items-center justify-between gap-6 py-6 text-left"
       >
         <span className="text-[17px] font-medium tracking-[-0.02em] text-[#111113]">
@@ -66,6 +75,7 @@ function FAQItem({
         </span>
 
         <ChevronDown
+          aria-hidden="true"
           className={`h-5 w-5 shrink-0 text-zinc-500 transition-transform duration-300 ${
             open ? "rotate-180" : ""
           }`}
@@ -73,6 +83,7 @@ function FAQItem({
       </button>
 
       <div
+        id={id}
         className={`grid transition-all duration-300 ${
           open ? "grid-rows-[1fr] pb-6" : "grid-rows-[0fr]"
         }`}
@@ -87,6 +98,143 @@ function FAQItem({
   );
 }
 
+const faqItems = [
+  {
+    question: "What is startup validation?",
+    answer:
+      "Startup validation is the process of testing the assumptions behind a startup idea and reducing uncertainty around the problem, customer, solution, value proposition, positioning, and evidence supporting the business.",
+  },
+  {
+    question: "How do I validate a startup idea?",
+    answer:
+      "Start by making the core assumptions explicit. Examine whether the problem is meaningful, identify the customer most affected by it, evaluate the proposed solution, study existing alternatives, test willingness to act or pay, and collect evidence that can change your decision. The goal is not to prove an idea is guaranteed to succeed, but to reduce uncertainty before making larger commitments.",
+  },
+  {
+    question: "When should I validate my startup idea?",
+    answer:
+      "Validate as early as practical, especially before committing significant time or money to building. Validation is also useful after launch when you are uncertain about your ICP, positioning, product direction, customer demand, or the next growth decision.",
+  },
+  {
+    question: "Does startup validation guarantee success?",
+    answer:
+      "No. Validation cannot eliminate uncertainty or predict the future. Its purpose is to identify important assumptions, test what can be tested, gather evidence, and improve the quality of the decisions you make.",
+  },
+  {
+    question: "What should I validate before building a startup?",
+    answer:
+      "The most important areas usually include the problem, target customer, customer need, existing alternatives, proposed solution, value proposition, positioning, willingness to pay or act, and the evidence supporting your assumptions.",
+  },
+  {
+    question: "How is Plavtora different from a startup idea generator?",
+    answer:
+      "Plavtora is designed around decision-making rather than generating more ideas. It examines the startup you bring to it, identifies important uncertainty, and turns that uncertainty into a focused next objective.",
+  },
+  {
+    question: "Can I use Plavtora after I have already launched?",
+    answer:
+      "Yes. Startup validation is not limited to pre-launch ideas. The same decision process can be used when evaluating product direction, ICP, positioning, customer evidence, or other important startup decisions.",
+  },
+];
+
+const validationAreas = [
+  {
+    number: "01",
+    title: "The problem",
+    description:
+      "Is there a meaningful problem, and is it painful or important enough for people to care about solving it?",
+  },
+  {
+    number: "02",
+    title: "The customer",
+    description:
+      "Who experiences the problem most strongly, and is the target customer specific enough to investigate properly?",
+  },
+  {
+    number: "03",
+    title: "The solution",
+    description:
+      "Does the proposed product address the underlying problem rather than simply treating a symptom?",
+  },
+  {
+    number: "04",
+    title: "The value proposition",
+    description:
+      "Can the startup communicate a clear reason why the target customer should choose this solution?",
+  },
+  {
+    number: "05",
+    title: "The positioning",
+    description:
+      "Is the product differentiated enough to occupy a meaningful position relative to existing alternatives?",
+  },
+  {
+    number: "06",
+    title: "The evidence",
+    description:
+      "Which assumptions have support, which are weak, and which still require real-world evidence?",
+  },
+];
+
+const validationSteps = [
+  {
+    step: "01",
+    title: "Define the assumptions",
+    text: "Write down what must be true for the startup to work instead of treating assumptions as facts.",
+  },
+  {
+    step: "02",
+    title: "Identify the customer",
+    text: "Determine who experiences the problem most strongly and whose behaviour or decisions you need to understand.",
+  },
+  {
+    step: "03",
+    title: "Examine the problem",
+    text: "Test whether the problem is meaningful, frequent, urgent, expensive, frustrating, or otherwise important enough to motivate action.",
+  },
+  {
+    step: "04",
+    title: "Evaluate the solution",
+    text: "Check whether the proposed solution addresses the important part of the problem and creates a compelling reason to switch.",
+  },
+  {
+    step: "05",
+    title: "Gather evidence",
+    text: "Use interviews, observed behaviour, existing alternatives, experiments, usage, conversations, or commercial signals to test important assumptions.",
+  },
+  {
+    step: "06",
+    title: "Make the next decision",
+    text: "Use what you learned to decide what should be tested, changed, built, researched, or abandoned next.",
+  },
+];
+
+const evidenceTypes = [
+  {
+    title: "Customer conversations",
+    text: "Interviews and conversations can reveal how people describe the problem, what they currently do, and what they consider important.",
+  },
+  {
+    title: "Observed behaviour",
+    text: "Behaviour is often more informative than stated preference. Look for actions, workarounds, purchases, usage, and existing commitments.",
+  },
+  {
+    title: "Existing alternatives",
+    text: "Study the tools, processes, competitors, spreadsheets, agencies, or manual work customers already use to solve the problem.",
+  },
+  {
+    title: "Willingness to act",
+    text: "Strong validation comes from meaningful behaviour such as signing up, testing a product, agreeing to a pilot, referring others, or paying.",
+  },
+  {
+    title: "Market signals",
+    text: "Search behaviour, communities, competitor demand, commercial activity, and other market signals can help establish whether the problem has broader relevance.",
+  },
+  {
+    title: "Experiments",
+    text: "Small, focused experiments can test specific assumptions without requiring the entire startup to be built first.",
+  },
+];
+
 export default function StartupValidationPage() {
   const router = useRouter();
 
@@ -94,8 +242,83 @@ export default function StartupValidationPage() {
     router.push("/auth");
   };
 
+  const softwareApplicationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Plavtora",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: "https://plavtora.com/startup-validation",
+    description:
+      "AI-powered startup validation and decision support for founders. Examine startup assumptions, identify uncertainty, and determine what deserves attention next.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      description: "Free plan available",
+    },
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Startup Validation Tool | Validate Your Startup Idea with AI",
+    url: "https://plavtora.com/startup-validation",
+    description:
+      "Learn how to validate a startup idea and use Plavtora to examine startup assumptions, uncertainty, customer problems, solutions, positioning, and evidence.",
+    about: [
+      {
+        "@type": "Thing",
+        name: "Startup validation",
+      },
+      {
+        "@type": "Thing",
+        name: "Startup idea validation",
+      },
+      {
+        "@type": "Thing",
+        name: "Startup decision making",
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#f7f7f5] text-[#111113] selection:bg-violet-200">
+      {/* Structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareApplicationSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(webPageSchema),
+        }}
+      />
+
       {/* Background atmosphere */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute left-[-15%] top-[-12%] h-[500px] w-[500px] rounded-full bg-violet-300/20 blur-[120px]" />
@@ -104,10 +327,14 @@ export default function StartupValidationPage() {
       </div>
 
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-black/[0.07] bg-[#f7f7f5]/85 backdrop-blur-xl">
+      <nav
+        aria-label="Primary navigation"
+        className="fixed left-0 right-0 top-0 z-50 border-b border-black/[0.07] bg-[#f7f7f5]/85 backdrop-blur-xl"
+      >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <button
-            onClick={() => router.push("/")}
+          <Link
+            href="/"
+            aria-label="Plavtora home"
             className="flex items-center gap-2.5"
           >
             <Image
@@ -117,10 +344,11 @@ export default function StartupValidationPage() {
               height={28}
               className="rounded-lg"
             />
+
             <span className="text-[17px] font-semibold tracking-[-0.04em]">
               Plavtora
             </span>
-          </button>
+          </Link>
 
           <div className="hidden items-center gap-8 md:flex">
             <a
@@ -131,10 +359,17 @@ export default function StartupValidationPage() {
             </a>
 
             <a
+              href="#how-to-validate"
+              className="text-sm text-zinc-600 transition-colors hover:text-[#111113]"
+            >
+              How to validate
+            </a>
+
+            <a
               href="#process"
               className="text-sm text-zinc-600 transition-colors hover:text-[#111113]"
             >
-              How it works
+              Plavtora
             </a>
 
             <a
@@ -146,6 +381,7 @@ export default function StartupValidationPage() {
           </div>
 
           <button
+            type="button"
             onClick={navigateToAuth}
             className="rounded-full bg-[#111113] px-4 py-2 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
           >
@@ -160,21 +396,24 @@ export default function StartupValidationPage() {
           <AnimatedSection>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/70 px-3.5 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-              Startup validation
+              AI startup validation
             </div>
 
             <h1 className="max-w-4xl text-[clamp(3.2rem,6.2vw,5.9rem)] font-semibold leading-[0.94] tracking-[-0.06em]">
-              Validate your startup before you build further.
+              Validate your startup idea before you build further.
             </h1>
 
             <p className="mt-7 max-w-2xl text-[17px] leading-8 text-zinc-600 sm:text-[18px]">
-              Turn assumptions about your startup into explicit questions,
-              pressure-test what matters, and identify what still needs
-              evidence before you commit more time and resources.
+              Startup validation is the process of testing the assumptions
+              behind an idea before committing more time and resources.
+              Plavtora helps you pressure-test the problem, customer,
+              solution, positioning, and evidence to identify what still needs
+              to be learned.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <button
+                type="button"
                 onClick={navigateToAuth}
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#111113] px-6 py-3.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:shadow-xl"
               >
@@ -183,15 +422,22 @@ export default function StartupValidationPage() {
               </button>
 
               <a
-                href="#validation"
+                href="#how-to-validate"
                 className="inline-flex items-center justify-center rounded-full border border-black/[0.1] bg-white/60 px-6 py-3.5 text-sm font-medium text-[#111113] transition-colors hover:bg-white"
               >
-                See what gets validated
+                Learn how validation works
               </a>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-zinc-500">
+              <span>Problem analysis</span>
+              <span>Customer analysis</span>
+              <span>Solution analysis</span>
+              <span>Evidence gaps</span>
             </div>
           </AnimatedSection>
 
-          {/* Focused validation visual */}
+          {/* Validation visual */}
           <AnimatedSection className="lg:pl-8">
             <div className="relative">
               <div className="absolute -inset-8 rounded-[50px] bg-violet-200/20 blur-3xl" />
@@ -202,6 +448,7 @@ export default function StartupValidationPage() {
                     <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-violet-600">
                       Validation audit
                     </p>
+
                     <p className="mt-1 text-sm font-medium">
                       Startup uncertainty
                     </p>
@@ -278,6 +525,7 @@ export default function StartupValidationPage() {
                   <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-300">
                     Next objective
                   </p>
+
                   <p className="mt-1.5 text-sm leading-6 text-white/85">
                     Gather evidence around the strongest unresolved customer
                     assumption.
@@ -289,12 +537,44 @@ export default function StartupValidationPage() {
         </div>
       </section>
 
+      {/* Direct AEO answer */}
+      <section className="border-y border-black/[0.06] bg-white/50">
+        <div className="mx-auto max-w-5xl px-5 py-20 sm:px-8 lg:py-24">
+          <AnimatedSection>
+            <div className="rounded-[30px] border border-black/[0.07] bg-white p-7 shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:p-10 lg:p-12">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                Quick answer
+              </p>
+
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                What is startup validation?
+              </h2>
+
+              <p className="mt-5 max-w-4xl text-[16px] leading-8 text-zinc-600">
+                Startup validation is the process of testing whether the
+                assumptions behind a startup are credible enough to justify
+                the next investment of time, money, or effort. It usually
+                involves examining the problem, target customer, existing
+                alternatives, proposed solution, value proposition,
+                positioning, and evidence of real customer interest.
+              </p>
+
+              <p className="mt-5 max-w-4xl text-[16px] leading-8 text-zinc-600">
+                Effective validation does not try to prove that a startup will
+                succeed. Instead, it reduces uncertainty and identifies the
+                assumptions that could most change the next decision.
+              </p>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
       {/* Definition */}
-      <section id="validation" className="border-y border-black/[0.06]">
+      <section id="validation">
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-28">
           <AnimatedSection className="max-w-4xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
-              What validation means
+              What validation actually means
             </p>
 
             <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl lg:text-5xl">
@@ -308,12 +588,58 @@ export default function StartupValidationPage() {
 
             <p className="mt-6 max-w-3xl text-[16px] leading-8 text-zinc-600">
               Every startup begins with assumptions. The problem, customer,
-              willingness to pay, positioning, solution and market are all
+              willingness to pay, positioning, solution, and market are
               hypotheses until evidence makes them more credible. Good
               validation makes those assumptions visible and determines which
               ones deserve attention first.
             </p>
           </AnimatedSection>
+        </div>
+      </section>
+
+      {/* How to validate */}
+      <section
+        id="how-to-validate"
+        className="border-y border-black/[0.06] bg-white/45"
+      >
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                How to validate a startup idea
+              </p>
+
+              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+                A practical startup validation process.
+              </h2>
+
+              <p className="mt-5 text-[16px] leading-8 text-zinc-600">
+                You do not need to build the entire product to learn whether
+                its most important assumptions deserve more confidence. Start
+                with the assumptions that could most change your decision.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {validationSteps.map((item) => (
+              <AnimatedSection key={item.step}>
+                <div className="h-full rounded-[26px] border border-black/[0.07] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+                  <span className="text-[11px] font-semibold tracking-[0.15em] text-violet-600">
+                    {item.step}
+                  </span>
+
+                  <h3 className="mt-7 text-xl font-semibold tracking-[-0.03em]">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-7 text-zinc-600">
+                    {item.text}
+                  </p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -330,51 +656,14 @@ export default function StartupValidationPage() {
             </h2>
 
             <p className="mt-4 text-[16px] leading-7 text-zinc-600">
-              Validation needs to examine the assumptions that determine
-              whether the business can actually work.
+              Startup validation needs to examine the assumptions that
+              determine whether the business can actually work.
             </p>
           </div>
         </AnimatedSection>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              number: "01",
-              title: "The problem",
-              description:
-                "Is there a meaningful problem, and is it painful enough for people to care about solving it?",
-            },
-            {
-              number: "02",
-              title: "The customer",
-              description:
-                "Is the target customer specific enough, and does the problem actually exist for that group?",
-            },
-            {
-              number: "03",
-              title: "The solution",
-              description:
-                "Does the proposed product address the underlying problem rather than just its symptoms?",
-            },
-            {
-              number: "04",
-              title: "The value proposition",
-              description:
-                "Can the startup communicate a clear reason why the customer should choose this solution?",
-            },
-            {
-              number: "05",
-              title: "The positioning",
-              description:
-                "Is the product differentiated enough to occupy a meaningful position in the customer's mind?",
-            },
-            {
-              number: "06",
-              title: "The evidence",
-              description:
-                "Which assumptions are supported, which are weak, and which still need to be tested?",
-            },
-          ].map((item) => (
+          {validationAreas.map((item) => (
             <AnimatedSection key={item.number}>
               <div className="group h-full rounded-[26px] border border-black/[0.07] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
                 <div className="flex items-center justify-between">
@@ -382,7 +671,10 @@ export default function StartupValidationPage() {
                     {item.number}
                   </span>
 
-                  <ArrowRight className="h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-1 group-hover:text-zinc-500" />
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-1 group-hover:text-zinc-500"
+                  />
                 </div>
 
                 <h3 className="mt-8 text-xl font-semibold tracking-[-0.03em]">
@@ -398,13 +690,110 @@ export default function StartupValidationPage() {
         </div>
       </section>
 
-      {/* Why validation fails */}
+      {/* Evidence */}
       <section className="bg-[#111113] text-white">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+                Evidence matters
+              </p>
+
+              <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+                Validation gets stronger when assumptions meet real evidence.
+              </h2>
+
+              <p className="mt-5 text-[16px] leading-8 text-white/65">
+                An AI analysis can help structure your thinking and expose
+                uncertainty, but it should not be mistaken for proof of market
+                demand. The strongest validation combines structured analysis
+                with evidence from customers and the market.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {evidenceTypes.map((item) => (
+              <AnimatedSection key={item.title}>
+                <div className="h-full rounded-[26px] border border-white/[0.1] bg-white/[0.04] p-7">
+                  <h3 className="text-lg font-semibold tracking-[-0.03em]">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-7 text-white/55">
+                    {item.text}
+                  </p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Validation mistakes */}
+      <section>
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
           <AnimatedSection>
             <div className="grid gap-14 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                  Common mistakes
+                </p>
+
+                <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-4xl">
+                  Startup validation can fail before the research even starts.
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    title: "Confusing opinions with evidence",
+                    text: "Positive feedback is useful, but it is not equivalent to behaviour, commitment, usage, or payment.",
+                  },
+                  {
+                    title: "Trying to validate everything at once",
+                    text: "Too many questions can create lots of information without revealing which uncertainty actually matters.",
+                  },
+                  {
+                    title: "Building before testing the risky assumption",
+                    text: "A polished product cannot compensate for an untested problem, customer, or demand assumption.",
+                  },
+                  {
+                    title: "Treating validation as a one-time event",
+                    text: "Startups accumulate new evidence and new uncertainty. Validation should inform decisions throughout the product journey.",
+                  },
+                  {
+                    title: "Looking for a guaranteed yes",
+                    text: "The purpose is not to manufacture confidence. Useful validation can reveal that an assumption needs to change.",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-[24px] border border-black/[0.07] bg-white p-6"
+                  >
+                    <h3 className="text-lg font-semibold tracking-[-0.03em]">
+                      {item.title}
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-7 text-zinc-600">
+                      {item.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Why validation fails */}
+      <section className="border-y border-black/[0.06] bg-white/45">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="grid gap-14 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
                   The validation problem
                 </p>
 
@@ -413,21 +802,21 @@ export default function StartupValidationPage() {
                 </h2>
               </div>
 
-              <div className="space-y-6 text-[16px] leading-8 text-white/65">
+              <div className="space-y-6 text-[16px] leading-8 text-zinc-600">
                 <p>
                   Founders can spend weeks reading market reports, talking to
-                  users and collecting opinions without ever identifying the
+                  users, and collecting opinions without ever identifying the
                   assumption that matters most.
                 </p>
 
                 <p>
                   Validation becomes useful when research changes a decision.
-                  The objective is not to collect information indefinitely.
-                  It is to determine what you believe, what you know, what you
-                  do not know, and what should happen next.
+                  The objective is not to collect information indefinitely. It
+                  is to determine what you believe, what you know, what you do
+                  not know, and what should happen next.
                 </p>
 
-                <p className="text-white">
+                <p className="font-medium text-[#111113]">
                   The real output of validation is not a score. It is better
                   decision-making.
                 </p>
@@ -437,66 +826,136 @@ export default function StartupValidationPage() {
         </div>
       </section>
 
-      {/* Process */}
-      <section id="process" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
-        <AnimatedSection>
-          <div className="max-w-3xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
-              The Plavtora approach
-            </p>
+      {/* Startup validation vs other concepts */}
+      <section>
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                Related concepts
+              </p>
 
-            <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
-              Validation becomes a decision loop.
-            </h2>
+              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+                Startup validation is different from simply generating ideas
+                or doing research.
+              </h2>
+            </div>
+          </AnimatedSection>
 
-            <p className="mt-5 text-[16px] leading-8 text-zinc-600">
-              Plavtora does not treat startup validation as a one-time report.
-              It uses analysis to identify the most important uncertainty,
-              turns that uncertainty into an objective, and uses new evidence
-              to determine what deserves attention next.
-            </p>
-          </div>
-        </AnimatedSection>
+          <div className="mt-12 overflow-hidden rounded-[28px] border border-black/[0.07] bg-white">
+            <div className="grid border-b border-black/[0.07] bg-[#fafaf8] text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 md:grid-cols-3">
+              <div className="p-5">Concept</div>
+              <div className="p-5">Primary question</div>
+              <div className="p-5">Purpose</div>
+            </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              step: "01",
-              title: "Diagnose",
-              text: "Surface the assumptions and uncertainties surrounding the startup.",
-            },
-            {
-              step: "02",
-              title: "Decide",
-              text: "Determine which unresolved issue has the greatest impact on the next decision.",
-            },
-            {
-              step: "03",
-              title: "Act",
-              text: "Turn that uncertainty into a focused objective that can produce useful evidence.",
-            },
-            {
-              step: "04",
-              title: "Learn",
-              text: "Bring the evidence back and reassess what deserves attention next.",
-            },
-          ].map((item) => (
-            <AnimatedSection key={item.step}>
-              <div className="h-full rounded-[26px] border border-black/[0.07] bg-white p-7">
-                <span className="text-[11px] font-semibold tracking-[0.15em] text-violet-600">
-                  {item.step}
-                </span>
+            {[
+              {
+                concept: "Startup validation",
+                question: "What assumptions could make this startup fail?",
+                purpose:
+                  "Reduce uncertainty and improve the next decision.",
+              },
+              {
+                concept: "Market research",
+                question: "What is happening in the market?",
+                purpose:
+                  "Understand customers, competitors, trends, and market conditions.",
+              },
+              {
+                concept: "Idea generation",
+                question: "What could we build?",
+                purpose:
+                  "Create potential products, problems, markets, or business ideas.",
+              },
+              {
+                concept: "Customer research",
+                question: "What do target customers experience?",
+                purpose:
+                  "Understand needs, behaviours, motivations, and existing solutions.",
+              },
+            ].map((row) => (
+              <div
+                key={row.concept}
+                className="grid border-b border-black/[0.07] last:border-b-0 md:grid-cols-3"
+              >
+                <div className="p-5 font-semibold">{row.concept}</div>
 
-                <h3 className="mt-8 text-xl font-semibold tracking-[-0.03em]">
-                  {item.title}
-                </h3>
+                <div className="p-5 text-sm leading-7 text-zinc-600">
+                  {row.question}
+                </div>
 
-                <p className="mt-3 text-sm leading-7 text-zinc-600">
-                  {item.text}
-                </p>
+                <div className="p-5 text-sm leading-7 text-zinc-600">
+                  {row.purpose}
+                </div>
               </div>
-            </AnimatedSection>
-          ))}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Plavtora process */}
+      <section id="process" className="bg-[#111113] text-white">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+                The Plavtora approach
+              </p>
+
+              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+                Validation becomes a decision loop.
+              </h2>
+
+              <p className="mt-5 text-[16px] leading-8 text-white/65">
+                Plavtora does not treat startup validation as a one-time
+                report. It uses analysis to identify important uncertainty,
+                turns that uncertainty into an objective, and uses new
+                evidence to determine what deserves attention next.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                step: "01",
+                title: "Diagnose",
+                text: "Surface the assumptions and uncertainties surrounding the startup.",
+              },
+              {
+                step: "02",
+                title: "Decide",
+                text: "Determine which unresolved issue has the greatest impact on the next decision.",
+              },
+              {
+                step: "03",
+                title: "Act",
+                text: "Turn that uncertainty into a focused objective that can produce useful evidence.",
+              },
+              {
+                step: "04",
+                title: "Learn",
+                text: "Bring the evidence back and reassess what deserves attention next.",
+              },
+            ].map((item) => (
+              <AnimatedSection key={item.step}>
+                <div className="h-full rounded-[26px] border border-white/[0.1] bg-white/[0.04] p-7">
+                  <span className="text-[11px] font-semibold tracking-[0.15em] text-violet-300">
+                    {item.step}
+                  </span>
+
+                  <h3 className="mt-8 text-xl font-semibold tracking-[-0.03em]">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-7 text-white/55">
+                    {item.text}
+                  </p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -547,25 +1006,123 @@ export default function StartupValidationPage() {
       </section>
 
       {/* Who it's for */}
-      <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
-        <AnimatedSection>
-          <div className="max-w-3xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
-              Built for founders
-            </p>
+      <section>
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                Built for founders
+              </p>
 
-            <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-              Especially useful when the next move is unclear.
-            </h2>
+              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                Especially useful when the next move is unclear.
+              </h2>
 
-            <p className="mt-5 text-[16px] leading-8 text-zinc-600">
-              Whether you are still evaluating an idea, building an early SaaS
-              product, refining your ICP or trying to decide what to test next,
-              the goal is the same: reduce the uncertainty that is blocking a
-              better decision.
-            </p>
+              <p className="mt-5 text-[16px] leading-8 text-zinc-600">
+                Whether you are evaluating a startup idea, building an early
+                SaaS product, refining your ICP, testing positioning, or
+                deciding what to test next, the goal is the same: reduce the
+                uncertainty that is blocking a better decision.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              "Founders evaluating a new startup idea",
+              "SaaS founders deciding what to build next",
+              "Teams refining their ideal customer profile",
+              "Founders testing product-market assumptions",
+              "Early-stage startups refining positioning",
+              "Builders deciding which assumption to test next",
+            ].map((item) => (
+              <AnimatedSection key={item}>
+                <div className="flex h-full gap-4 rounded-[24px] border border-black/[0.07] bg-white p-6">
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100">
+                    <Check className="h-3.5 w-3.5 text-violet-700" />
+                  </div>
+
+                  <p className="text-sm leading-7 text-zinc-700">{item}</p>
+                </div>
+              </AnimatedSection>
+            ))}
           </div>
-        </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Related Plavtora capabilities */}
+      <section className="border-y border-black/[0.06] bg-white/45">
+        <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32">
+          <AnimatedSection>
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-600">
+                Beyond validation
+              </p>
+
+              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                Startup validation is one part of a larger decision system.
+              </h2>
+
+              <p className="mt-5 text-[16px] leading-8 text-zinc-600">
+                Plavtora is built to help founders work through different
+                startup decisions rather than treating every problem as an
+                idea-validation problem.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <div className="mt-12 grid gap-4 md:grid-cols-2">
+            <AnimatedSection>
+              <Link
+                href="/persona"
+                className="group block h-full rounded-[26px] border border-black/[0.07] bg-white p-7 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-600">
+                    ICP & customer
+                  </p>
+
+                  <ArrowRight className="h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-1 group-hover:text-zinc-500" />
+                </div>
+
+                <h3 className="mt-6 text-xl font-semibold tracking-[-0.03em]">
+                  AI User Persona Generator
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-600">
+                  Explore customer goals, pain points, motivations, buying
+                  behaviour, and other persona insights that can strengthen
+                  your understanding of the target customer.
+                </p>
+              </Link>
+            </AnimatedSection>
+
+            <AnimatedSection>
+              <Link
+                href="/landing_page_analyzer"
+                className="group block h-full rounded-[26px] border border-black/[0.07] bg-white p-7 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-600">
+                    Messaging & conversion
+                  </p>
+
+                  <ArrowRight className="h-4 w-4 text-zinc-300 transition-transform group-hover:translate-x-1 group-hover:text-zinc-500" />
+                </div>
+
+                <h3 className="mt-6 text-xl font-semibold tracking-[-0.03em]">
+                  AI Landing Page Analyzer
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-zinc-600">
+                  Examine landing-page messaging, positioning, clarity, and
+                  conversion factors as part of the broader startup decision
+                  process.
+                </p>
+              </Link>
+            </AnimatedSection>
+          </div>
+        </div>
       </section>
 
       {/* FAQ */}
@@ -580,33 +1137,22 @@ export default function StartupValidationPage() {
               <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
                 Startup validation questions.
               </h2>
+
+              <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-zinc-600">
+                Answers to common questions about validating startup ideas,
+                testing assumptions, gathering evidence, and using AI during
+                the process.
+              </p>
             </div>
 
             <div>
-              <FAQItem
-                question="What is startup validation?"
-                answer="Startup validation is the process of testing the assumptions behind a startup idea and reducing uncertainty around the problem, customer, solution, positioning and evidence supporting the business."
-              />
-
-              <FAQItem
-                question="When should I validate my startup idea?"
-                answer="As early as possible, particularly before committing significant time or resources to building. Validation can also be useful later when you are facing uncertainty around your ICP, positioning, product direction or next growth decision."
-              />
-
-              <FAQItem
-                question="Does validation guarantee that a startup will succeed?"
-                answer="No. Validation cannot eliminate uncertainty or predict the future. Its purpose is to make the important assumptions visible, test what can be tested, and improve the quality of the decisions you make."
-              />
-
-              <FAQItem
-                question="How is Plavtora different from startup idea generators?"
-                answer="Plavtora is designed around decision-making rather than generating more ideas. It examines the startup you bring to it, identifies important uncertainty, and turns that uncertainty into a focused next objective."
-              />
-
-              <FAQItem
-                question="Can I use Plavtora after I have already launched?"
-                answer="Yes. Startup validation is not limited to pre-launch ideas. The same decision process can be used when you are evaluating product direction, ICP, positioning, customer evidence or other important startup decisions."
-              />
+              {faqItems.map((item) => (
+                <FAQItem
+                  key={item.question}
+                  question={item.question}
+                  answer={item.answer}
+                />
+              ))}
             </div>
           </AnimatedSection>
         </div>
@@ -628,11 +1174,12 @@ export default function StartupValidationPage() {
               </h2>
 
               <p className="mt-5 max-w-2xl text-[16px] leading-8 text-white/60">
-                Start with a structured validation audit and find the
+                Start with a structured startup validation audit and find the
                 uncertainty that deserves your attention next.
               </p>
 
               <button
+                type="button"
                 onClick={navigateToAuth}
                 className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-[#111113] transition-transform hover:-translate-y-0.5"
               >
@@ -647,8 +1194,9 @@ export default function StartupValidationPage() {
       {/* Footer */}
       <footer className="border-t border-black/[0.07]">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <button
-            onClick={() => router.push("/")}
+          <Link
+            href="/"
+            aria-label="Plavtora home"
             className="flex items-center gap-2.5"
           >
             <Image
@@ -662,7 +1210,7 @@ export default function StartupValidationPage() {
             <span className="text-sm font-semibold tracking-[-0.03em]">
               Plavtora
             </span>
-          </button>
+          </Link>
 
           <div className="flex flex-wrap gap-6 text-sm text-zinc-500">
             <a
@@ -673,10 +1221,17 @@ export default function StartupValidationPage() {
             </a>
 
             <a
+              href="#how-to-validate"
+              className="transition-colors hover:text-[#111113]"
+            >
+              How to validate
+            </a>
+
+            <a
               href="#process"
               className="transition-colors hover:text-[#111113]"
             >
-              How it works
+              Plavtora
             </a>
 
             <a

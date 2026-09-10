@@ -92,6 +92,90 @@ const loadingStages = [
   },
 ];
 
+const faqItems = [
+  {
+    question: "What is an AI landing page analyzer?",
+    answer:
+      "An AI landing page analyzer evaluates a landing page from signals such as messaging clarity, value proposition, audience alignment, trust, calls to action, and conversion clarity. Plavtora uses these signals to produce a structured landing page analysis and identify areas that may deserve attention.",
+  },
+  {
+    question: "What does Plavtora's landing page analyzer check?",
+    answer:
+      "Plavtora checks landing page messaging, value proposition clarity, conversion clarity, calls to action, trust and credibility signals, and, for Premium users, ICP alignment, conversion problems, and prioritized recommendations.",
+  },
+  {
+    question: "Can I analyze any landing page?",
+    answer:
+      "You can submit a publicly accessible landing page URL. Plavtora reads the public page and analyzes its visible content and conversion signals without modifying the page.",
+  },
+  {
+    question: "Does the landing page analyzer check my ICP?",
+    answer:
+      "Premium users can compare a landing page against their saved ideal customer profile. This helps assess whether the page's messaging and positioning are aligned with the intended buyer.",
+  },
+  {
+    question: "Can Plavtora analyze landing page conversion?",
+    answer:
+      "Plavtora evaluates conversion clarity and signals such as calls to action, trust, messaging, and potential conversion friction. It provides analysis rather than guaranteeing a particular conversion rate.",
+  },
+  {
+    question: "Is Plavtora a landing page builder?",
+    answer:
+      "No. Plavtora is an AI startup decision system. Its landing page analyzer is one component that helps founders evaluate messaging, positioning, audience alignment, and conversion signals.",
+  },
+  {
+    question: "Is the Plavtora landing page analyzer free?",
+    answer:
+      "Plavtora includes a Free plan with limited landing page analyses. Premium provides a larger monthly analysis allowance and additional analysis capabilities.",
+  },
+  {
+    question: "Does Plavtora change my landing page?",
+    answer:
+      "No. The analyzer uses a public landing page URL for analysis and does not modify the landing page.",
+  },
+];
+
+const landingPageAnalysisSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Plavtora AI Landing Page Analyzer",
+  applicationCategory: "BusinessApplication",
+  applicationSubCategory: "Landing Page Analysis",
+  operatingSystem: "Web",
+  url: "https://plavtora.com/landing_page_analyzer",
+  description:
+    "AI landing page analyzer that evaluates messaging, value proposition, audience alignment, trust, calls to action, and conversion clarity.",
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Free",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+    {
+      "@type": "Offer",
+      name: "Premium",
+      price: "8.99",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 function scoreLabel(score: number) {
   if (score >= 8) return "Strong";
   if (score >= 6) return "Needs attention";
@@ -138,6 +222,7 @@ function ScoreMetric({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-slate-500">{title}</p>
+
           {description && (
             <p className="mt-1 text-[11px] leading-5 text-slate-400">
               {description}
@@ -156,6 +241,7 @@ function ScoreMetric({
         <span className="text-3xl font-bold tracking-tight text-slate-950">
           {score}
         </span>
+
         <span className="pb-1 text-sm text-slate-400">/10</span>
       </div>
 
@@ -357,9 +443,7 @@ function LoadingStages() {
 
                   <p
                     className={`mt-1 text-xs leading-5 ${
-                      active
-                        ? "text-white/50"
-                        : "text-slate-400"
+                      active ? "text-white/50" : "text-slate-400"
                     }`}
                   >
                     {stage.description}
@@ -390,6 +474,9 @@ function LandingPageAnalyzerContent() {
   const [usageUsed, setUsageUsed] = useState<number | null>(null);
 
   useEffect(() => {
+    document.title =
+      "AI Landing Page Analyzer | Analyze Messaging & Conversion | Plavtora";
+
     const returnedUrl = searchParams.get("url");
 
     if (returnedUrl) {
@@ -412,6 +499,7 @@ function LandingPageAnalyzerContent() {
           "Failed to load subscription status:",
           error
         );
+
         setIsPremium(false);
       }
     }
@@ -460,6 +548,7 @@ function LandingPageAnalyzerContent() {
           normalizedUrl
         )}`
       );
+
       return;
     }
 
@@ -632,9 +721,7 @@ function LandingPageAnalyzerContent() {
                     key={item}
                     className="rounded-xl border border-white bg-white/70 px-3 py-2.5"
                   >
-                    <span className="mr-2 text-violet-600">
-                      ✓
-                    </span>
+                    <span className="mr-2 text-violet-600">✓</span>
                     {item}
                   </div>
                 ))}
@@ -664,16 +751,31 @@ function LandingPageAnalyzerContent() {
 
   return (
     <main className="min-h-screen bg-[#f7f8fc] text-slate-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(landingPageAnalysisSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/")}
             className="flex items-center gap-3"
+            aria-label="Go to Plavtora homepage"
           >
             <img
               src="/icon.png"
-              alt="Plavtora"
+              alt="Plavtora AI startup decision system"
               className="h-9 w-9 rounded-xl"
             />
 
@@ -683,74 +785,109 @@ function LandingPageAnalyzerContent() {
               </p>
 
               <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
-                Landing Page Intelligence
+                AI Landing Page Analyzer
               </p>
             </div>
           </button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            Dashboard
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="#how-it-works"
+              className="hidden rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 sm:inline-flex"
+            >
+              How it works
+            </a>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Dashboard
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
-        <div className="grid gap-8 lg:grid-cols-[1fr_310px] lg:items-start">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
-              <Globe2 size={13} />
-              AI Landing Page Analyzer
+        {/* HERO */}
+
+        <section aria-labelledby="landing-page-analyzer-heading">
+          <div className="grid gap-8 lg:grid-cols-[1fr_310px] lg:items-start">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                <Globe2 size={13} />
+                AI Landing Page Analyzer
+              </div>
+
+              <h1
+                id="landing-page-analyzer-heading"
+                className="mt-6 max-w-3xl text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl"
+              >
+                AI landing page analyzer for
+                <span className="block text-slate-400">
+                  messaging, positioning, and conversion.
+                </span>
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                Analyze a public landing page with Plavtora to understand
+                how clearly it communicates its value, who it appears to be
+                for, and where conversion friction may exist.
+              </p>
+
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500">
+                Plavtora is an AI startup decision system for founders. The
+                landing page analyzer is one part of that system, focused on
+                turning page-level signals into useful startup and conversion
+                insights.
+              </p>
             </div>
 
-            <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-6xl">
-              Find out why your page
-              <span className="block text-slate-400">
-                converts — or doesn't.
-              </span>
-            </h1>
+            <aside
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              aria-label="Landing page analysis features"
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                What you'll get
+              </p>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Plavtora examines your messaging, positioning, audience fit,
-              trust, and conversion clarity to identify what deserves fixing.
-            </p>
+              <div className="mt-4 space-y-3">
+                {[
+                  "Messaging assessment",
+                  "Value proposition clarity",
+                  "Audience alignment",
+                  "Trust & CTA review",
+                  "Conversion clarity",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 text-sm text-slate-600"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+                      <Check size={11} strokeWidth={3} />
+                    </span>
+
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
+                <ShieldCheck size={14} />
+                Public URL only · No page changes
+              </div>
+            </aside>
           </div>
+        </section>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              What you'll get
-            </p>
+        {/* ANALYZER */}
 
-            <div className="mt-4 space-y-3">
-              {[
-                "Messaging assessment",
-                "Conversion clarity",
-                "Audience alignment",
-                "Trust & CTA review",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-3 text-sm text-slate-600"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-700">
-                    <Check size={11} strokeWidth={3} />
-                  </span>
-                  {item}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
-              <ShieldCheck size={14} />
-              Public URL only · No page changes
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-10 max-w-5xl">
+        <section
+          id="analyzer"
+          aria-labelledby="analyzer-heading"
+          className="mx-auto mt-10 max-w-5xl"
+        >
           {!loading && !result && (
             <div className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
@@ -760,27 +897,35 @@ function LandingPageAnalyzerContent() {
 
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
-                    Start analysis
+                    Free landing page analysis
                   </p>
 
-                  <h2 className="mt-2 text-xl font-bold text-slate-950">
-                    Give Plavtora the page you want to pressure-test.
+                  <h2
+                    id="analyzer-heading"
+                    className="mt-2 text-xl font-bold text-slate-950"
+                  >
+                    Analyze your landing page
                   </h2>
 
                   <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                    Use a public landing page URL. You can optionally compare
-                    it against your saved ICP.
+                    Enter a public landing page URL and let Plavtora
+                    pressure-test the page's messaging and conversion signals.
+                    You can optionally compare it against your saved ICP.
                   </p>
                 </div>
               </div>
 
               <div className="mt-7">
-                <label className="mb-2 block text-sm font-semibold text-slate-800">
+                <label
+                  htmlFor="landing-page-url"
+                  className="mb-2 block text-sm font-semibold text-slate-800"
+                >
                   Landing page URL
                 </label>
 
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
+                    id="landing-page-url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     onKeyDown={(e) => {
@@ -789,6 +934,9 @@ function LandingPageAnalyzerContent() {
                       }
                     }}
                     placeholder="https://yourwebsite.com"
+                    type="url"
+                    inputMode="url"
+                    autoComplete="url"
                     className="h-13 min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 transition focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100"
                   />
 
@@ -805,12 +953,15 @@ function LandingPageAnalyzerContent() {
 
                 <button
                   type="button"
-                  onClick={() => setUseSavedIcp((current) => !current)}
+                  onClick={() =>
+                    setUseSavedIcp((current) => !current)
+                  }
                   className={`mt-4 flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${
                     useSavedIcp
                       ? "border-violet-200 bg-violet-50"
                       : "border-slate-200 bg-slate-50 hover:bg-white"
                   }`}
+                  aria-pressed={useSavedIcp}
                 >
                   <span
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
@@ -836,11 +987,15 @@ function LandingPageAnalyzerContent() {
                 </button>
 
                 {error && (
-                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div
+                    role="alert"
+                    className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  >
                     <TriangleAlert
                       size={16}
                       className="mt-0.5 shrink-0"
                     />
+
                     {error}
                   </div>
                 )}
@@ -876,7 +1031,10 @@ function LandingPageAnalyzerContent() {
 
           {!loading && result && (
             <div className="space-y-5">
-              <section className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm">
+              <section
+                aria-labelledby="analysis-result-heading"
+                className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm"
+              >
                 <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
                   <div className="border-b border-slate-100 p-7 sm:p-9 lg:border-b-0 lg:border-r">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
@@ -893,9 +1051,12 @@ function LandingPageAnalyzerContent() {
                       </span>
                     </div>
 
-                    <p className="mt-4 text-base font-bold text-slate-900">
-                      {scoreLabel(result.overall_score)}
-                    </p>
+                    <h2
+                      id="analysis-result-heading"
+                      className="mt-4 text-base font-bold text-slate-900"
+                    >
+                      {scoreLabel(result.overall_score)} landing page
+                    </h2>
 
                     <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
@@ -912,8 +1073,8 @@ function LandingPageAnalyzerContent() {
                     </div>
 
                     <p className="mt-3 text-xs leading-5 text-slate-400">
-                      Based on the current page content and visible conversion
-                      signals.
+                      Based on the current page content and visible
+                      conversion signals.
                     </p>
                   </div>
 
@@ -927,27 +1088,28 @@ function LandingPageAnalyzerContent() {
                     </p>
 
                     <div className="mt-6 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60">
-                        Messaging
-                      </span>
-
-                      <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60">
-                        Conversion
-                      </span>
-
-                      <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60">
-                        Trust
-                      </span>
-
-                      <span className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60">
-                        Positioning
-                      </span>
+                      {[
+                        "Messaging",
+                        "Conversion",
+                        "Trust",
+                        "Positioning",
+                      ].map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/60"
+                        >
+                          {item}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
               </section>
 
-              <section className="grid gap-3 md:grid-cols-2">
+              <section
+                aria-label="Landing page analysis scores"
+                className="grid gap-3 md:grid-cols-2"
+              >
                 <ScoreMetric
                   title="Messaging"
                   score={result.messaging.score}
@@ -1028,6 +1190,7 @@ function LandingPageAnalyzerContent() {
                   <section className="rounded-[28px] border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50 p-6 sm:p-7">
                     <div className="flex items-center gap-2 text-violet-700">
                       <Sparkles size={16} />
+
                       <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
                         Premium analysis
                       </span>
@@ -1122,6 +1285,7 @@ function LandingPageAnalyzerContent() {
                                 <span className="mr-2 font-bold text-rose-600">
                                   {index + 1}.
                                 </span>
+
                                 {problem}
                               </div>
                             )
@@ -1135,6 +1299,7 @@ function LandingPageAnalyzerContent() {
                       <section className="rounded-[28px] bg-slate-950 p-6 text-white sm:p-7">
                         <div className="flex items-center gap-2 text-violet-300">
                           <Sparkles size={16} />
+
                           <span className="text-[10px] font-bold uppercase tracking-[0.17em]">
                             Prioritized recommendations
                           </span>
@@ -1154,6 +1319,7 @@ function LandingPageAnalyzerContent() {
                                 <span className="mr-2 font-bold text-violet-300">
                                   {index + 1}.
                                 </span>
+
                                 {recommendation}
                               </div>
                             )
@@ -1213,12 +1379,375 @@ function LandingPageAnalyzerContent() {
           {!loading && !result && (
             <div className="mt-5 flex items-center justify-center gap-2 text-center text-xs text-slate-400">
               <ShieldCheck size={14} />
-              Public landing-page URL · Plavtora analyzes without modifying it
+
+              Public landing-page URL · Plavtora analyzes without modifying
+              it
             </div>
           )}
-        </div>
+        </section>
+
+        {/* EXPLANATION / AEO */}
+
+        <section
+          id="what-is-a-landing-page-analyzer"
+          className="mx-auto mt-24 max-w-5xl border-t border-slate-200 pt-16"
+          aria-labelledby="what-is-heading"
+        >
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Landing page analysis
+            </p>
+
+            <h2
+              id="what-is-heading"
+              className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl"
+            >
+              What does an AI landing page analyzer do?
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              An AI landing page analyzer evaluates a page's messaging,
+              value proposition, audience fit, calls to action, trust signals,
+              and other conversion-related signals. The goal is to identify
+              where a landing page may be unclear, misaligned, or creating
+              unnecessary friction.
+            </p>
+
+            <p className="mt-4 text-base leading-8 text-slate-600">
+              Plavtora applies this approach to startup decision-making. Its
+              landing page analyzer gives founders a structured view of what
+              the page communicates and, for Premium analysis, which issues
+              may deserve attention next.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            <AnalysisArea
+              icon={<Target size={18} />}
+              title="Messaging analysis"
+              description="Evaluate whether the page communicates a clear value proposition and core promise."
+            />
+
+            <AnalysisArea
+              icon={<Sparkles size={18} />}
+              title="Value proposition analysis"
+              description="Examine how clearly the main customer-facing benefit comes through."
+            />
+
+            <AnalysisArea
+              icon={<Zap size={18} />}
+              title="Conversion analysis"
+              description="Look for clarity and friction around the actions the page asks visitors to take."
+            />
+
+            <AnalysisArea
+              icon={<ShieldCheck size={18} />}
+              title="Trust analysis"
+              description="Review visible credibility and confidence signals that can affect decision-making."
+            />
+
+            <AnalysisArea
+              icon={<Target size={18} />}
+              title="ICP alignment"
+              description="Premium users can compare the page against their saved ideal customer profile."
+            />
+
+            <AnalysisArea
+              icon={<ArrowRight size={18} />}
+              title="Prioritized recommendations"
+              description="Premium analysis can turn identified problems into a prioritized list of potential improvements."
+            />
+          </div>
+        </section>
+
+        {/* HOW IT WORKS */}
+
+        <section
+          id="how-it-works"
+          className="mx-auto mt-24 max-w-5xl border-t border-slate-200 pt-16"
+          aria-labelledby="how-it-works-heading"
+        >
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">
+              How it works
+            </p>
+
+            <h2
+              id="how-it-works-heading"
+              className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl"
+            >
+              Analyze a landing page in a few steps
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              The analyzer is designed to give founders a fast first-pass
+              assessment without requiring changes to the website being
+              analyzed.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <HowItWorksStep
+              number="01"
+              title="Enter a public URL"
+              description="Paste the URL of the landing page you want Plavtora to examine."
+            />
+
+            <HowItWorksStep
+              number="02"
+              title="Plavtora analyzes the page"
+              description="The system examines visible content and conversion-related signals."
+            />
+
+            <HowItWorksStep
+              number="03"
+              title="Review the findings"
+              description="See the score, analysis, and available recommendations so you can decide what deserves attention."
+            />
+          </div>
+        </section>
+
+        {/* WHO IT IS FOR */}
+
+        <section
+          className="mx-auto mt-24 max-w-5xl border-t border-slate-200 pt-16"
+          aria-labelledby="who-heading"
+        >
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Built for startup teams
+            </p>
+
+            <h2
+              id="who-heading"
+              className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl"
+            >
+              Who can use a landing page analyzer?
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              Landing page analysis is useful when a founder or team needs to
+              pressure-test how a product is being communicated before
+              spending more time or money on acquisition.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Startup founders",
+                description:
+                  "Pressure-test early positioning and customer-facing messaging.",
+              },
+              {
+                title: "SaaS founders",
+                description:
+                  "Review whether a SaaS landing page clearly communicates its value.",
+              },
+              {
+                title: "Indie hackers",
+                description:
+                  "Get a structured second opinion before iterating on a product page.",
+              },
+              {
+                title: "Early-stage teams",
+                description:
+                  "Use page-level analysis alongside broader startup validation work.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <h3 className="text-base font-bold text-slate-950">
+                  {item.title}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PLAVTORA CONTEXT */}
+
+        <section
+          className="mx-auto mt-24 max-w-5xl rounded-[30px] bg-slate-950 p-7 text-white sm:p-10"
+          aria-labelledby="plavtora-context-heading"
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300">
+            Beyond landing pages
+          </p>
+
+          <h2
+            id="plavtora-context-heading"
+            className="mt-3 max-w-3xl text-3xl font-bold tracking-[-0.04em] sm:text-4xl"
+          >
+            Landing page analysis is one part of the Plavtora decision
+            system.
+          </h2>
+
+          <p className="mt-5 max-w-3xl text-base leading-8 text-white/65">
+            A landing page can communicate a startup clearly and still leave
+            important questions unresolved. Plavtora is built to help founders
+            work through those broader decisions, including startup
+            validation, ICP analysis, positioning, launch readiness, evidence,
+            and what deserves attention next.
+          </p>
+
+          <div className="mt-7 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-violet-100"
+            >
+              Explore Plavtora
+              <ArrowRight size={16} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/auth")}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Start with Plavtora
+            </button>
+          </div>
+        </section>
+
+        {/* FAQ */}
+
+        <section
+          id="faq"
+          className="mx-auto mt-24 max-w-5xl border-t border-slate-200 pt-16"
+          aria-labelledby="faq-heading"
+        >
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              Frequently asked questions
+            </p>
+
+            <h2
+              id="faq-heading"
+              className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl"
+            >
+              AI landing page analyzer FAQ
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              Answers to common questions about landing page analysis,
+              conversion analysis, ICP alignment, and Plavtora.
+            </p>
+          </div>
+
+          <div className="mt-10 divide-y divide-slate-200 rounded-[24px] border border-slate-200 bg-white">
+            {faqItems.map((item) => (
+              <details
+                key={item.question}
+                className="group p-5 sm:p-6"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-base font-semibold text-slate-950">
+                  <span>{item.question}</span>
+
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* FINAL CTA */}
+
+        <section className="mx-auto mt-24 max-w-5xl pb-12 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+            Start with the page
+          </p>
+
+          <h2 className="mx-auto mt-3 max-w-3xl text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl">
+            Find out what your landing page is actually communicating.
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-500">
+            Enter a public URL above and use Plavtora to pressure-test the
+            messaging, positioning, audience fit, and conversion signals on
+            your page.
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("analyzer")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-violet-600"
+          >
+            Analyze Your Landing Page
+            <ArrowRight size={16} />
+          </button>
+        </section>
       </div>
     </main>
+  );
+}
+
+function AnalysisArea({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-700">
+        {icon}
+      </div>
+
+      <h3 className="mt-4 text-base font-bold text-slate-950">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-500">
+        {description}
+      </p>
+    </article>
+  );
+}
+
+function HowItWorksStep({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-[10px] font-bold tracking-[0.18em] text-violet-600">
+        {number}
+      </p>
+
+      <h3 className="mt-4 text-lg font-bold text-slate-950">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-slate-500">
+        {description}
+      </p>
+    </article>
   );
 }
 

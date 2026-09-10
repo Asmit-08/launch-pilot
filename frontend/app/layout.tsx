@@ -17,12 +17,56 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://plavtora.com"),
 
   title: {
-    default: "Plavtora | AI Startup Decision System for Founders",
+    default:
+      "Plavtora | AI Startup Decision System for Founders & Entrepreneurs",
     template: "%s | Plavtora",
   },
 
   description:
-    "Plavtora is an AI startup decision system for founders. Pressure-test your startup idea, validate your ICP and positioning, assess launch readiness, and decide what deserves attention next.",
+    "Plavtora is an AI-powered startup decision system for founders and entrepreneurs. Pressure-test startup ideas, validate your ICP, evaluate positioning, identify risks and assumptions, assess launch readiness, and determine what to focus on next.",
+
+  applicationName: "Plavtora",
+
+  keywords: [
+    "AI startup decision system",
+    "startup decision system",
+    "AI for founders",
+    "AI startup tool",
+    "startup idea validation",
+    "startup idea validator",
+    "startup validation tool",
+    "startup analysis",
+    "startup analysis tool",
+    "startup decision making",
+    "founder decision making",
+    "AI business analysis",
+    "AI business validation",
+    "ICP validation",
+    "ideal customer profile validation",
+    "startup positioning",
+    "product positioning",
+    "startup launch readiness",
+    "startup strategy tool",
+    "founder tools",
+    "entrepreneur tools",
+    "AI tools for entrepreneurs",
+    "startup research tool",
+    "startup growth strategy",
+    "startup risk analysis",
+    "startup assumption testing",
+  ],
+
+  authors: [
+    {
+      name: "Plavtora",
+      url: "https://plavtora.com",
+    },
+  ],
+
+  creator: "Plavtora",
+  publisher: "Plavtora",
+
+  category: "Business Software",
 
   alternates: {
     canonical: "/",
@@ -39,9 +83,10 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "Plavtora | AI Startup Decision System for Founders",
+    title:
+      "Plavtora | AI Startup Decision System for Founders & Entrepreneurs",
     description:
-      "Pressure-test your startup, validate critical assumptions, and decide what deserves attention next.",
+      "Pressure-test startup ideas, validate your ICP and positioning, identify critical assumptions and risks, assess launch readiness, and decide what deserves attention next.",
     url: "https://plavtora.com",
     siteName: "Plavtora",
     locale: "en_US",
@@ -51,22 +96,31 @@ export const metadata: Metadata = {
         url: "/icon.png",
         width: 1200,
         height: 630,
-        alt: "Plavtora — AI Startup Decision System for Founders",
+        alt:
+          "Plavtora — AI-powered startup decision system for founders and entrepreneurs",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Plavtora | AI Startup Decision System for Founders",
+    title:
+      "Plavtora | AI Startup Decision System for Founders & Entrepreneurs",
     description:
-      "Pressure-test your startup, validate critical assumptions, and decide what deserves attention next.",
+      "Pressure-test startup ideas, validate ICP and positioning, identify risks, assess launch readiness, and make better startup decisions with AI.",
     images: ["/icon.png"],
   },
 
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -90,3 +144,4 @@ export default function RootLayout({
     </html>
   );
 }
+
