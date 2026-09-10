@@ -474,8 +474,6 @@ function LandingPageAnalyzerContent() {
   const [usageUsed, setUsageUsed] = useState<number | null>(null);
 
   useEffect(() => {
-    document.title =
-      "AI Landing Page Analyzer | Analyze Messaging & Conversion | Plavtora";
 
     const returnedUrl = searchParams.get("url");
 

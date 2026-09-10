@@ -1494,6 +1494,13 @@ export default function Home() {
             </Link>
 
             <Link
+              href="/persona"
+              className="transition hover:text-zinc-900"
+            >
+              AI User Persona Generator
+            </Link>
+
+            <Link
               href="/privacy"
               className="transition hover:text-zinc-900"
             >
