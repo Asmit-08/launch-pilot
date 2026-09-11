@@ -3,8 +3,7 @@
 import {
   Rocket,
   Globe,
-  MessageSquare,
-  BarChart3,
+  UserRound,
 } from "lucide-react";
 
 import ActionCard from "./ActionCard";
@@ -25,20 +24,11 @@ const actions = [
     icon: <Globe size={21} />,
   },
   {
-    title: "AI Co-founder",
+    title: "Persona Generator",
     description:
-      "Have deeper strategic conversations around your product, launch and growth decisions.",
-    href: "/billing",
-    icon: <MessageSquare size={21} />,
-    premium: true,
-  },
-  {
-    title: "Launch Readiness",
-    description:
-      "Turn your product assessment into a clearer launch plan and track what still needs attention.",
-    href: "/billing",
-    icon: <BarChart3 size={21} />,
-    premium: true,
+      "Build a clearer picture of your ideal customer and understand who your product is actually for.",
+    href: "/persona-generator",
+    icon: <UserRound size={21} />,
   },
 ];
 
@@ -65,7 +55,6 @@ export default function ActionGrid() {
             description={action.description}
             href={action.href}
             icon={action.icon}
-            premium={action.premium}
           />
         ))}
       </div>
