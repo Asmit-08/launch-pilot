@@ -27,7 +27,7 @@ const actions = [
     title: "Persona Generator",
     description:
       "Build a clearer picture of your ideal customer and understand who your product is actually for.",
-    href: "/persona-generator",
+    href: "/persona",
     icon: <UserRound size={21} />,
   },
 ];
