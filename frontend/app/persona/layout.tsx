@@ -1,26 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://plavtora.com"),
+  metadataBase: new URL("https://www.plavtora.com"),
 
-  title: "Free AI User Persona Generator | Customer Persona Tool",
+  title: "Free AI User Persona Generator | Plavtora",
 
   description:
-    "Generate a detailed user persona and ideal customer profile with AI. Identify customer goals, pain points, motivations, buying behaviour, objections, marketing channels, and messaging insights.",
+    "Generate a detailed user persona and ideal customer profile with AI. Identify customer goals, pain points, motivations, buying behaviour, objections, channels, and messaging insights.",
 
   applicationName: "Plavtora",
-
-  authors: [
-    {
-      name: "Plavtora",
-      url: "https://plavtora.com",
-    },
-  ],
-
-  creator: "Plavtora",
-  publisher: "Plavtora",
-
-  category: "Business Software",
 
   alternates: {
     canonical: "/persona",
@@ -30,13 +18,13 @@ export const metadata: Metadata = {
     title: "Free AI User Persona Generator | Plavtora",
     description:
       "Generate a detailed user persona and ideal customer profile with AI. Understand customer goals, pain points, motivations, buying behaviour, objections, channels, and messaging.",
-    url: "https://plavtora.com/persona",
+    url: "https://www.plavtora.com/persona",
     siteName: "Plavtora",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/icon.png",
+        url: "/og-user-persona-generator.png",
         width: 1200,
         height: 630,
         alt: "Plavtora AI User Persona Generator",
@@ -49,13 +37,12 @@ export const metadata: Metadata = {
     title: "Free AI User Persona Generator | Plavtora",
     description:
       "Generate a detailed user persona and ideal customer profile with AI.",
-    images: ["/icon.png"],
+    images: ["/og-user-persona-generator.png"],
   },
 
   robots: {
     index: true,
     follow: true,
-
     googleBot: {
       index: true,
       follow: true,

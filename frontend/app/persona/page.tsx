@@ -1311,7 +1311,7 @@ export default function PersonaPage() {
                   </>
                 ) : (
                   <>
-                    Generate ICP
+                    Generate User Persona
                     <ArrowRight size={17} />
                   </>
                 )}
@@ -1320,6 +1320,56 @@ export default function PersonaPage() {
           </section>
         </form>
       </div>
+
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              What you get
+            </p>
+
+            <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl">
+              What does Plavtora&apos;s AI user persona generator create?
+            </h2>
+
+            <p className="mt-5 text-lg leading-8 text-slate-600">
+              Plavtora turns your product context into a structured customer
+              hypothesis. Depending on your plan, the result can cover the
+              ideal customer profile, persona description, goals, pain points,
+              motivations, buying behaviour, objections, channels, messaging,
+              and content ideas.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Ideal customer profile", "Define the customer or organization that may be the strongest fit."],
+              ["Persona profile", "Describe a representative customer and their decision-making context."],
+              ["Goals & pain points", "Understand what the customer may want and what may be blocking them."],
+              ["Motivations & triggers", "Explore why the customer may change behaviour or consider a solution."],
+              ["Objections & behaviour", "Anticipate evaluation patterns, hesitation, and purchasing considerations."],
+              ["Channels & messaging", "Generate hypotheses about where to reach the audience and how to communicate."],
+            ].map(([title, description]) => (
+              <div
+                key={title}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+              >
+                <h3 className="font-semibold text-slate-950">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <p className="text-sm leading-7 text-slate-700">
+              <strong className="text-slate-950">Important:</strong> an AI-generated
+              persona is a hypothesis, not verified market research. Use real
+              customer interviews, behaviour, analytics, surveys, and demand
+              signals to test the assumptions that matter.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="border-y border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
@@ -1630,8 +1680,8 @@ export default function PersonaPage() {
               ],
               [
                 "3",
-                "Generate the ICP",
-                "Plavtora creates a structured ideal customer profile and persona hypothesis.",
+                "Generate the user persona",
+                "Plavtora creates a structured ideal customer profile and user persona hypothesis.",
               ],
               [
                 "4",
@@ -1886,6 +1936,50 @@ export default function PersonaPage() {
         </div>
       </section>
 
+      <section className="bg-slate-50">
+        <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-600">
+              From hypothesis to evidence
+            </p>
+
+            <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl">
+              Turn persona assumptions into validation questions
+            </h2>
+
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+              A useful persona does not stop at describing a customer. It gives
+              you assumptions to investigate. For each important assumption,
+              identify what evidence would increase or decrease your confidence.
+            </p>
+          </div>
+
+          <div className="mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <table className="w-full text-left">
+              <thead className="bg-slate-100">
+                <tr>
+                  <th className="p-5 text-sm font-semibold text-slate-950">Persona assumption</th>
+                  <th className="p-5 text-sm font-semibold text-slate-950">Useful evidence</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm text-slate-600">
+                {[
+                  ["The customer has this problem", "Interviews, observed workflow, support requests, or behavioural data"],
+                  ["The problem is important", "Repeated mentions, current workarounds, urgency, or willingness to change"],
+                  ["The customer wants this outcome", "Past behaviour, stated priorities, experiments, or product usage"],
+                  ["The customer may pay for a solution", "Pricing conversations, purchases, trials, or other demand signals"],
+                ].map(([assumption, evidence]) => (
+                  <tr key={assumption} className="border-t border-slate-200">
+                    <td className="p-5 font-medium text-slate-900">{assumption}</td>
+                    <td className="p-5">{evidence}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section>
         <div className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
           <h2 className="text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-4xl">
@@ -2123,8 +2217,8 @@ export default function PersonaPage() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/60">
-            Generate an AI-powered ICP and user persona, then validate the
-            assumptions against real customers.
+            Generate an AI-powered ideal customer profile and user persona, then
+            validate the assumptions against real customers.
           </p>
 
           <a
