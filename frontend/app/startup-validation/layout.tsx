@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://plavtora.com"),
+  metadataBase: new URL("https://www.plavtora.com"),
 
   title: "Startup Validation Tool | Validate Your Startup Idea with AI",
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "Plavtora",
-      url: "https://plavtora.com",
+      url: "https://www.plavtora.com",
     },
   ],
 
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "Startup Validation Tool | Plavtora",
     description:
       "Validate your startup idea with AI. Examine the problem, customer, solution, positioning, assumptions, and evidence to identify uncertainty and decide what deserves attention next.",
-    url: "https://plavtora.com/startup-validation",
+    url: "https://www.plavtora.com/startup-validation",
     siteName: "Plavtora",
     locale: "en_US",
     type: "website",
