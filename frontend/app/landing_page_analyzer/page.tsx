@@ -16,8 +16,8 @@ import {
   Zap,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
 import { getCurrentUser } from "@/services/user";
+import { supabase } from "@/lib/supabase";
 
 type AnalysisResult = {
   overall_score: number;
@@ -505,11 +505,29 @@ function LandingPageAnalyzerContent() {
     loadPremiumStatus();
   }, []);
 
+  async function goToProtected(path: string) {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        router.push(path);
+        return;
+      }
+
+      router.push(`/auth?redirect=${encodeURIComponent(path)}`);
+    } catch (error) {
+      console.error("Failed to check authentication:", error);
+      router.push(`/auth?redirect=${encodeURIComponent(path)}`);
+    }
+  }
+
   async function handleAnalyze() {
     setError("");
     setResult(null);
 
-    if (usageExhausted) {
+  if (usageExhausted) {
       return;
     }
 
@@ -533,20 +551,6 @@ function LandingPageAnalyzerContent() {
       new URL(normalizedUrl);
     } catch {
       setError("Enter a valid landing page URL.");
-      return;
-    }
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      router.push(
-        `/auth?redirect=/landing_page_analyzer&url=${encodeURIComponent(
-          normalizedUrl
-        )}`
-      );
-
       return;
     }
 
@@ -581,7 +585,6 @@ function LandingPageAnalyzerContent() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             url: normalizedUrl,
@@ -728,7 +731,7 @@ function LandingPageAnalyzerContent() {
 
             <button
               type="button"
-              onClick={() => router.push("/billing")}
+              onClick={() => goToProtected("/billing")}
               className="mt-7 h-12 w-full rounded-xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-violet-600"
             >
               Upgrade to Premium
@@ -736,7 +739,7 @@ function LandingPageAnalyzerContent() {
 
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => goToProtected("/dashboard")}
               className="mt-3 h-12 w-full rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Back to Dashboard
@@ -798,7 +801,7 @@ function LandingPageAnalyzerContent() {
 
             <button
               type="button"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => goToProtected("/dashboard")}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Dashboard
@@ -1174,7 +1177,7 @@ function LandingPageAnalyzerContent() {
 
                     <button
                       type="button"
-                      onClick={() => router.push("/billing")}
+                      onClick={() => goToProtected("/billing")}
                       className="shrink-0 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
                     >
                       Unlock Premium
@@ -1365,7 +1368,7 @@ function LandingPageAnalyzerContent() {
 
                 <button
                   type="button"
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => goToProtected("/dashboard")}
                   className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
                 >
                   Go to Dashboard

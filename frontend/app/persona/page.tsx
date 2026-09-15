@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getSession } from "@/services/session";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 import {
@@ -315,10 +316,6 @@ export default function PersonaPage() {
 
       const session = await getSession();
 
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL;
 
@@ -334,7 +331,6 @@ export default function PersonaPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify(payload),
         }
@@ -422,70 +418,30 @@ export default function PersonaPage() {
     }
   };
 
-  useEffect(() => {
-    async function resumePendingGeneration() {
-      const pending =
-        sessionStorage.getItem(
-          "pending_persona_generation"
-        );
+  async function goToProtected(path: string) {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!pending) {
+      if (session) {
+        window.location.href = path;
         return;
       }
 
-      const session = await getSession();
-
-      if (!session) {
-        return;
-      }
-
-      try {
-        const savedFormData =
-          JSON.parse(pending);
-
-        setFormData(savedFormData);
-
-        sessionStorage.removeItem(
-          "pending_persona_generation"
-        );
-
-        await generatePersona(
-          savedFormData
-        );
-      } catch (error) {
-        console.error(
-          "Failed to resume persona generation:",
-          error
-        );
-
-        sessionStorage.removeItem(
-          "pending_persona_generation"
-        );
-      }
+      window.location.href =
+        `/auth?redirect=${encodeURIComponent(path)}`;
+    } catch (error) {
+      console.error("Failed to check authentication:", error);
+      window.location.href =
+        `/auth?redirect=${encodeURIComponent(path)}`;
     }
-
-    resumePendingGeneration();
-  }, []);
+  }
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
-
-    const session = await getSession();
-
-    if (!session) {
-      sessionStorage.setItem(
-        "pending_persona_generation",
-        JSON.stringify(formData)
-      );
-
-      window.location.href =
-        "/auth?redirect=/persona";
-
-      return;
-    }
-
     await generatePersona(formData);
   };
 
@@ -579,9 +535,7 @@ export default function PersonaPage() {
 
               <Button
                 type="button"
-                onClick={() => {
-                  window.location.href = "/billing";
-                }}
+                onClick={() => void goToProtected("/billing")}
                 className="h-12 rounded-xl bg-slate-950 text-white hover:bg-violet-600"
               >
                 Upgrade to Premium
@@ -753,12 +707,13 @@ export default function PersonaPage() {
               className="h-8 w-8 rounded-lg"
             />
 
-            <Link
-              href="/dashboard"
+            <button
+              type="button"
+              onClick={() => void goToProtected("/dashboard")}
               className="rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-600"
             >
               Dashboard
-            </Link>
+            </button>
           </div>
         </header>
 
@@ -869,13 +824,14 @@ export default function PersonaPage() {
                   </div>
                 </div>
 
-                <Link
-                  href="/billing"
+                <button
+                  type="button"
+                  onClick={() => void goToProtected("/billing")}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-600"
                 >
                   Unlock Premium
                   <ArrowRight size={16} />
-                </Link>
+                </button>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1014,13 +970,14 @@ export default function PersonaPage() {
                 </p>
               </div>
 
-              <Link
-                href="/dashboard"
+              <button
+                type="button"
+                onClick={() => void goToProtected("/dashboard")}
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-100"
               >
                 Continue with Plavtora
                 <ArrowRight size={16} />
-              </Link>
+              </button>
             </div>
           </section>
         </div>
@@ -1034,8 +991,9 @@ export default function PersonaPage() {
 
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={() => void goToProtected("/dashboard")}
             className="flex items-center gap-3"
           >
             <img
@@ -1053,14 +1011,15 @@ export default function PersonaPage() {
                 Customer intelligence
               </p>
             </div>
-          </Link>
+          </button>
 
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={() => void goToProtected("/dashboard")}
             className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Dashboard
-          </Link>
+          </button>
         </div>
       </header>
 
