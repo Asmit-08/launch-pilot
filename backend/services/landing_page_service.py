@@ -9,121 +9,100 @@ from services.landing_page_fetcher import fetch_landing_page
 class LandingPageService:
 
     @staticmethod
-    def analyze_landing_page(data, current_user):
+    def analyze_landing_page(data, current_user=None):
 
-        # ---------------------------------------------------------
         # 1. Fetch landing page
-        # ---------------------------------------------------------
-
-        # If this fails, let the exception propagate.
-        # The router therefore will NOT consume usage.
         page_data = fetch_landing_page(data.url)
 
-        # ---------------------------------------------------------
-        # 2. Get saved ICP context
-        # ---------------------------------------------------------
-
+        # 2. Get saved ICP context only for authenticated users
         icp_context = None
 
-        if data.use_saved_icp:
+        if data.use_saved_icp and current_user:
             icp_context = current_user.get("icp_context")
 
-        # ---------------------------------------------------------
         # 3. Run AI analysis
-        # ---------------------------------------------------------
-
-        # If AI generation fails, let the exception propagate.
-        # The router therefore will NOT consume usage.
         result = landing_page_agent(
             page_data,
             icp_context,
         )
 
-        # ---------------------------------------------------------
-        # 4. Save analysis
-        # ---------------------------------------------------------
-        #
-        # Storage failure is intentionally non-fatal.
-        # The analysis itself was already successfully generated.
-        # ---------------------------------------------------------
+        # 4. Save analysis only for authenticated users
+        if current_user:
+            try:
+                user_id = current_user["id"]
 
-        try:
-
-            user_id = current_user["id"]
-
-            category_scores = {
-                "value_proposition": result.get(
-                    "value_proposition",
-                    {},
-                ),
-                "messaging": result.get(
-                    "messaging",
-                    {},
-                ),
-                "cta": result.get(
-                    "cta",
-                    {},
-                ),
-                "trust": result.get(
-                    "trust",
-                    {},
-                ),
-                "conversion_clarity": result.get(
-                    "conversion_clarity",
-                    {},
-                ),
-                "icp_alignment": result.get(
-                    "icp_alignment",
-                    {},
-                ),
-            }
-
-            supabase.table(
-                "landing_page_analyses"
-            ).insert(
-                {
-                    "user_id": user_id,
-                    "project_id": None,
-                    "url": page_data.get(
-                        "url",
-                        data.url,
+                category_scores = {
+                    "value_proposition": result.get(
+                        "value_proposition",
+                        {},
                     ),
-                    "overall_score": result.get(
-                        "overall_score",
-                        0,
+                    "messaging": result.get(
+                        "messaging",
+                        {},
                     ),
-                    "category_scores": category_scores,
-                    "analysis_json": result,
-                    "created_at": datetime.now(
-                        timezone.utc
-                    ).isoformat(),
+                    "cta": result.get(
+                        "cta",
+                        {},
+                    ),
+                    "trust": result.get(
+                        "trust",
+                        {},
+                    ),
+                    "conversion_clarity": result.get(
+                        "conversion_clarity",
+                        {},
+                    ),
+                    "icp_alignment": result.get(
+                        "icp_alignment",
+                        {},
+                    ),
                 }
-            ).execute()
 
-            print(
-                "Landing page analysis saved successfully."
-            )
+                supabase.table(
+                    "landing_page_analyses"
+                ).insert(
+                    {
+                        "user_id": user_id,
+                        "project_id": None,
+                        "url": page_data.get(
+                            "url",
+                            data.url,
+                        ),
+                        "overall_score": result.get(
+                            "overall_score",
+                            0,
+                        ),
+                        "category_scores": category_scores,
+                        "analysis_json": result,
+                        "created_at": datetime.now(
+                            timezone.utc
+                        ).isoformat(),
+                    }
+                ).execute()
 
-        except Exception as storage_error:
+                print(
+                    "Landing page analysis saved successfully."
+                )
 
-            # Storage failure does NOT invalidate the successful
-            # analysis.
-            print(
-                "Landing Page Storage Error:",
-                storage_error,
-            )
+            except Exception as storage_error:
+                print(
+                    "Landing Page Storage Error:",
+                    storage_error,
+                )
 
-        # ---------------------------------------------------------
-        # 5. Premium
-        # ---------------------------------------------------------
-
-        if has_premium_access(current_user):
+        # 5. Premium is available only to authenticated
+        #    users with premium access
+        if current_user and has_premium_access(current_user):
             return result
 
-        # ---------------------------------------------------------
-        # 6. Free
-        # ---------------------------------------------------------
-
+        # 6. Free response
+        #
+        # This applies to:
+        # - anonymous visitors
+        # - authenticated free users
+        #
+        # Anonymous users therefore receive the same
+        # limited analysis surface as the free plan.
         return {
             "overall_score": result.get(
                 "overall_score",

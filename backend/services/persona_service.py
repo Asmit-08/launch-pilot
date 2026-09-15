@@ -8,7 +8,7 @@ from database.supabase_fetcher import supabase
 class PersonaService:
 
     @staticmethod
-    def generate_persona(data, current_user):
+    def generate_persona(data, current_user=None):
 
         # ---------------------------------------------------------
         # 1. Generate the complete persona
@@ -24,74 +24,78 @@ class PersonaService:
         # 2. Save compact ICP memory
         # ---------------------------------------------------------
 
+        # Anonymous users do not have a database user record,
+        # so ICP memory is saved only for authenticated users.
+        #
         # Memory failure must NOT invalidate a successful generation.
-        try:
+        if current_user:
+            try:
 
-            icp_context = {
-                "inputs": {
-                    "what_are_you_building": data.what_are_you_building,
-                    "product_description": data.product_description,
-                    "additional_details": data.additional_details,
-                },
+                icp_context = {
+                    "inputs": {
+                        "what_are_you_building": data.what_are_you_building,
+                        "product_description": data.product_description,
+                        "additional_details": data.additional_details,
+                    },
 
-                "executive_summary": result.get(
-                    "executive_summary",
-                    "",
-                ),
+                    "executive_summary": result.get(
+                        "executive_summary",
+                        "",
+                    ),
 
-                "persona": result.get(
-                    "persona",
-                    {},
-                ),
+                    "persona": result.get(
+                        "persona",
+                        {},
+                    ),
 
-                "confidence_score": result.get(
-                    "confidence_score",
-                    0,
-                ),
+                    "confidence_score": result.get(
+                        "confidence_score",
+                        0,
+                    ),
 
-                "updated_at": datetime.now(
-                    timezone.utc
-                ).isoformat(),
-            }
-
-            # Remove empty optional fields.
-            icp_context["inputs"] = {
-                key: value
-                for key, value in icp_context["inputs"].items()
-                if value not in (None, "")
-            }
-
-            user_id = current_user["id"]
-
-            supabase.table("users").update(
-                {
-                    "icp_context": icp_context,
+                    "updated_at": datetime.now(
+                        timezone.utc
+                    ).isoformat(),
                 }
-            ).eq(
-                "id",
-                user_id,
-            ).execute()
 
-            print("ICP memory saved successfully.")
+                # Remove empty optional fields.
+                icp_context["inputs"] = {
+                    key: value
+                    for key, value in icp_context["inputs"].items()
+                    if value not in (None, "")
+                }
 
-        except Exception as memory_error:
+                user_id = current_user["id"]
 
-            # A database/memory failure does NOT affect the
-            # already-successful ICP generation.
-            print(
-                "ICP Memory Error:",
-                memory_error,
-            )
+                supabase.table("users").update(
+                    {
+                        "icp_context": icp_context,
+                    }
+                ).eq(
+                    "id",
+                    user_id,
+                ).execute()
+
+                print("ICP memory saved successfully.")
+
+            except Exception as memory_error:
+
+                # A database/memory failure does NOT affect the
+                # already-successful ICP generation.
+                print(
+                    "ICP Memory Error:",
+                    memory_error,
+                )
 
         # ---------------------------------------------------------
         # 3. Apply subscription-based response filtering
         # ---------------------------------------------------------
 
-        if has_premium_access(current_user):
+        if current_user and has_premium_access(current_user):
             return result
 
         # ---------------------------------------------------------
-        # Free users
+        # Free / anonymous users
         # ---------------------------------------------------------
 
         return {
